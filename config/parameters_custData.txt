@@ -1,0 +1,81 @@
+Parameters:
+- random_seed
+- multiplicity_of_infection
+- use_single_infected_cell
+- color_variable
+- apoptotic_immune_color
+- apoptotic_epithelium_color
+- CD8_Tcell_color
+- CD4_Tcell_color
+- Macrophage_color
+- activated_macrophage_color
+- exhausted_macrophage_color
+- hyperactivated_macrophage_color
+- Neutrophil_color
+- DC_color
+- activated_DC_color
+- epithelial_opacity
+- non_epithelial_opacity
+- perecentage_tissue_vascularized
+- epsilon_distance
+- DC_induced_CD8_attachment
+- DC_induced_CD8_proliferation
+- DS_needed_for_DC_activation
+- immune_dt
+- macrophage_max_recruitment_rate
+- macrophage_recruitment_min_signal
+- macrophage_recruitment_saturation_signal
+- neutrophil_max_recruitment_rate
+- neutrophil_recruitment_min_signal
+- neutrophil_recruitment_saturation_signal
+- number_of_CD8_Tcells
+- number_of_macrophages
+- number_of_neutrophils
+- number_of_DCs
+- number_of_CD4_Tcells
+- TC_death_rate
+- max_activation_TC
+- half_max_activation_TC
+- max_clearance_TC
+- half_max_clearance_TC
+- TC_population_threshold
+- DM_decay
+- T_Cell_Recruitment
+
+Custom Data: 
+- activated_immune_cell
+- threshold_macrophage_volume
+- ability_to_phagocytose_mutated_cell
+- debris_secretion_rate
+- mutated_cell_chemokine_secretion_activated
+- max_apoptosis_half_max
+- mutated_cell_chemokine_secretion_rate
+- TCell_contact_time
+- TCell_contact_death_threshold
+- antiinflammatory_cytokine_secretion_rate
+- cell_attachment_lifetime
+- sensitivity_to_debris_chemotaxis
+- sensitivity_to_chemokine_chemotaxis
+- exhausted_macrophage_death_rate
+- time_to_next_phagocytosis
+- phagocytosis_rate
+- material_internalisation_rate
+- activated_cytokine_secretion_rate
+- activated_speed
+- threshold_neutrophil_volume
+- phagocytosis_relative_target_cutoff_size
+- cell_attachment_rate
+- danger_signals_intracellular
+- TCell_detection
+- max_attachment_distance
+
+
+
+
+
+
+
+
+
+
+
