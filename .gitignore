@@ -1,2 +1,13 @@
 
-*.svg
+*.o
+*.exe
+/output/*.svg
+/output/*.mat
+/output/*.xml
+/output/*.png
+/output_*
+/__pycache*
+*.jpg
+*.png
+*.pov
+*.avi
