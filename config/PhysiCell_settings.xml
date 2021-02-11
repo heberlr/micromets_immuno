@@ -261,7 +261,7 @@
 
 				<activated_immune_cell description="used internally to track activation state" type="double" units="dimensionless">0.0</activated_immune_cell>
 					
-				<antiinflammatory_cytokine_secretion_rate description="secretion rate of anti-inflammatory from infected epithelium cell" type="double" units="1/min">15</antiinflammatory_cytokine_secretion_rate>
+				<antiinflammatory_cytokine_secretion_rate description="secretion rate of anti-inflammatory from mutated cell" type="double" units="1/min">15</antiinflammatory_cytokine_secretion_rate>
 	
 			</custom_data>
 		</cell_definition>
