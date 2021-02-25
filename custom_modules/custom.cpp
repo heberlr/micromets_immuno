@@ -125,42 +125,12 @@ void create_cell_types( void )
 
 void setup_microenvironment( void )
 {
-	// set domain parameters 
-	
-/* now this is in XML 
-	default_microenvironment_options.X_range = {-1000, 1000}; 
-	default_microenvironment_options.Y_range = {-1000, 1000}; 
-	default_microenvironment_options.simulate_2D = true; 
-*/
-	
 	// make sure to override and go back to 2D 
 	if( default_microenvironment_options.simulate_2D == false )
 	{
 		std::cout << "Warning: overriding XML config option and setting to 2D!" << std::endl; 
 		default_microenvironment_options.simulate_2D = true; 
 	}
-	
-/* now this is in XML 	
-	// no gradients need for this example 
-
-	default_microenvironment_options.calculate_gradients = false; 
-	
-	// set Dirichlet conditions 
-
-	default_microenvironment_options.outer_Dirichlet_conditions = true;
-	
-	// if there are more substrates, resize accordingly 
-	std::vector<double> bc_vector( 1 , 38.0 ); // 5% o2
-	default_microenvironment_options.Dirichlet_condition_vector = bc_vector;
-	
-	// set initial conditions 
-	default_microenvironment_options.initial_condition_vector = { 38.0 }; 
-*/
-	
-	// put any custom code to set non-homogeneous initial conditions or 
-	// extra Dirichlet nodes here. 
-	
-	// initialize BioFVM 
 	
 	initialize_microenvironment(); 	
 	
@@ -169,7 +139,7 @@ void setup_microenvironment( void )
 
 void setup_tissue( void )
 {
-	static int DG = microenvironment.find_density_index( "danger signals" ); 
+	static int danger_signals_index = microenvironment.find_density_index( "danger signals" ); 
 	
 	choose_initialized_voxels();
 	
@@ -211,6 +181,9 @@ void setup_tissue( void )
 			
 			double dx = x - center_x;
 			double dy = y - center_y; 
+            
+            //cell mutation
+            if ( abs(dx) < 10.0 && abs(dy) < 10.0){ pC->phenotype.secretion.secretion_rates[danger_signals_index] = 1.0; pC->custom_data["danger_signals_intracellular"] = 1.0;}
 			
 			double temp = dx*dx + dy*dy; 
 			if( temp < nearest_distance_squared )
@@ -228,33 +201,6 @@ void setup_tissue( void )
 		if( n % 2 == 1 )
 		{
 			x += 0.5 * spacing; 
-		}
-	}
-	
-	int number_of_pathogens = (int) ( parameters.doubles("multiplicity_of_infection") * 
-		(*all_cells).size() ); 
-	double single_pathogen_density_change = 1.0 / microenvironment.mesh.dV; 
-	
-	// infect the cell closest to the center  
-
-	if( parameters.bools( "use_single_infected_cell" ) == true )
-	{
-		std::cout << "Infecting center cell with one pathogen ... " << std::endl; 
-		pNearestCell->phenotype.molecular.internalized_total_substrates[ DG ] = 1.0; 
-	}
-	else
-	{
-		std::cout << "Placing " << number_of_pathogens << " pathogens ... " << std::endl; 
-		for( int n=0 ; n < number_of_pathogens ; n++ )
-		{
-			// pick a random voxel 
-			std::vector<double> position = {0,0,0}; 
-			position[0] = x_min + (x_max-x_min)*UniformRandom(); 
-			position[1] = y_min + (y_max-y_min)*UniformRandom(); 
-			
-			int m = microenvironment.nearest_voxel_index( position ); 
-			
-			microenvironment(m)[DG] += single_pathogen_density_change; 
 		}
 	}
 	

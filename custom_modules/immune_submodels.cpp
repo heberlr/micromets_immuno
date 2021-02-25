@@ -885,9 +885,10 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	else 
 	{
 		
-		// (adrianne) DCs become activated if there is an mutated cell in their neighbour with greater 1 pathogen protein or if the local amount of pathogen is greater than 10
+		// (adrianne) DCs become activated if there is an mutated cell in their neighbour with the local amount of danger signals is greater than 10
 		static int danger_signals_index = microenvironment.find_density_index("danger signals");
 		double danger_signals_amount = pCell->nearest_density_vector()[danger_signals_index];
+  
 		if( danger_signals_amount*microenvironment.mesh.voxels[1].volume > parameters.doubles("DS_needed_for_DC_activation")) // (Adrianne) amount of pathogen in local voxel with DC is greater than 10
 		{			
 			pCell->custom_data["activated_immune_cell"] = 1.0; // (Adrianne) DC becomes activated

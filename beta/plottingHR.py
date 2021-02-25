@@ -21,10 +21,11 @@ if (len(sys.argv) != 4):
 initial_index = int(sys.argv[1]);
 last_index = int(sys.argv[2]);
 SavePNG = int(sys.argv[3])
-Lcell_size = 5;
-Dcell_size = 1;
-Ecell_size = 10;
+Lcell_size = 10;
+Dcell_size = 5;
+Ecell_size = 12;
 skin_live_count = np.zeros( last_index+1 );
+skin_live_mutated_count = np.zeros( last_index+1 );
 skin_dead_count = np.zeros( last_index+1 );
 macrophage_count = np.zeros( last_index+1 );
 neuthophil_count = np.zeros( last_index+1 );
@@ -50,7 +51,10 @@ for n in range( initial_index,last_index+1 ):
   cell_type = mcds.data['discrete_cells']['cell_type']
   cell_type = cell_type.astype(int)
   
-  skin_live = np.argwhere( (cycle < 100) & (cell_type==1) ).flatten()
+  DG = mcds.data['discrete_cells']['danger_signals_intracellular']
+  
+  skin_live_mutated = np.argwhere( (DG > 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
+  skin_live = np.argwhere( (DG == 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
   skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) ).flatten()
   macrophage = np.argwhere( cell_type==4 ).flatten()
   neuthophil = np.argwhere( cell_type==5 ).flatten()
@@ -59,6 +63,7 @@ for n in range( initial_index,last_index+1 ):
   CD4 = np.argwhere( cell_type==7 ).flatten()
   
   skin_live_count[n] = len(skin_live)
+  skin_live_mutated_count[n] = len(skin_live_mutated)
   skin_dead_count[n] = len(skin_dead)
   macrophage_count[n] = len(macrophage)
   neuthophil_count[n] = len(neuthophil)
@@ -68,18 +73,20 @@ for n in range( initial_index,last_index+1 ):
   
   RadiusSize = 400.0
 
-  figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #IC:'+str("%04i"%(skin_live_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+  figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #MC:'+str("%04i"%(skin_live_mutated_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
   
   plt.subplot(221)
-  plt.scatter( cx[skin_live],cy[skin_live],c='blue',s=Lcell_size);
-  plt.scatter( cx[skin_dead],cy[skin_dead],c='black',s=Dcell_size );
-  plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size );
-  plt.scatter( cx[neuthophil],cy[neuthophil],c='cyan',s=Ecell_size );
-  plt.scatter( cx[dendritic],cy[dendritic],c='brown',s=Ecell_size );
-  plt.scatter( cx[CD8],cy[CD8],c='red',s=Ecell_size );
-  plt.scatter( cx[CD4],cy[CD4],c='orange',s=Ecell_size );
+  plt.scatter( cx[skin_live],cy[skin_live],c='blue',s=Lcell_size,label='NC', alpha=0.25);
+  plt.scatter( cx[skin_live_mutated],cy[skin_live_mutated],c='gray',s=Lcell_size,label='MC');
+  plt.scatter( cx[skin_dead],cy[skin_dead],c='black',s=Dcell_size,label='D', alpha=0.25);
+  plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
+  plt.scatter( cx[neuthophil],cy[neuthophil],c='cyan',s=Ecell_size,label='N' );
+  plt.scatter( cx[dendritic],cy[dendritic],c='brown',s=Ecell_size,label='DC' );
+  plt.scatter( cx[CD8],cy[CD8],c='red',s=Ecell_size,label='CD8' );
+  plt.scatter( cx[CD4],cy[CD4],c='orange',s=Ecell_size,label='CD4' );
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
+  plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
   plt.subplots_adjust(left=0.08,right=0.93,bottom=0.06,top=0.89,wspace=0.26,hspace=0.26)
   
   plt.subplot(333)
@@ -160,5 +167,6 @@ for n in range( initial_index,last_index+1 ):
   else:
     plt.draw()
     plt.waitforbuttonpress(0) # this will wait for indefinite time
+    #plt.pause(0.2)
   plt.clf()
 

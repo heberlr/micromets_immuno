@@ -17,6 +17,8 @@ void epithelium_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype
 void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
+    // Heber - Concentration of danger signals on cell
+    static int danger_signals_index = microenvironment.find_density_index( "danger signals" );
 	
 	// receptor dynamics 
 	// requires faster time scale - done in main function 
@@ -27,13 +29,15 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// pathogen response model 
 	//internal_pathogen_response_model_info.phenotype_function(pCell,phenotype,dt); 
-	// internal_pathogen_response_model(pCell,phenotype,dt);	
-	
+	// internal_pathogen_response_model(pCell,phenotype,dt);
+
+    //After is possible integrate a intracellular model to danger signals
+	pCell->custom_data["danger_signals_intracellular"] =  pCell->phenotype.secretion.secretion_rates[danger_signals_index];//pCell->phenotype.molecular.internalized_total_substrates[ danger_signals_index ];
+    phenotype.secretion.saturation_densities[danger_signals_index] = 1.0;
 	// T-cell based death
 	TCell_induced_apoptosis(pCell, phenotype, dt ); 
 	
 	// if I am dead, remove all adhesions 
-	static int apoptosis_index = phenotype.death.find_death_model_index( "apoptosis" ); 
 	if( phenotype.death.dead == true )
 	{
 		// detach all attached cells 
@@ -47,15 +51,19 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// if I am dead, make sure to still secrete the chemokine 
 	static int chemokine_index = microenvironment.find_density_index( "chemokine" ); 
     
-    // Heber - Concentration of danger signals on cell
-    static int danger_signals_index = microenvironment.find_density_index( "danger signals" );
+    
+    
+    // Heber - Cell mutation
+    /*double probability_of_mutation = pCell->custom_data["mutation_rate"] * dt;
+    if (pCell->phenotype.molecular.internalized_total_substrates[ danger_signals_index ] == 0 && UniformRandom() < probability_of_mutation)  
+        phenotype.secretion.secretion_rates[danger_signals_index] = 1.0;*/
             
 	// Heber - Release chemokine if danger signals is more than a certain threshold 
-    if( pCell->phenotype.molecular.internalized_total_substrates[ danger_signals_index ] >= 1.00 - 1e-16 ) 
+    //if( (pCell->nearest_density_vector())[ danger_signals_index ] > 0.5 )  std::cout << "TEST: " << (pCell->nearest_density_vector())[ danger_signals_index ] << std::endl;
+    if( (pCell->nearest_density_vector())[ danger_signals_index ] >= 0.8 ) 
 	{
 		pCell->custom_data["mutated_cell_chemokine_secretion_activated"] = 1.0; 
 	}
-
 	if( pCell->custom_data["mutated_cell_chemokine_secretion_activated"] > 0.1 && phenotype.death.dead == false )
 	{
 		double rate = 1.0; //AV; // P; 

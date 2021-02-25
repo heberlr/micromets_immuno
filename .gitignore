@@ -6,9 +6,10 @@
 /output/*.xml
 /output/*.png
 /output_*
-/__pycache*
+*.pyc
 *.jpg
 *.png
 *.pov
 *.avi
 *.dat
+*.txt

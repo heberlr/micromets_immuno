@@ -83,7 +83,6 @@
 using namespace BioFVM;
 using namespace PhysiCell;
 
-std::string COVID19_version = "0.4.0"; 
 
 double DM = 0; // global ICs
 double TC = 10;
@@ -177,8 +176,6 @@ int main( int argc, char* argv[] )
 	dm_tc_file.open (filename);
 	
 	// main loop 
-
-	std::cout << std::endl << std::endl << "***** This is COVID19 integrated version " << COVID19_version << ". *****" << std::endl << std::endl; 
 	
 	try 
 	{		
