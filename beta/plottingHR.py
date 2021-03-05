@@ -12,7 +12,7 @@ class FormatScalarFormatter(matplotlib.ticker.ScalarFormatter):
     def _set_format(self):
         self.format = self.fformat
         if self._useMathText:
-            self.format = '$%s$' % matplotlib.ticker._mathdefault(self.format)
+            self.format = '$%s$' % self.format
 
 
 if (len(sys.argv) != 4):
@@ -41,7 +41,7 @@ for n in range( initial_index,last_index+1 ):
   filenameOut='output/output'+"%08i"%n+'.png'
   mcds=pyMCDS(filename,"output")
   times[n]= mcds.get_time()
-  
+
   cx = mcds.data['discrete_cells']['position_x'];
   cy = mcds.data['discrete_cells']['position_y'];
   cycle = mcds.data['discrete_cells']['cycle_model']
@@ -50,9 +50,9 @@ for n in range( initial_index,last_index+1 ):
   elapsed_time_in_phase = mcds.data['discrete_cells']['elapsed_time_in_phase']
   cell_type = mcds.data['discrete_cells']['cell_type']
   cell_type = cell_type.astype(int)
-  
+
   DG = mcds.data['discrete_cells']['danger_signals_intracellular']
-  
+
   skin_live_mutated = np.argwhere( (DG > 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
   skin_live = np.argwhere( (DG == 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
   skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) ).flatten()
@@ -61,7 +61,7 @@ for n in range( initial_index,last_index+1 ):
   dendritic = np.argwhere( cell_type==6 ).flatten()
   CD8 = np.argwhere( cell_type==3 ).flatten()
   CD4 = np.argwhere( cell_type==7 ).flatten()
-  
+
   skin_live_count[n] = len(skin_live)
   skin_live_mutated_count[n] = len(skin_live_mutated)
   skin_dead_count[n] = len(skin_dead)
@@ -70,14 +70,14 @@ for n in range( initial_index,last_index+1 ):
   dendritic_count[n] = len(dendritic)
   CD8_count[n] = len(CD8)
   CD4_count[n] = len(CD4)
-  
+
   RadiusSize = 400.0
 
   figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #MC:'+str("%04i"%(skin_live_mutated_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
-  
+
   plt.subplot(221)
-  plt.scatter( cx[skin_live],cy[skin_live],c='blue',s=Lcell_size,label='NC', alpha=0.25);
-  plt.scatter( cx[skin_live_mutated],cy[skin_live_mutated],c='gray',s=Lcell_size,label='MC');
+  plt.scatter( cx[skin_live],cy[skin_live],c='blue',s=Lcell_size,label='NC');
+  plt.scatter( cx[skin_live_mutated],cy[skin_live_mutated],c='yellow',s=Lcell_size,label='MC');
   plt.scatter( cx[skin_dead],cy[skin_dead],c='black',s=Dcell_size,label='D', alpha=0.25);
   plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
   plt.scatter( cx[neuthophil],cy[neuthophil],c='cyan',s=Ecell_size,label='N' );
@@ -88,12 +88,16 @@ for n in range( initial_index,last_index+1 ):
   plt.ylim(-RadiusSize, RadiusSize)
   plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
   plt.subplots_adjust(left=0.08,right=0.93,bottom=0.06,top=0.89,wspace=0.26,hspace=0.26)
-  
+
+  print(cx[skin_live_mutated])
+  print(cy[skin_live_mutated])
+
   plt.subplot(333)
   DG = mcds.get_concentrations( 'danger signals' );
   X1,Y1 = mcds.get_2D_mesh();
   if (DG.max() > 0):
     v1 = np.linspace(0, DG.max(), 10, endpoint=True)
+    # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,DG[:,:,0],levels=v1,cmap='binary');
     cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
   else:
@@ -108,6 +112,7 @@ for n in range( initial_index,last_index+1 ):
   X1,Y1 = mcds.get_2D_mesh();
   if (chemokine.max() > 0):
     v1 = np.linspace(0, chemokine.max(), 10, endpoint=True)
+    # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,chemokine[:,:,0],levels=v1,cmap='binary');
     cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
   else:
@@ -116,13 +121,14 @@ for n in range( initial_index,last_index+1 ):
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Chemokine")
-  
+
 
   plt.subplot(337)
 
   PIC = mcds.get_concentrations( 'pro-inflammatory cytokine' );
   if (PIC.max() > 0):
-    v1 = np.linspace(0, PIC.max(), 10, endpoint=True)
+    # v1 = np.linspace(0, PIC.max(), 10, endpoint=True)
+    v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,PIC[:,:,0],v1,cmap='binary');
     cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
   else:
@@ -131,12 +137,13 @@ for n in range( initial_index,last_index+1 ):
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Pro-inf cytokine")
-  
+
   plt.subplot(338)
 
   debris = mcds.get_concentrations( 'debris' );
   if (debris.max() > 0):
     v1 = np.linspace(0, debris.max(), 10, endpoint=True)
+    # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,debris[:,:,0],v1,cmap='binary');
     cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
   else:
@@ -145,13 +152,14 @@ for n in range( initial_index,last_index+1 ):
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Debris")
-  
-  
+
+
   plt.subplot(339)
 
   AIC = mcds.get_concentrations( 'anti-inflammatory cytokine' );
   if (AIC.max() > 0):
     v1 = np.linspace(0, AIC.max(), 10, endpoint=True)
+    # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,AIC[:,:,0],v1,cmap='binary');
     cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
   else:
@@ -160,7 +168,7 @@ for n in range( initial_index,last_index+1 ):
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Anti-inf cytokine")
-  
+
   if (SavePNG):
     figure.savefig(filenameOut)
     #plt.savefig(filenameOut)
@@ -169,4 +177,3 @@ for n in range( initial_index,last_index+1 ):
     plt.waitforbuttonpress(0) # this will wait for indefinite time
     #plt.pause(0.2)
   plt.clf()
-

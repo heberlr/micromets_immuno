@@ -13,3 +13,5 @@
 *.avi
 *.dat
 *.txt
+.DS_Store
+*.gif

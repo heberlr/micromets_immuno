@@ -66,32 +66,33 @@
 */
 
 #include "../core/PhysiCell.h"
-#include "../modules/PhysiCell_standard_modules.h" 
+#include "../modules/PhysiCell_standard_modules.h"
 
-#include "./submodel_data_structures.h" 
+#include "./submodel_data_structures.h"
 #include "./external_immune.h"
-#include "./immune_submodels.h" 
-#include "./epithelium_submodel.h" 
+#include "./immune_submodels.h"
+#include "./epithelium_submodel.h"
 
-using namespace BioFVM; 
+using namespace BioFVM;
 using namespace PhysiCell;
 
-// setup functions to help us along 
+// setup functions to help us along
 
 void create_cell_types( void );
-void setup_tissue( void ); 
+void setup_tissue( void );
 
-// set up the BioFVM microenvironment 
-void setup_microenvironment( void ); 
+// set up the BioFVM microenvironment
+void setup_microenvironment( void );
 
-// custom pathology coloring function 
+// custom pathology coloring function
 
 std::string blue_yellow_interpolation( double min, double val, double max );
 std::vector<std::string> epithelium_coloring_function( Cell* );
 std::vector<std::string> tissue_coloring_function( Cell* );
 
-// eventually move this to a tissue submodel 
+// eventually move this to a tissue submodel
 
-void move_exported_to_pathogen_field( void ); 
+void move_exported_to_pathogen_field( void );
 
 void SVG_plot_pathogen( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) );
+void SVG_plot_pathogen2( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) );
