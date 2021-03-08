@@ -15,12 +15,13 @@ class FormatScalarFormatter(matplotlib.ticker.ScalarFormatter):
             self.format = '$%s$' % self.format
 
 
-if (len(sys.argv) != 4):
-  print("Please provide 3 args: InitialTime LastTime, and SavePNG")
+if (len(sys.argv) != 5):
+  print("Please provide 4 args: InitialTime LastTime, SavePNG (bool), and folder")
   sys.exit(1)
 initial_index = int(sys.argv[1]);
 last_index = int(sys.argv[2]);
 SavePNG = int(sys.argv[3])
+folder = sys.argv[4]
 Lcell_size = 10;
 Dcell_size = 5;
 Ecell_size = 12;
@@ -37,9 +38,9 @@ times = np.zeros( last_index+1 );
 figure, axes = plt.subplots(nrows=3, ncols=3,figsize=(10,8))
 
 for n in range( initial_index,last_index+1 ):
-  filename='output'+"%08i"%n+'.xml'
-  filenameOut='output/output'+"%08i"%n+'.png'
-  mcds=pyMCDS(filename,"output")
+  filename= "output%08i"%n+'.xml'
+  filenameOut=folder+'/output'+"%08i"%n+'.png'
+  mcds=pyMCDS(filename,folder)
   times[n]= mcds.get_time()
 
   cx = mcds.data['discrete_cells']['position_x'];
@@ -88,9 +89,6 @@ for n in range( initial_index,last_index+1 ):
   plt.ylim(-RadiusSize, RadiusSize)
   plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
   plt.subplots_adjust(left=0.08,right=0.93,bottom=0.06,top=0.89,wspace=0.26,hspace=0.26)
-
-  print(cx[skin_live_mutated])
-  print(cy[skin_live_mutated])
 
   plt.subplot(333)
   DG = mcds.get_concentrations( 'danger signals' );

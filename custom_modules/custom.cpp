@@ -186,7 +186,7 @@ void setup_tissue( void )
 			if ( UniformRandom() <= 0.001){
 				double sample;
 				do {
-					 sample = NormalRandom( 0.8, 0.2);
+					 sample = NormalRandom( 1.0, 0.2); //Almost escape
 				}
 				while (sample < 0.0 || sample > 1.0);
 				pC->phenotype.secretion.secretion_rates[danger_signals_index] = sample;
