@@ -17,16 +17,16 @@ void epithelium_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype
 void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
-	static int danger_signals_index = microenvironment.find_density_index( "danger signals" );
+	static int neoantigens_index = microenvironment.find_density_index( "neoantigens" );
 	static int proinflammatory_cytokine_index = microenvironment.find_density_index("pro-inflammatory cytokine");
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
 
 	phenotype.motility.is_motile = false;
 
-	//After is possible integrate a intracellular model to danger signals (DG intracellular on mutated cells)
-	pCell->custom_data["danger_signals_intracellular"] =  (pCell->nearest_density_vector())[ danger_signals_index ];//pCell->phenotype.molecular.internalized_total_substrates[ danger_signals_index ];
-	if (pCell->phenotype.secretion.secretion_rates[danger_signals_index] == 0.0) pCell->custom_data["danger_signals_intracellular"] = 0.0;
-	phenotype.secretion.saturation_densities[danger_signals_index] = 1.0;
+	//After is possible integrate a intracellular model to neoantigens (DG intracellular on mutated cells)
+	pCell->custom_data["neoantigens_intracellular"] =  (pCell->nearest_density_vector())[ neoantigens_index ];//pCell->phenotype.molecular.internalized_total_substrates[ neoantigens_index ];
+	if (pCell->phenotype.secretion.secretion_rates[neoantigens_index] == 0.0) pCell->custom_data["neoantigens_intracellular"] = 0.0;
+	phenotype.secretion.saturation_densities[neoantigens_index] = 1.0;
 
 	// T-cell based death
 	TCell_induced_apoptosis(pCell, phenotype, dt );
@@ -48,16 +48,14 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
 	int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
 
-	// Cell mutation
-	/*double probability_of_mutation = pCell->custom_data["mutation_rate"] * dt;
-	if (pCell->phenotype.molecular.internalized_total_substrates[ danger_signals_index ] == 0 && UniformRandom() < probability_of_mutation)
-	phenotype.secretion.secretion_rates[danger_signals_index] = 1.0;*/
-
 	// mutated cell - proliferation, mechanics, and chemokine secretion activated
-	if( pCell->custom_data["danger_signals_intracellular"] > 0.9)
+	if( pCell->custom_data["neoantigens_intracellular"] > 0.0)
 	{
+		// Natural decay neoantigen Release
+		pCell->phenotype.secretion.secretion_rates[neoantigens_index] /= (0.0001*dt + 1.0);
+
 		// Mechanical contribution to proliferation
-		double mechanics_factor = (100.0 - pCell->state.simple_pressure)/100.0;
+		double mechanics_factor = pow(500.0 - pCell->state.simple_pressure,0.5)/pow(500.0,0.5);
 		if (mechanics_factor < 0.0) mechanics_factor = 0.0;
 		// proliferation rate based on mechanical aspect
 		pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0.002*mechanics_factor;
@@ -66,8 +64,8 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0.0;
 	}
 
-	// Neighbors cell to mutated cells (kill cells with high danger signals concentration)
-	if( (pCell->nearest_density_vector())[ danger_signals_index ] > 0.9 && pCell->phenotype.secretion.secretion_rates[danger_signals_index] == 0.0 )
+	// Normal cells neighbor to mutated cells dead by inflammation (kill cells with high pro-inf concentration)
+	if( (pCell->nearest_density_vector())[ proinflammatory_cytokine_index ] > 0.9 && pCell->custom_data["neoantigens_intracellular"] == 0.0 )
 	{
 			pCell->start_death( apoptosis_index );
 	}
@@ -99,10 +97,10 @@ void epithelium_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	static int debris_index = microenvironment.find_density_index( "debris");
 
 	//Mutated cells are movable
-	if ( pCell->custom_data["mutated_cell_chemokine_secretion_activated"] > 0.1)
-		pCell->is_movable = true;
-	else
-		pCell->is_movable = false;
+	// if ( pCell->custom_data["mutated_cell_chemokine_secretion_activated"] > 0.1)
+	// 	pCell->is_movable = true;
+	// else
+	// 	pCell->is_movable = false;
 
 	// if I'm dead, don't bother
 	if( phenotype.death.dead == true )
@@ -154,7 +152,7 @@ void epithelium_submodel_setup( void )
 	epithelium_submodel_info.mechanics_function = epithelium_mechanics;
 
 	// what microenvironment variables do you expect?
-	epithelium_submodel_info.microenvironment_variables.push_back( "danger signals" );
+	epithelium_submodel_info.microenvironment_variables.push_back( "neoantigens" );
 	//epithelium_submodel_info.microenvironment_variables.push_back( "interferon 1" );
 	epithelium_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
 	epithelium_submodel_info.microenvironment_variables.push_back( "chemokine" );

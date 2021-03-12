@@ -6,6 +6,7 @@
 /output/*.xml
 /output/*.png
 /output_*
+output*
 *.pyc
 *.jpg
 *.png
@@ -16,3 +17,4 @@
 .DS_Store
 *.gif
 *.mp4
+*.mat

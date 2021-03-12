@@ -16,6 +16,11 @@ std::vector<Cell*> cells_to_move_from_edge;
 
 std::vector<int> vascularized_voxel_indices;
 
+// vector of valid positions
+extern std::vector<std::vector <double>> valid_position;
+// generator sample from distribution
+extern std::default_random_engine generator;
+
 // return true if out of bounds, within a tolerance
 bool check_for_out_of_bounds( Cell* pC , double tolerance )
 {
@@ -177,8 +182,14 @@ void create_infiltrating_immune_cell_initial( Cell_Definition* pCD )
 
 	Cell* pC = create_cell( *pCD );
 
+	// Positions defined
+	std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
+	int index_sample = distribution_index(generator);
+	pC->assign_position( valid_position[index_sample] );
+	valid_position.erase (valid_position.begin()+index_sample);
+
 	// randomly place cell intially
-	double Xmin = microenvironment.mesh.bounding_box[0];
+	/*double Xmin = microenvironment.mesh.bounding_box[0];
 	double Ymin = microenvironment.mesh.bounding_box[1];
 	double Zmin = microenvironment.mesh.bounding_box[2];
 
@@ -212,7 +223,7 @@ void create_infiltrating_immune_cell_initial( Cell_Definition* pCD )
 	position[0] = Xmin + UniformRandom()*Xrange;
 	position[1] = Ymin + UniformRandom()*Yrange;
 
-	pC->assign_position( position );
+	pC->assign_position( position );*/
 
 	return;
 }
@@ -753,11 +764,11 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		else
 		{
 
-			// (adrianne) DCs become activated if there is an mutated cell in their neighbour with the local amount of danger signals is greater than 10
-			static int danger_signals_index = microenvironment.find_density_index("danger signals");
-			double danger_signals_amount = pCell->nearest_density_vector()[danger_signals_index];
+			// (adrianne) DCs become activated if there is an mutated cell in their neighbour with the local amount of neoantigens is greater than 10
+			static int neoantigens_index = microenvironment.find_density_index("neoantigens");
+			double neoantigens_amount = pCell->nearest_density_vector()[neoantigens_index];
 
-			if( danger_signals_amount*microenvironment.mesh.voxels[1].volume > parameters.doubles("DS_needed_for_DC_activation")) // (Adrianne) amount of danger signals in local voxel with DC is greater than 10
+			if( neoantigens_amount*microenvironment.mesh.voxels[1].volume > parameters.doubles("DS_needed_for_DC_activation")) // (Adrianne) amount of neoantigens in local voxel with DC is greater than 10
 			{
 				pCell->custom_data["activated_immune_cell"] = 1.0; // (Adrianne) DC becomes activated
 			}
@@ -869,7 +880,7 @@ void immune_submodels_setup( void )
 	CD8_submodel_info.phenotype_function = CD8_Tcell_phenotype;
 	CD8_submodel_info.mechanics_function = CD8_Tcell_mechanics;
 	// what microenvironment variables do you expect?
-	CD8_submodel_info.microenvironment_variables.push_back( "danger signals" );
+	CD8_submodel_info.microenvironment_variables.push_back( "neoantigens" );
 	//CD8_submodel_info.microenvironment_variables.push_back( "interferon 1" );
 	CD8_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
 	CD8_submodel_info.microenvironment_variables.push_back( "chemokine" );
@@ -959,7 +970,7 @@ void immune_submodels_setup( void )
 	CD4_submodel_info.phenotype_function = CD4_Tcell_phenotype;
 	CD4_submodel_info.mechanics_function = CD4_Tcell_mechanics;
 	// what microenvironment variables do you expect?
-	CD4_submodel_info.microenvironment_variables.push_back( "danger signals" );
+	CD4_submodel_info.microenvironment_variables.push_back( "neoantigens" );
 	//CD4_submodel_info.microenvironment_variables.push_back( "interferon 1" );
 	CD4_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
 	CD4_submodel_info.microenvironment_variables.push_back( "chemokine" );
@@ -1003,8 +1014,13 @@ return NULL;
 
 bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt )
 {
-// if the target is not mutated, give up
-if( pTarget->custom_data[ "danger_signals_intracellular" ] < pAttacker->custom_data[ "TCell_detection" ] )
+// PD-L1 response
+double coeff_hf_PDL1_PD1 = 20.0;
+double activation_PDL1_PD1 = 0.5;
+double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1)/ (pow(activation_PDL1_PD1,coeff_hf_PDL1_PD1) + pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1));
+
+// if the target is not mutated cell, give up
+if( pTarget->custom_data[ "neoantigens_intracellular" ] < pAttacker->custom_data[ "TCell_detection" ] )
 { return false; }
 
 // if the target cell is dead, give up
@@ -1021,7 +1037,7 @@ if( distance_scale > pAttacker->custom_data["max_attachment_distance"] )
 
 // now, get the attachment probability
 
-double attachment_probability = pAttacker->custom_data["cell_attachment_rate"] * dt;
+double attachment_probability = PD_PDL1_attachment * pAttacker->custom_data["cell_attachment_rate"] * dt;
 
 // don't need to cap it at 1.00: if prob > 100%,
 // then this statement always evaluates as true,

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+neoantigens<?xml version="1.0" encoding="UTF-8"?>
 <PhysiCell_settings version="devel-version">
 	<domain>
 		<x_min>-400</x_min>
@@ -14,7 +14,7 @@
 	</domain>
 
 	<overall>
-		<max_time units="min">14400</max_time> <!--!14400-->
+		<max_time units="min">18000</max_time> <!--!14400-->
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 
@@ -50,13 +50,13 @@
 	</save>
 
 	<microenvironment_setup>
-		<variable ID="0" name="danger signals" units="danger signals/micron^3">
+		<variable ID="0" name="neoantigens" units="neoantigens/micron^3">
 			<physical_parameter_set>
 				<diffusion_coefficient units="micron^2/min">2.5</diffusion_coefficient>
 				<decay_rate units="1/min">0</decay_rate>
 			</physical_parameter_set>
-			<initial_condition units="danger signals/micron^3">0</initial_condition>
-			<Dirichlet_boundary_condition enabled="false" units="danger signals/micron^3">0</Dirichlet_boundary_condition>
+			<initial_condition units="neoantigens/micron^3">0</initial_condition>
+			<Dirichlet_boundary_condition enabled="false" units="neoantigens/micron^3">0</Dirichlet_boundary_condition>
 		</variable>
 
 		<variable ID="3" name="pro-inflammatory cytokine" units="mol/micron^3">
@@ -223,10 +223,10 @@
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<mutation_rate description="mutation rate for epithelial cell" type="double" units="1/min">0.005</mutation_rate>
-				<danger_signals_intracellular description="total danger signals on cell" type="double" units="danger signals">0</danger_signals_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0.0</PDL1_expression>
+				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
-				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="danger signals">250</max_apoptosis_half_max>
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
 				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
@@ -379,10 +379,10 @@
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<mutation_rate description="mutation rate for epithelial cell" type="double" units="1/min">0.005</mutation_rate>
-				<danger_signals_intracellular description="total danger signals on cell" type="double" units="danger signals">0</danger_signals_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0.0</PDL1_expression>
+				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
-				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="danger signals">250</max_apoptosis_half_max>
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
 				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
@@ -408,7 +408,7 @@
 				<!-- <time_of_DC_departure description="Time DC leaves tissue after activation" type="double" units="min">0</time_of_DC_departure> -->
 
 				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
-				<phagocytosis_relative_target_cutoff_size desription="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
+				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
 				<sensitivity_to_chemokine_chemotaxis description="relative sensitivity to chemokine in chemotaxis" type="double" units="dimensionless">10.0</sensitivity_to_chemokine_chemotaxis>
@@ -488,8 +488,8 @@
 				</volume>
 
 				<mechanics>
-					<cell_cell_adhesion_strength units="micron/min">0.0</cell_cell_adhesion_strength>
-					<cell_cell_repulsion_strength units="micron/min">0.0</cell_cell_repulsion_strength>
+					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
 					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
 
 					<options>
@@ -535,10 +535,10 @@
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<mutation_rate description="mutation rate for epithelial cell" type="double" units="1/min">0</mutation_rate>
-				<danger_signals_intracellular description="total danger signals on cell" type="double" units="danger signals">0</danger_signals_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
-				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="danger signals">250</max_apoptosis_half_max>
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
 				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
@@ -645,8 +645,8 @@
 				</volume>
 
 				<mechanics>
-					<cell_cell_adhesion_strength units="micron/min">0.0</cell_cell_adhesion_strength>
-					<cell_cell_repulsion_strength units="micron/min">0.0</cell_cell_repulsion_strength>
+					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
 					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
 
 					<options>
@@ -692,10 +692,10 @@
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<mutation_rate description="mutation rate for epithelial cell" type="double" units="1/min">0</mutation_rate>
-				<danger_signals_intracellular description="total danger signals on cell" type="double" units="danger signals">0</danger_signals_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
-				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="danger signals">250</max_apoptosis_half_max>
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
 				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
@@ -802,8 +802,8 @@
 				</volume>
 
 				<mechanics>
-					<cell_cell_adhesion_strength units="micron/min">0.0</cell_cell_adhesion_strength>
-					<cell_cell_repulsion_strength units="micron/min">0.0</cell_cell_repulsion_strength>
+					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
 					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
 
 					<options>
@@ -849,10 +849,10 @@
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<mutation_rate description="mutation rate for epithelial cell" type="double" units="1/min">0</mutation_rate>
-				<danger_signals_intracellular description="total danger signals on cell" type="double" units="danger signals">0</danger_signals_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
-				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="danger signals">250</max_apoptosis_half_max>
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
 				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
@@ -959,8 +959,8 @@
 				</volume>
 
 				<mechanics>
-					<cell_cell_adhesion_strength units="micron/min">0.0</cell_cell_adhesion_strength>
-					<cell_cell_repulsion_strength units="micron/min">0.0</cell_cell_repulsion_strength>
+					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
 					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
 
 					<options>
@@ -1006,10 +1006,10 @@
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<mutation_rate description="mutation rate for epithelial cell" type="double" units="1/min">0</mutation_rate>
-				<danger_signals_intracellular description="total danger signals on cell" type="double" units="danger signals">0</danger_signals_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
-				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="danger signals">250</max_apoptosis_half_max>
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
 				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
@@ -1116,8 +1116,8 @@
 				</volume>
 
 				<mechanics>
-					<cell_cell_adhesion_strength units="micron/min">0.0</cell_cell_adhesion_strength>
-					<cell_cell_repulsion_strength units="micron/min">0.0</cell_cell_repulsion_strength>
+					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
 					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
 
 					<options>
@@ -1163,10 +1163,10 @@
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<mutation_rate description="mutation rate for epithelial cell" type="double" units="1/min">0</mutation_rate>
-				<danger_signals_intracellular description="total danger signals on cell" type="double" units="danger signals">0</danger_signals_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
-				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="danger signals">250</max_apoptosis_half_max>
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
 				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
@@ -1240,9 +1240,9 @@
 
 		<div_initialization description="---Initialization Options--" type="divider" />
 		<number_of_CD8_Tcells description="initial number of CD8 T cells in tissue" type="int" units="none">0</number_of_CD8_Tcells>
-		<number_of_macrophages description="initial number of macrophages" type="int" units="none">50</number_of_macrophages>
+		<number_of_macrophages description="initial number of macrophages" type="int" units="none">20</number_of_macrophages>
 		<number_of_neutrophils description="initial number of neutrophils" type="int" units="none">0</number_of_neutrophils>
-		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">28</number_of_DCs>
+		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">10</number_of_DCs>
 		<number_of_CD4_Tcells description="initial number of CD4 Tcells in tissue" type="int" units="none">0</number_of_CD4_Tcells>
 
 		<DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
@@ -1250,14 +1250,14 @@
 
 		<departure_rate_of_DCs description="Departure rate of activated DCs" type="double" units="cells/min/micron^3">0.001</departure_rate_of_DCs>
 
-		<DS_needed_for_DC_activation descriptions="Number of danger signals needed to activate DC" type="int" units="danger signals">10</DS_needed_for_DC_activation>-->
+		<DS_needed_for_DC_activation descriptions="Number of neoantigens needed to activate DC" type="int" units="neoantigens">10</DS_needed_for_DC_activation>-->
 
 		<epsilon_distance descriptions="Multiple of interaction distance for immune cells" type="double" units="dimensionless">1.75</epsilon_distance>
 
 		<perecentage_tissue_vascularized description="percentage of tissue sitting above blood vessels" type="double" units="percentage">8.8</perecentage_tissue_vascularized>
 
 		<div_colors description="---Cell Color Options--" type="divider" />
-		<color_variable description="color cells based on this variable" type="string">danger_signals_intracellular</color_variable>
+		<color_variable description="color cells based on this variable" type="string">neoantigens_intracellular</color_variable>
 
 		<epithelial_opacity description="opacity of epithelial cells" type="double">0.65</epithelial_opacity>
 		<non_epithelial_opacity description="opacity of non-epithelial cells" type="double">0.8</non_epithelial_opacity>
