@@ -225,9 +225,10 @@ void setup_tissue( void )
 		pC->phenotype.secretion.secretion_rates[neoantigens_index] = sample;
 		pC->custom_data["neoantigens_intracellular"] = sample;
 		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
+
 		// Sample to PDL1 concentration
 		do {
-			 sample = NormalRandom( 0.8, 0.05);
+			 sample = NormalRandom( parameters.doubles("mean_PDL1_exp"), 0.05);
 		}
 		while (sample < 0.0 || sample > 1.0);
 		pC->custom_data["PDL1_expression"] = sample;
