@@ -1017,7 +1017,8 @@ bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt 
 // PD-L1 response
 double coeff_hf_PDL1_PD1 = 20.0;
 double activation_PDL1_PD1 = 0.5;
-double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1)/ (pow(activation_PDL1_PD1,coeff_hf_PDL1_PD1) + pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1));
+// double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1)/ (pow(activation_PDL1_PD1,coeff_hf_PDL1_PD1) + pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1));
+double PD_PDL1_attachment = 1.0/ (1.0 + pow(pTarget->custom_data["PDL1_expression"]/activation_PDL1_PD1, coeff_hf_PDL1_PD1));
 
 // if the target is not mutated cell, give up
 if( pTarget->custom_data[ "neoantigens_intracellular" ] < pAttacker->custom_data[ "TCell_detection" ] )

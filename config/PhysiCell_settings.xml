@@ -32,7 +32,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 	</options>
 
 	<save>
-		<folder>output_05</folder>
+		<folder>output_02</folder>
 
 		<full_data>
 			<interval units="min">60</interval>
@@ -1213,7 +1213,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 	<user_parameters>
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
-		<mean_PDL1_exp description="mean of the PDL1 expression" type="double" units="dimensionless">0.5</mean_PDL1_exp>
+		<mean_PDL1_exp description="mean of the PDL1 expression" type="double" units="dimensionless">0.2</mean_PDL1_exp>
 
 		<div_immune description="--Immune activation parameters--" type="divider" />
 		<immune_dt description="how often we check to introduce immune cells" type="double" units="min">10</immune_dt>
