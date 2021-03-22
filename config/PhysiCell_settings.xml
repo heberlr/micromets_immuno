@@ -1262,7 +1262,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 		<epsilon_distance descriptions="Multiple of interaction distance for immune cells" type="double" units="dimensionless">1.75</epsilon_distance>
 
-		<perecentage_tissue_vascularized description="percentage of tissue sitting above blood vessels" type="double" units="percentage">8.8</perecentage_tissue_vascularized>
+		<percentage_tissue_vascularized description="percentage of tissue sitting above blood vessels" type="double" units="percentage">8.8</percentage_tissue_vascularized>
 
 		<div_colors description="---Cell Color Options--" type="divider" />
 		<color_variable description="color cells based on this variable" type="string">neoantigens_intracellular</color_variable>

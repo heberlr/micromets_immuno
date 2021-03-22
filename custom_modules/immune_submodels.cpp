@@ -152,7 +152,7 @@ void process_tagged_cells_on_edge( void )
 void choose_initialized_voxels( void )
 {
 	// read in percentage of tissue that's vascularised
-	double percentage_vascularised = parameters.doubles("perecentage_tissue_vascularized");
+	double percentage_vascularised = parameters.doubles("percentage_tissue_vascularized");
 	int max_voxel_index = microenvironment.mesh.voxels.size() - 1;
 	int number_of_vascularized_voxels = (int) ( percentage_vascularised/100.0 * ( max_voxel_index+1) );
 
@@ -1015,10 +1015,8 @@ return NULL;
 bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt )
 {
 // PD-L1 response
-double coeff_hf_PDL1_PD1 = 20.0;
-double activation_PDL1_PD1 = 0.5;
-// double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1)/ (pow(activation_PDL1_PD1,coeff_hf_PDL1_PD1) + pow(pTarget->custom_data["PDL1_expression"],coeff_hf_PDL1_PD1));
-double PD_PDL1_attachment = 1.0/ (1.0 + pow(pTarget->custom_data["PDL1_expression"]/activation_PDL1_PD1, coeff_hf_PDL1_PD1));
+// double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" ))/ (pow(parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ),parameters.doubles( "TC_coeff_hf_PDL1_attch" )) + pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
+double PD_PDL1_attachment = 1.0/ (1.0 + pow(pTarget->custom_data["PDL1_expression"]/parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ), parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
 
 // if the target is not mutated cell, give up
 if( pTarget->custom_data[ "neoantigens_intracellular" ] < pAttacker->custom_data[ "TCell_detection" ] )
