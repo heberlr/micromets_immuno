@@ -32,7 +32,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 	</options>
 
 	<save>
-		<folder>output_02</folder>
+		<folder>output</folder>
 
 		<full_data>
 			<interval units="min">60</interval>
@@ -53,7 +53,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 		<variable ID="0" name="neoantigens" units="neoantigens/micron^3">
 			<physical_parameter_set>
 				<diffusion_coefficient units="micron^2/min">2.5</diffusion_coefficient>
-				<decay_rate units="1/min">0</decay_rate>
+				<decay_rate units="1/min">1.02e-2</decay_rate>
 			</physical_parameter_set>
 			<initial_condition units="neoantigens/micron^3">0</initial_condition>
 			<Dirichlet_boundary_condition enabled="false" units="neoantigens/micron^3">0</Dirichlet_boundary_condition>
@@ -1213,7 +1213,12 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 	<user_parameters>
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
+		<mean_neoant_release description="mean of the neoantigens release" type="double" units="dimensionless">0.1</mean_neoant_release>
+		<std_neoant_release description="std of the neoantigens release" type="double" units="dimensionless">0.2</std_neoant_release>
 		<mean_PDL1_exp description="mean of the PDL1 expression" type="double" units="dimensionless">0.2</mean_PDL1_exp>
+		<std_PDL1_exp description="std of the PDL1 expression" type="double" units="dimensionless">0.05</std_PDL1_exp>
+
+		<prolif_rate_CancerCell description="proliferation rate of mutated cell" type="double" units="dimensionless">0.002</prolif_rate_CancerCell>
 
 		<div_immune description="--Immune activation parameters--" type="divider" />
 		<immune_dt description="how often we check to introduce immune cells" type="double" units="min">10</immune_dt>
@@ -1240,6 +1245,8 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 
 		<div_initialization description="---Initialization Options--" type="divider" />
+		<cell_confluence_skin_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_skin_cells>
+		<number_of_mutated_cells description="initial number of mutated cell in tissue" type="int" units="none">5</number_of_mutated_cells>
 		<number_of_CD8_Tcells description="initial number of CD8 T cells in tissue" type="int" units="none">0</number_of_CD8_Tcells>
 		<number_of_macrophages description="initial number of macrophages" type="int" units="none">20</number_of_macrophages>
 		<number_of_neutrophils description="initial number of neutrophils" type="int" units="none">0</number_of_neutrophils>

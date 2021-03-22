@@ -58,7 +58,7 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		double mechanics_factor = pow(500.0 - pCell->state.simple_pressure,0.5)/pow(500.0,0.5);
 		if (mechanics_factor < 0.0) mechanics_factor = 0.0;
 		// proliferation rate based on mechanical aspect
-		pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0.002*mechanics_factor;
+		pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = parameters.doubles("prolif_rate_CancerCell")*mechanics_factor;
 		pCell->custom_data["mutated_cell_chemokine_secretion_activated"] = 1.0;
 	}else{
 		pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0.0;

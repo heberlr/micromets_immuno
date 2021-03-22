@@ -69,7 +69,7 @@
 // vector of valid positions
 std::vector<std::vector <double>> valid_position;
 // generator sample from distribution
-std::default_random_engine generator;
+std::default_random_engine generator{123456789};
 
 void create_cell_types( void )
 {
@@ -146,7 +146,6 @@ void setup_tissue( void )
 	static int neoantigens_index = microenvironment.find_density_index( "neoantigens" );
 
 	choose_initialized_voxels();
-
 	// create some cells near the origin
 
 	Cell* pC;
@@ -208,13 +207,17 @@ void setup_tissue( void )
 			x += 0.5 * spacing;
 		}
 	}
+	int Max_number_of_cell = valid_position.size();
+
+	// place immune cells
+	initial_immune_cell_placement();
 
 	// mutated cell - release neoantigens based on truncated normal distribution
-	for ( int i=0; i < 5 ;i++){
+	for ( int i=0; i < parameters.ints("number_of_mutated_cells") ;i++){
 		double sample;
 		// Sample to neoantigens secretion
 		do {
-			 sample = NormalRandom( 0.1, 0.2);
+			 sample = NormalRandom( parameters.doubles("mean_neoant_release"), parameters.doubles("std_neoant_release"));
 		}
 		while (sample < 0.0 || sample > 1.0);
 		pC = create_cell( get_cell_definition("skin cell" ) );
@@ -228,7 +231,7 @@ void setup_tissue( void )
 
 		// Sample to PDL1 concentration
 		do {
-			 sample = NormalRandom( parameters.doubles("mean_PDL1_exp"), 0.05);
+			 sample = NormalRandom( parameters.doubles("mean_PDL1_exp"), parameters.doubles("std_PDL1_exp"));
 		}
 		while (sample < 0.0 || sample > 1.0);
 		pC->custom_data["PDL1_expression"] = sample;
@@ -236,16 +239,14 @@ void setup_tissue( void )
 	}
 
 	// normal cells
-  for ( int i=0; i < 1000 ;i++){
+  for ( int i=0; i < parameters.doubles("cell_confluence_skin_cells")*Max_number_of_cell;i++){
 		pC = create_cell( get_cell_definition("skin cell" ) );
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
 		pC->assign_position( valid_position[index_sample] );
 		valid_position.erase (valid_position.begin()+index_sample);
+		if (valid_position.size() == 0) break;
 	}
-
-	// now place immune cells
-	initial_immune_cell_placement();
 
 	return;
 }

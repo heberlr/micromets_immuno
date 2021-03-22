@@ -91,6 +91,9 @@ double TH2 = 1;
 double TCt = 0;
 double Tht = 0;
 
+double std_neoant_release;//parameters.doubles("std_neoant_release");
+double std_PDL1_exp;//parameters.doubles("std_PDL1_exp");
+
 int main( int argc, char* argv[] )
 {
 	// load and parse settings file(s)
@@ -102,6 +105,10 @@ int main( int argc, char* argv[] )
 	{ XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" ); }
 	if( !XML_status )
 	{ exit(-1); }
+
+	// Mutation parameters
+	std_neoant_release = parameters.doubles("std_neoant_release");
+	std_PDL1_exp = parameters.doubles("std_PDL1_exp");
 
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);

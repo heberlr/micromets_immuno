@@ -238,7 +238,7 @@ untar:
 # easier animation
 
 FRAMERATE := 12
-OUTPUT := output_02
+OUTPUT := output
 
 jpeg:
 	@magick identify -format "%h" $(OUTPUT)/initial.svg >> __H.txt

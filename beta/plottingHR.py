@@ -74,7 +74,8 @@ for n in range( initial_index,last_index+1 ):
 
   RadiusSize = 400.0
 
-  figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #MC:'+str("%04i"%(skin_live_mutated_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+  figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #MC:'+str("%04i"%(skin_live_mutated_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+  # figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #MC:'+str("%04i"%(skin_live_mutated_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
 
   plt.subplot(221)
   plt.scatter( cx[skin_live],cy[skin_live],c='blue',s=Lcell_size,label='NC');
@@ -84,11 +85,11 @@ for n in range( initial_index,last_index+1 ):
   plt.scatter( cx[neuthophil],cy[neuthophil],c='cyan',s=Ecell_size,label='N' );
   plt.scatter( cx[dendritic],cy[dendritic],c='brown',s=Ecell_size,label='DC' );
   plt.scatter( cx[CD8],cy[CD8],c='red',s=Ecell_size,label='CD8' );
-  plt.scatter( cx[CD4],cy[CD4],c='orange',s=Ecell_size,label='CD4' );
+  # plt.scatter( cx[CD4],cy[CD4],c='orange',s=Ecell_size,label='CD4' );
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-  plt.subplots_adjust(left=0.08,right=0.93,bottom=0.06,top=0.89,wspace=0.26,hspace=0.26)
+  plt.subplots_adjust(left=0.08,right=0.93,bottom=0.06,top=0.89,wspace=0.36,hspace=0.26)
 
   plt.subplot(333)
   DG = mcds.get_concentrations( 'neoantigens' );
@@ -97,10 +98,14 @@ for n in range( initial_index,last_index+1 ):
     v1 = np.linspace(0, DG.max(), 10, endpoint=True)
     # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,DG[:,:,0],levels=v1,cmap='binary');
-    cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar(ticks=v1)
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
   else:
     plt.contourf(X1,Y1,DG[:,:,0],cmap='binary');
-    cbar = plt.colorbar(format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar()
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Neoantigens")
@@ -112,10 +117,14 @@ for n in range( initial_index,last_index+1 ):
     v1 = np.linspace(0, chemokine.max(), 10, endpoint=True)
     # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,chemokine[:,:,0],levels=v1,cmap='binary');
-    cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar(ticks=v1)
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
   else:
     plt.contourf(X1,Y1,chemokine[:,:,0],cmap='binary');
-    x = plt.colorbar(format=FormatScalarFormatter("%.1f"))
+    # plt.colorbar(format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar()
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Chemokine")
@@ -128,10 +137,14 @@ for n in range( initial_index,last_index+1 ):
     v1 = np.linspace(0, PIC.max(), 10, endpoint=True)
     # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,PIC[:,:,0],v1,cmap='binary');
-    cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar(ticks=v1)
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
   else:
     plt.contourf(X1,Y1,PIC[:,:,0],cmap='binary');
-    cbar = plt.colorbar(format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar()
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Pro-inf cytokine")
@@ -143,10 +156,14 @@ for n in range( initial_index,last_index+1 ):
     #v1 = np.linspace(0, 1.0, 10, endpoint=True)
     v1 = np.linspace(0, debris.max(), 10, endpoint=True)
     plt.contourf(X1,Y1,debris[:,:,0],v1,cmap='binary');
-    cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar(ticks=v1)
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
   else:
     plt.contourf(X1,Y1,debris[:,:,0],cmap='binary');
-    cbar = plt.colorbar(format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar()
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Debris")
@@ -159,10 +176,16 @@ for n in range( initial_index,last_index+1 ):
     v1 = np.linspace(0, AIC.max(), 10, endpoint=True)
     # v1 = np.linspace(0, 1.0, 10, endpoint=True)
     plt.contourf(X1,Y1,AIC[:,:,0],v1,cmap='binary');
-    cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar(ticks=v1)
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
   else:
     plt.contourf(X1,Y1,AIC[:,:,0],cmap='binary');
-    cbar = plt.colorbar(format=FormatScalarFormatter("%.1f"))
+    # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar()
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
   plt.xlim(-RadiusSize, RadiusSize)
   plt.ylim(-RadiusSize, RadiusSize)
   plt.title("Anti-inf cytokine")
@@ -188,4 +211,27 @@ for n in range( initial_index,last_index+1 ):
 # plt.xlabel("Time (days)")
 # plt.ylabel("Number of cell")
 # plt.legend(loc='upper left')
+# plt.show()
+
+# plt.figure(3)
+# filename= folder+'/dm_tc.dat'
+# input = np.loadtxt(filename, dtype='f', delimiter=' ')
+# col1 = np.array(input[:,0])
+# col2 = np.array(input[:,1])
+# col3 = np.array(input[:,1])
+# col4 = np.array(input[:,1])
+# col5 = np.array(input[:,1])
+# col6 = np.array(input[:,1])
+# time = np.arange(len(col1))
+# plt.plot(time,col1,label='DM')
+# plt.plot(time,col2,label='TC')
+# plt.plot(time,col3,label='TH1')
+# plt.plot(time,col4,label='TH2')
+# plt.plot(time,col5,label='TCt')
+# plt.plot(time,col6,label='Tht')
+# plt.xlabel("Time (hours)")
+# plt.ylabel("Number of cell")
+# plt.legend(loc='upper left')
+# plt.xlim([0,100])
+# plt.ylim([0,100])
 # plt.show()
