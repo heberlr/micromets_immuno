@@ -550,25 +550,23 @@ Cell* Cell::divide( )
 	do { // New child cell (PDL1)
 		 sample = NormalRandom( child->custom_data["PDL1_expression"], std_PDL1_exp);
 	}while (sample < 0.0 || sample > 1.0);
-	std::cout << "Print1 -- Mean: " << child->custom_data["PDL1_expression"] << " std: " << std_PDL1_exp << " sample: " << sample << std::endl;
+	//std::cout << "Print1 -- Mean: " << child->custom_data["PDL1_expression"] << " std: " << std_PDL1_exp << " sample: " << sample << std::endl;
 	child->custom_data["PDL1_expression"] = sample;
 	do { // New child cell (neantignes release)
 		 sample = NormalRandom( child->phenotype.secretion.secretion_rates[neoantigens_index], std_neoant_release);
 	}while (sample < 0.0 || sample > 1.0);
-	std::cout << "Print2 -- Mean: " << child->phenotype.secretion.secretion_rates[neoantigens_index] << " std: " << std_neoant_release << " sample: " << sample << std::endl;
+	//std::cout << "Print2 -- Mean: " << child->phenotype.secretion.secretion_rates[neoantigens_index] << " std: " << std_neoant_release << " sample: " << sample << std::endl;
 	child->phenotype.secretion.secretion_rates[neoantigens_index] = sample;
 	do { // Parental cell changed to child (PDL1)
 		 sample = NormalRandom( custom_data["PDL1_expression"], std_PDL1_exp);
 	}	while (sample < 0.0 || sample > 1.0);
-	std::cout << "Print3 -- Mean: " << custom_data["PDL1_expression"] << " std: " << std_PDL1_exp << " sample: " << sample << std::endl;
+	//std::cout << "Print3 -- Mean: " << custom_data["PDL1_expression"] << " std: " << std_PDL1_exp << " sample: " << sample << std::endl;
 	custom_data["PDL1_expression"] = sample;
 	do { // Parental cell changed to child (neoantigens release)
 		 sample = NormalRandom( 	phenotype.secretion.secretion_rates[neoantigens_index], std_neoant_release);
 	}	while (sample < 0.0 || sample > 1.0);
-	std::cout << "Print4 -- Mean: " << phenotype.secretion.secretion_rates[neoantigens_index] << " std: " << std_neoant_release << " sample: " << sample << std::endl;
+	//std::cout << "Print4 -- Mean: " << phenotype.secretion.secretion_rates[neoantigens_index] << " std: " << std_neoant_release << " sample: " << sample << std::endl;
 	phenotype.secretion.secretion_rates[neoantigens_index] = sample;
-
-	exit(0);
 
 	return child;
 }
