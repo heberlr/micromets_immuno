@@ -1399,7 +1399,7 @@
 
 
 		<div_initialization description="---Initialization Options--" type="divider" />
-		<cell_confluence_skin_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_skin_cells>
+		<cell_confluence_lung_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_lung_cells>
 		<number_of_melanoma_cells description="initial number of melanoma cells in tissue" type="int" units="none">5</number_of_melanoma_cells>
 		<number_of_CD8_Tcells description="initial number of CD8 T cells in tissue" type="int" units="none">0</number_of_CD8_Tcells>
 		<number_of_macrophages description="initial number of macrophages" type="int" units="none">20</number_of_macrophages>

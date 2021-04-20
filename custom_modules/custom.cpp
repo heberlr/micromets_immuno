@@ -265,9 +265,9 @@ std::vector<std::string> epithelium_coloring_function( Cell* pCell )
 
 		double interpolation = 0;
 		if( v < 10.0 )
-		{ interpolation = v*0.1; }
+		{ interpolation = 1.0 - v*0.05; }
 		else
-		{ interpolation = 1.0; }
+		{ interpolation = 0.5; }
 
 		int red = 0;
 		int green = 0;
@@ -539,7 +539,7 @@ for( int i=0 ; i < total_cell_count ; i++ )
 
 	static std::vector<std::string> Colors;
 	if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-	&& pC->type == pEpithelial->type && pC->type == pMelanoma->type)
+	&& (pC->type == pEpithelial->type || pC->type == pMelanoma->type) )
 	{
 		double r = pC->phenotype.geometry.radius ;
 		double rn = pC->phenotype.geometry.nuclear_radius ;
