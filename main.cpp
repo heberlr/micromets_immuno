@@ -239,7 +239,8 @@ int main( int argc, char* argv[] )
 
 			// run PhysiCell
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
-			check_skin_cell_out_of_domain();
+			check_lung_cell_out_of_domain();
+			divide_custom_data();
 
 			/*
 			  Custom add-ons could potentially go here.

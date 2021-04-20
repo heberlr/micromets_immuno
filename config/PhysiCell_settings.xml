@@ -1,4 +1,4 @@
-neoantigens<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <PhysiCell_settings version="devel-version">
 	<domain>
 		<x_min>-400</x_min>
@@ -14,7 +14,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 	</domain>
 
 	<overall>
-		<max_time units="min">16200</max_time> <!--!14400-->
+		<max_time units="min">600</max_time> <!--!16200-->
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 
@@ -50,15 +50,6 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 	</save>
 
 	<microenvironment_setup>
-		<variable ID="0" name="neoantigens" units="neoantigens/micron^3">
-			<physical_parameter_set>
-				<diffusion_coefficient units="micron^2/min">2.5</diffusion_coefficient>
-				<decay_rate units="1/min">1.02e-2</decay_rate>
-			</physical_parameter_set>
-			<initial_condition units="neoantigens/micron^3">0</initial_condition>
-			<Dirichlet_boundary_condition enabled="false" units="neoantigens/micron^3">0</Dirichlet_boundary_condition>
-		</variable>
-
 		<variable ID="3" name="pro-inflammatory cytokine" units="mol/micron^3">
 			<physical_parameter_set>
 				<diffusion_coefficient units="micron^2/min">555.56</diffusion_coefficient>
@@ -223,16 +214,17 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0.0</PDL1_expression>
-				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
-				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<mutated_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</mutated_cell_chemokine_secretion_activated>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an mutated cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -242,7 +234,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
 				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
-				<ability_to_phagocytose_mutated_cell description="Boolean for whether macrophages can phagocytose mutated cells" type="int" units="dimensionless">0</ability_to_phagocytose_mutated_cell>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
 				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
 				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
@@ -262,12 +254,12 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<activated_immune_cell description="used internally to track activation state" type="double" units="dimensionless">0.0</activated_immune_cell>
 
-				<antiinflammatory_cytokine_secretion_rate description="secretion rate of anti-inflammatory from mutated cell" type="double" units="1/min">15</antiinflammatory_cytokine_secretion_rate>
+				<antiinflammatory_cytokine_secretion_rate description="secretion rate of anti-inflammatory from melanoma cell" type="double" units="1/min">15</antiinflammatory_cytokine_secretion_rate>
 
 			</custom_data>
 		</cell_definition>
 
-		<cell_definition ID="1" name="skin cell" parent="default">
+		<cell_definition ID="1" name="lung cell" parent="default">
 			<phenotype>
 				<cycle code="6" name="flow_cytometry_separated_cycle_model">
 
@@ -379,16 +371,17 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 				<molecular />
 			</phenotype>
 			<custom_data>
-				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0.0</PDL1_expression>
-				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
-				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<mutated_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</mutated_cell_chemokine_secretion_activated>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an mutated cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -398,7 +391,163 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
 				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
-				<ability_to_phagocytose_mutated_cell description="Boolean for whether macrophages can phagocytose mutated cells" type="int" units="dimensionless">0</ability_to_phagocytose_mutated_cell>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
+
+				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
+				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
+
+				<exhausted_macrophage_death_rate desription="Threshold volume for neutrophil exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
+
+				<!-- <time_of_DC_departure description="Time DC leaves tissue after activation" type="double" units="min">0</time_of_DC_departure> -->
+
+				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
+				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
+
+				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
+				<sensitivity_to_chemokine_chemotaxis description="relative sensitivity to chemokine in chemotaxis" type="double" units="dimensionless">10.0</sensitivity_to_chemokine_chemotaxis>
+
+				<activated_speed description="speed after activation" type="double" units="micron/min">0.4</activated_speed>
+				<activated_cytokine_secretion_rate description="rate of secreting pro-inflamatory cytokine after activation" type="double" units="1/min">1</activated_cytokine_secretion_rate>
+
+				<activated_immune_cell description="used internally to track activation state" type="double" units="dimensionless">0.0</activated_immune_cell>
+
+				<antiinflammatory_cytokine_secretion_rate description="secretion rate of anti-inflammatory from infected epithelium cell" type="double" units="1/min">15</antiinflammatory_cytokine_secretion_rate>
+			</custom_data>
+		</cell_definition>
+
+		<cell_definition ID="2" name="melanoma cell" parent="default">
+			<phenotype>
+				<cycle code="6" name="flow_cytometry_separated_cycle_model">
+
+					<phase_transition_rates units="1/min">
+
+						<rate end_index="1" fixed_duration="false" start_index="0">0</rate>
+
+						<rate end_index="2" fixed_duration="true" start_index="1">0.00208333</rate>
+
+						<rate end_index="3" fixed_duration="true" start_index="2">0.00416667</rate>
+
+						<rate end_index="0" fixed_duration="true" start_index="3">0.0166667</rate>
+					</phase_transition_rates>
+				</cycle>
+
+				<death>
+					<model code="100" name="apoptosis">
+						<death_rate units="1/min">0</death_rate>
+						<phase_transition_rates units="1/min">
+							<rate end_index="1" fixed_duration="true" start_index="0">0.00193798</rate>
+						</phase_transition_rates>
+						<parameters>
+							<unlysed_fluid_change_rate units="1/min">0.05</unlysed_fluid_change_rate>
+							<lysed_fluid_change_rate units="1/min">0</lysed_fluid_change_rate>
+							<cytoplasmic_biomass_change_rate units="1/min">1.66667e-02</cytoplasmic_biomass_change_rate>
+							<nuclear_biomass_change_rate units="1/min">5.83333e-03</nuclear_biomass_change_rate>
+							<calcification_rate units="1/min">0</calcification_rate>
+							<relative_rupture_volume units="dimensionless">2.0</relative_rupture_volume>
+						</parameters>
+					</model>
+
+					<model code="101" name="necrosis">
+						<death_rate units="1/min">0.0</death_rate>
+						<phase_transition_rates units="1/min">
+							<rate end_index="1" fixed_duration="false" start_index="0">9e9</rate>
+							<rate end_index="2" fixed_duration="true" start_index="1">1.15741e-5</rate>
+						</phase_transition_rates>
+						<parameters>
+							<unlysed_fluid_change_rate units="1/min">0.05</unlysed_fluid_change_rate>
+							<lysed_fluid_change_rate units="1/min">0</lysed_fluid_change_rate>
+							<cytoplasmic_biomass_change_rate units="1/min">1.66667e-02</cytoplasmic_biomass_change_rate>
+							<nuclear_biomass_change_rate units="1/min">5.83333e-03</nuclear_biomass_change_rate>
+							<calcification_rate units="1/min">0</calcification_rate>
+							<relative_rupture_volume units="dimensionless">2.0</relative_rupture_volume>
+						</parameters>
+					</model>
+				</death>
+
+				<volume>
+					<total units="micron^3">2494</total>
+					<fluid_fraction units="dimensionless">0.75</fluid_fraction>
+					<nuclear units="micron^3">540</nuclear>
+
+					<fluid_change_rate units="1/min">0.05</fluid_change_rate>
+					<cytoplasmic_biomass_change_rate units="1/min">0.0045</cytoplasmic_biomass_change_rate>
+					<nuclear_biomass_change_rate units="1/min">0.0055</nuclear_biomass_change_rate>
+
+					<calcified_fraction units="dimensionless">0</calcified_fraction>
+					<calcification_rate units="1/min">0</calcification_rate>
+
+					<relative_rupture_volume units="dimensionless">2.0</relative_rupture_volume>
+				</volume>
+
+				<mechanics>
+					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
+					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
+
+					<options>
+						<set_relative_equilibrium_distance enabled="false" units="dimensionless">1.8</set_relative_equilibrium_distance>
+						<set_absolute_equilibrium_distance enabled="false" units="micron">15.12</set_absolute_equilibrium_distance>
+					</options>
+				</mechanics>
+
+				<motility>
+					<speed units="micron/min">4</speed>
+					<persistence_time units="min">5</persistence_time>
+					<migration_bias units="dimensionless">0.7</migration_bias>
+
+					<options>
+						<enabled>false</enabled>
+						<use_2D>true</use_2D>
+						<chemotaxis>
+							<enabled>false</enabled>
+							<substrate>chemokine</substrate>
+							<direction>1</direction>
+						</chemotaxis>
+					</options>
+				</motility>
+
+				<secretion>
+					<substrate name="pro-inflammatory cytokine">
+						<secretion_target units="dimensionless substrate concentration">1</secretion_target>
+						<uptake_rate units="1/min">0.0</uptake_rate>
+					</substrate>
+					<substrate name="chemokine">
+						<secretion_target units="dimensionless substrate concentration">1</secretion_target>
+						<uptake_rate units="1/min">0.0</uptake_rate>
+					</substrate>
+					<substrate name="debris">
+						<secretion_target units="dimensionless substrate concentration">1</secretion_target>
+						<uptake_rate units="1/min">0.0</uptake_rate>
+					</substrate>
+					<substrate name="anti-inflammatory cytokine">
+						<secretion_target units="dimensionless substrate concentration">1</secretion_target>
+						<uptake_rate units="1/min">0.0</uptake_rate>
+					</substrate>
+				</secretion>
+				<molecular />
+			</phenotype>
+			<custom_data>
+				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
+				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
+				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
+				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
+				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
+
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
+				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
+				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
+				<TCell_contact_death_threshold description="threshold CD8 T cell contact time to trigger apoptosis" type="double" units="min">50</TCell_contact_death_threshold>
+				<max_attachment_distance desription="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
+				<!-- <elastic_attachment_coefficient description="elastic coefficient for cell-cell attachment" type="double" units="1/min">0.01</elastic_attachment_coefficient>-->
+
+				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
+				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
 				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
 				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
@@ -536,15 +685,16 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 			</phenotype>
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
-				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
-				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<mutated_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</mutated_cell_chemokine_secretion_activated>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an mutated cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0.2</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">8.5</cell_attachment_lifetime>
@@ -554,7 +704,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
 				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
-				<ability_to_phagocytose_mutated_cell description="Boolean for whether macrophages can phagocytose mutated cells" type="int" units="dimensionless">0</ability_to_phagocytose_mutated_cell>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
 				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
 				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
@@ -693,15 +843,16 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 			</phenotype>
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
-				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
-				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<mutated_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</mutated_cell_chemokine_secretion_activated>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an mutated cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -711,7 +862,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
 				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
-				<ability_to_phagocytose_mutated_cell description="Boolean for whether macrophages can phagocytose mutated cells" type="int" units="dimensionless">0</ability_to_phagocytose_mutated_cell>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
 				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
 				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
@@ -850,15 +1001,16 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 			</phenotype>
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
-				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
-				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<mutated_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</mutated_cell_chemokine_secretion_activated>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an mutated cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -868,7 +1020,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
 				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
-				<ability_to_phagocytose_mutated_cell description="Boolean for whether macrophages can phagocytose mutated cells" type="int" units="dimensionless">0</ability_to_phagocytose_mutated_cell>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
 				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
 				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
@@ -877,14 +1029,14 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<!-- <time_of_DC_departure description="Time DC leaves tissue after activation" type="double" units="min">0</time_of_DC_departure> -->
 
-				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.117</phagocytosis_rate>
+				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
 				<phagocytosis_relative_target_cutoff_size desription="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
 				<sensitivity_to_chemokine_chemotaxis description="relative sensitivity to chemokine in chemotaxis" type="double" units="dimensionless">10.0</sensitivity_to_chemokine_chemotaxis>
 
 				<activated_speed description="speed after activation" type="double" units="micron/min">0.4</activated_speed>
-				<activated_cytokine_secretion_rate description="rate of secreting pro-inflamatory cytokine after activation" type="double" units="1/min">0</activated_cytokine_secretion_rate>
+				<activated_cytokine_secretion_rate description="rate of secreting pro-inflamatory cytokine after activation" type="double" units="1/min">1</activated_cytokine_secretion_rate>
 
 				<activated_immune_cell description="used internally to track activation state" type="double" units="dimensionless">0.0</activated_immune_cell>
 
@@ -1007,15 +1159,16 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 			</phenotype>
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
-				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
-				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<mutated_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</mutated_cell_chemokine_secretion_activated>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an mutated cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -1025,7 +1178,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
 				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
-				<ability_to_phagocytose_mutated_cell description="Boolean for whether macrophages can phagocytose mutated cells" type="int" units="dimensionless">0</ability_to_phagocytose_mutated_cell>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
 				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
 				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
@@ -1164,15 +1317,16 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 			</phenotype>
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
-				<neoantigens_intracellular description="total neoantigens on cell" type="double" units="neoantigens">0</neoantigens_intracellular>
+				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
 				<!--<apoptosis_hill_power description="Hill power for pathogen load apoptosis response" type="double" units="none">1</apoptosis_hill_power>-->
-				<mutated_cell_chemokine_secretion_rate description="max rate that mutated cells secrete chemokine" type="double" units="1/min">1</mutated_cell_chemokine_secretion_rate>
+				<melanoma_cell_chemokine_secretion_rate description="max rate that melanoma cells secrete chemokine" type="double" units="1/min">1</melanoma_cell_chemokine_secretion_rate>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<mutated_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</mutated_cell_chemokine_secretion_activated>
+				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an mutated cell" type="double" units="protein">0.8</TCell_detection>
+				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -1182,7 +1336,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
 				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
-				<ability_to_phagocytose_mutated_cell description="Boolean for whether macrophages can phagocytose mutated cells" type="int" units="dimensionless">0</ability_to_phagocytose_mutated_cell>
+				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
 				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
 				<threshold_neutrophil_volume desription="Threshold volume for neutrophil exhaustion" type="double" units="micron">1581</threshold_neutrophil_volume>
@@ -1213,12 +1367,12 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 	<user_parameters>
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
-		<mean_neoant_release description="mean of the neoantigens release" type="double" units="dimensionless">0.1</mean_neoant_release>
-		<std_neoant_release description="std of the neoantigens release" type="double" units="dimensionless">0.2</std_neoant_release>
+		<neoantigen_mutation_rate description="mutation rate of neoantigen on tumor cell" type="double" units="dimensionless">0.1</neoantigen_mutation_rate>
+		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">32</boolean_vector_size>
 		<mean_PDL1_exp description="mean of the PDL1 expression" type="double" units="dimensionless">0.2</mean_PDL1_exp>
 		<std_PDL1_exp description="std of the PDL1 expression" type="double" units="dimensionless">0.05</std_PDL1_exp>
 
-		<prolif_rate_CancerCell description="proliferation rate of mutated cell" type="double" units="dimensionless">0.002</prolif_rate_CancerCell>
+		<prolif_rate_CancerCell description="proliferation rate of melanoma cell" type="double" units="dimensionless">0.002</prolif_rate_CancerCell>
 
 		<div_immune description="--Immune activation parameters--" type="divider" />
 		<immune_dt description="how often we check to introduce immune cells" type="double" units="min">10</immune_dt>
@@ -1246,7 +1400,7 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 
 		<div_initialization description="---Initialization Options--" type="divider" />
 		<cell_confluence_skin_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_skin_cells>
-		<number_of_mutated_cells description="initial number of mutated cell in tissue" type="int" units="none">5</number_of_mutated_cells>
+		<number_of_melanoma_cells description="initial number of melanoma cells in tissue" type="int" units="none">5</number_of_melanoma_cells>
 		<number_of_CD8_Tcells description="initial number of CD8 T cells in tissue" type="int" units="none">0</number_of_CD8_Tcells>
 		<number_of_macrophages description="initial number of macrophages" type="int" units="none">20</number_of_macrophages>
 		<number_of_neutrophils description="initial number of neutrophils" type="int" units="none">0</number_of_neutrophils>
@@ -1265,15 +1419,17 @@ neoantigens<?xml version="1.0" encoding="UTF-8"?>
 		<percentage_tissue_vascularized description="percentage of tissue sitting above blood vessels" type="double" units="percentage">8.8</percentage_tissue_vascularized>
 
 		<div_colors description="---Cell Color Options--" type="divider" />
-		<color_variable description="color cells based on this variable" type="string">neoantigens_intracellular</color_variable>
+		<color_variable description="color cells based on this variable" type="string">division_generation</color_variable>
 
 		<epithelial_opacity description="opacity of epithelial cells" type="double">0.65</epithelial_opacity>
 		<non_epithelial_opacity description="opacity of non-epithelial cells" type="double">0.8</non_epithelial_opacity>
 
 		<apoptotic_epithelium_color description="apoptotic epithelial cell color" type="string">black</apoptotic_epithelium_color>
+		<apoptotic_melanoma_color description="apoptotic melanoma cell color" type="string">gray</apoptotic_melanoma_color>
 		<apoptotic_immune_color description="apoptotic immune cell color" type="string">rosybrown</apoptotic_immune_color>
 
 
+		<melanoma_color description="melanoma cell color" type="string">yellow</melanoma_color>
 		<CD8_Tcell_color description="CD8 T cell color" type="string">red</CD8_Tcell_color>
 		<CD4_Tcell_color description="CD4 T cell color" type="string">orange</CD4_Tcell_color>
 		<Macrophage_color description="macrophage color" type="string">rgb(35,139,69)</Macrophage_color>

@@ -98,6 +98,10 @@ void create_cell_types( void )
 
 	initialize_cell_definitions_from_pugixml();
 
+	//aditional custom data -- PhysiCell don't allow boolean vector in cell, only double
+	std::vector<double> neoantigen_signature(parameters.ints("boolean_vector_size"),0.0);
+	cell_defaults.custom_data.add_vector_variable( "neoantigen_signature" , "dimensionless" , neoantigen_signature );
+
 	/*
 	Put any modifications to individual cell definitions here.
 
@@ -107,13 +111,14 @@ void create_cell_types( void )
 	// register the submodels
 	// (which ensures that the cells have all the internal variables they need)
 
-	Cell_Definition* pCD = find_cell_definition( "skin cell" );
+	Cell_Definition* pCD = find_cell_definition( "lung cell" );
 
 	immune_submodels_setup();
 	// receptor_dynamics_model_setup();
 	// internal_pathogen_model_setup();
 	// internal_pathogen_response_model_setup();
 	epithelium_submodel_setup();
+	melanoma_submodel_setup();
 
 	submodel_registry.display( std::cout );
 
@@ -143,15 +148,13 @@ void setup_microenvironment( void )
 
 void setup_tissue( void )
 {
-	static int neoantigens_index = microenvironment.find_density_index( "neoantigens" );
-
 	choose_initialized_voxels();
 	// create some cells near the origin
 
 	Cell* pC;
 
 	// hexagonal cell packing
-	Cell_Definition* pCD = find_cell_definition("skin cell");
+	Cell_Definition* pCD = find_cell_definition("lung cell");
 
 	double cell_radius = pCD->phenotype.geometry.radius;
 	double spacing = 0.95 * cell_radius * 2.0;
@@ -181,7 +184,7 @@ void setup_tissue( void )
 	{
 		while( x < x_max )
 		{
-			// pC = create_cell( get_cell_definition("skin cell" ) );
+			// pC = create_cell( get_cell_definition("lung cell" ) );
 			// pC->assign_position( x,y, 0.0 );
 			temp_position[0] = x; temp_position[1] = y; temp_position[2] = 0.0;
 			valid_position.push_back(temp_position);
@@ -212,35 +215,30 @@ void setup_tissue( void )
 	// place immune cells
 	initial_immune_cell_placement();
 
-	// mutated cell - release neoantigens based on truncated normal distribution
-	for ( int i=0; i < parameters.ints("number_of_mutated_cells") ;i++){
-		double sample;
-		// Sample to neoantigens secretion
-		do {
-			 sample = NormalRandom( parameters.doubles("mean_neoant_release"), parameters.doubles("std_neoant_release"));
-		}
-		while (sample < 0.0 || sample > 1.0);
-		pC = create_cell( get_cell_definition("skin cell" ) );
+	// Melanoma cells
+	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
+
+		// Sample neoantigens
+		//....
+		pC = create_cell( get_cell_definition("melanoma cell" ) );
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
 		pC->assign_position( valid_position[index_sample] );
 		valid_position.erase (valid_position.begin()+index_sample);
-		pC->phenotype.secretion.secretion_rates[neoantigens_index] = sample;
-		pC->custom_data["neoantigens_intracellular"] = sample;
 		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
-
 		// Sample to PDL1 concentration
+		double sample;
 		do {
 			 sample = NormalRandom( parameters.doubles("mean_PDL1_exp"), parameters.doubles("std_PDL1_exp"));
 		}
 		while (sample < 0.0 || sample > 1.0);
 		pC->custom_data["PDL1_expression"] = sample;
-		std::cout << "Pos: " << pC->position << " neoantigens: " << pC->custom_data["neoantigens_intracellular"] << " PDL1 expression: " << pC->custom_data["PDL1_expression"] << std::endl;
+		std::cout << "Pos: " << pC->position << " PDL1 expression: " << pC->custom_data["PDL1_expression"] << std::endl;
 	}
 
-	// normal cells
-  for ( int i=0; i < parameters.doubles("cell_confluence_skin_cells")*Max_number_of_cell;i++){
-		pC = create_cell( get_cell_definition("skin cell" ) );
+	// Ephitelium cells
+  for ( int i=0; i < parameters.doubles("cell_confluence_lung_cells")*Max_number_of_cell;i++){
+		pC = create_cell( get_cell_definition("lung cell" ) );
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
 		pC->assign_position( valid_position[index_sample] );
@@ -266,14 +264,14 @@ std::vector<std::string> epithelium_coloring_function( Cell* pCell )
 		double v = pCell->custom_data[ color_index ] ;
 
 		double interpolation = 0;
-		if( v > 0.0 )
-		{ interpolation = 1.0; }
+		if( v < 10.0 )
+		{ interpolation = v*0.1; }
 		else
-		{ interpolation = 0.0; }
+		{ interpolation = 1.0; }
 
-		int red = (int) floor( 255.0 * interpolation ) ;
-		int green = red;
-		int blue = 255 - red;
+		int red = 0;
+		int green = 0;
+		int blue = (int) floor( 255.0 * interpolation );
 
 		char color [1024];
 		sprintf( color, "rgb(%u,%u,%u)" , red,green,blue );
@@ -288,7 +286,8 @@ std::vector<std::string> epithelium_coloring_function( Cell* pCell )
 
 std::vector<std::string> tissue_coloring_function( Cell* pCell )
 {
-	static int lung_epithelial_type = get_cell_definition( "skin cell" ).type;
+	static int lung_epithelial_type = get_cell_definition( "lung cell" ).type;
+	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
 
 	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
 	static int Macrophage_type = get_cell_definition( "macrophage" ).type;
@@ -304,24 +303,42 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 	if( pCell->phenotype.death.dead == true )
 	{
-		if( pCell->type != lung_epithelial_type )
+		if( pCell->type != lung_epithelial_type && pCell->type != melanoma_type )
 		{
 			output[0] = parameters.strings("apoptotic_immune_color");
 			output[2] = output[0];
 			output[3] = output[0];
 			return output;
 		}
-
-		output[0] = parameters.strings("apoptotic_epithelium_color");
-		output[2] = output[0];
-		output[3] = output[0];
-		return output;
+		else{
+			if( pCell->type == lung_epithelial_type)
+			{
+				output[0] = parameters.strings("apoptotic_epithelium_color");
+				output[2] = output[0];
+				output[3] = output[0];
+				return output;
+			}
+			else{
+				output[0] = parameters.strings("apoptotic_melanoma_color");
+				output[2] = output[0];
+				output[3] = output[0];
+			}
+		}
 	}
 
 	if( pCell->phenotype.death.dead == false && pCell->type == lung_epithelial_type )
 	{
 		// color by pathogen
 		output = epithelium_coloring_function(pCell);
+		return output;
+	}
+
+	if( pCell->phenotype.death.dead == false && pCell->type == melanoma_type )
+	{
+		// color by pathogen
+		output[0] = parameters.strings("melanoma_color");
+		output[2] = output[0];
+		output[3] = output[0];
 		return output;
 	}
 
@@ -511,9 +528,10 @@ void SVG_plot_pathogen( std::string filename , Microenvironment& M, double z_sli
 */
 os << "  </g>" << std::endl;
 
-static Cell_Definition* pEpithelial = find_cell_definition( "skin cell" );
+static Cell_Definition* pEpithelial = find_cell_definition( "lung cell" );
+static Cell_Definition* pMelanoma = find_cell_definition( "melanoma cell" );
 
-// plot intersecting epithelial cells
+// plot intersecting epithelial and melanoma cells
 os << "  <g id=\"cells\">" << std::endl;
 for( int i=0 ; i < total_cell_count ; i++ )
 {
@@ -521,7 +539,7 @@ for( int i=0 ; i < total_cell_count ; i++ )
 
 	static std::vector<std::string> Colors;
 	if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-	&& pC->type == pEpithelial->type )
+	&& pC->type == pEpithelial->type && pC->type == pMelanoma->type)
 	{
 		double r = pC->phenotype.geometry.radius ;
 		double rn = pC->phenotype.geometry.nuclear_radius ;
@@ -551,14 +569,14 @@ for( int i=0 ; i < total_cell_count ; i++ )
 
 }
 
-//plot intersecting non=epithelial cells
+//plot intersecting non=epithelial and non-melanoma cells
 for( int i=0 ; i < total_cell_count ; i++ )
 {
 	Cell* pC = (*all_cells)[i]; // global_cell_list[i];
 
 	static std::vector<std::string> Colors;
 	if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-	&& pC->type != pEpithelial->type )
+	&& pC->type != pEpithelial->type && pC->type != pMelanoma->type)
 	{
 		double r = pC->phenotype.geometry.radius ;
 		double rn = pC->phenotype.geometry.nuclear_radius ;
@@ -642,27 +660,91 @@ szString = new char [1024];
 sprintf( szString , "%u %s" , (int) round( temp ) , bar_units.c_str() );
 
 Write_SVG_rect( os , plot_width - bar_margin - bar_width  , plot_height + top_margin - bar_margin - bar_height ,
-	bar_width , bar_height , 0.002 * plot_height , "rgb(255,255,255)", "rgb(0,0,0)" );
-	Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_size ,
-		plot_height + top_margin - bar_margin - bar_height - 0.25*font_size ,
-		font_size , PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
+bar_width , bar_height , 0.002 * plot_height , "rgb(255,255,255)", "rgb(0,0,0)" );
+Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_size ,
+	plot_height + top_margin - bar_margin - bar_height - 0.25*font_size ,
+	font_size , PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
 
-		delete [] szString;
+	delete [] szString;
 
-		// plot runtime
-		szString = new char [1024];
-		RUNTIME_TOC();
-		std::string formatted_stopwatch_value = format_stopwatch_value( runtime_stopwatch_value() );
-		Write_SVG_text( os, formatted_stopwatch_value.c_str() , bar_margin , top_margin + plot_height - bar_margin , 0.75 * font_size ,
-		PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
-		delete [] szString;
+	// plot runtime
+	szString = new char [1024];
+	RUNTIME_TOC();
+	std::string formatted_stopwatch_value = format_stopwatch_value( runtime_stopwatch_value() );
+	Write_SVG_text( os, formatted_stopwatch_value.c_str() , bar_margin , top_margin + plot_height - bar_margin , 0.75 * font_size ,
+	PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
+	delete [] szString;
 
-		// draw a box around the plot window
-		Write_SVG_rect( os , 0 , top_margin, plot_width, plot_height , 0.002 * plot_height , "rgb(0,0,0)", "none" );
+	// draw a box around the plot window
+	Write_SVG_rect( os , 0 , top_margin, plot_width, plot_height , 0.002 * plot_height , "rgb(0,0,0)", "none" );
 
-		// close the svg tag, close the file
-		Write_SVG_end( os );
-		os.close();
+	// close the svg tag, close the file
+	Write_SVG_end( os );
+	os.close();
 
-		return;
+	return;
+}
+
+void mutation (Cell* pCell, double prob_mutation){
+	static int neoantigen_signature_index = pCell->custom_data.find_variable_index( "neoantigen_signature" );
+  for (int i=0; i < pCell->custom_data.vector_variables[neoantigen_signature_index].value.size(); i++)
+    if (UniformRandom() < prob_mutation)
+		{
+			if ( pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 0.0)
+				pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] = 1.0;
+			else
+				pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] = 0.0;
+		}
+}
+
+void divide_custom_data()
+{
+	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+
+	static double tolerance = 0.001;
+  static double mutation_rate = parameters.doubles( "neoantigen_mutation_rate" );
+  #pragma omp parallel for
+	for( int i=0; i < (*all_cells).size() ;i++ )
+	{
+		Cell* pCell;
+		pCell = (*all_cells)[i];
+		static int last_cycle_index = pCell->custom_data.find_variable_index( "last_cycle_entry_time");
+		static int generation_index = pCell->custom_data.find_variable_index( "division_generation" );
+
+		// if cell is dead, skip it
+		if( pCell->phenotype.death.dead == true )
+	    { continue; }
+
+		// if cell is not nelanoma cell, skip it
+		if ( pCell->type != melanoma_type ) continue;
+
+		if( pCell->phenotype.cycle.data.elapsed_time_in_phase < tolerance &&
+			fabs( PhysiCell_globals.current_time - pCell->custom_data[ last_cycle_index ] ) >= phenotype_dt ) // 6.0
+		{
+			// add generation by 1
+			pCell->custom_data[ generation_index ] += 1;
+
+      // for( int j = 0; j < m; j++ )
+      // {
+      //     pCell->custom_data.vector_variables[0].value[j] *= pass_ratio;	 // 0.5
+      // }
+
+			pCell->custom_data[ last_cycle_index ] = PhysiCell_globals.current_time;
+		}
 	}
+
+	return;
+}
+
+void check_lung_cell_out_of_domain( void )
+{
+	static int lung_cell_type = get_cell_definition( "lung cell" ).type;
+	for (int i=0; i < (*all_cells).size(); i++)
+	{
+		if( !(*all_cells)[i]->get_container()->underlying_mesh.is_position_valid((*all_cells)[i]->position[0],(*all_cells)[i]->position[1],(*all_cells)[i]->position[2]) &&
+	   	(*all_cells)[i]->type == lung_cell_type)
+		{
+	      delete_cell( i );
+		}
+	}
+}

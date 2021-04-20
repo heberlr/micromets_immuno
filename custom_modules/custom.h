@@ -72,6 +72,7 @@
 #include "./external_immune.h"
 #include "./immune_submodels.h"
 #include "./epithelium_submodel.h"
+#include "./melanoma_submodel.h"
 
 using namespace BioFVM;
 using namespace PhysiCell;
@@ -80,7 +81,8 @@ using namespace PhysiCell;
 
 void create_cell_types( void );
 void setup_tissue( void );
-
+void divide_custom_data( void );
+void check_lung_cell_out_of_domain( void );
 // set up the BioFVM microenvironment
 void setup_microenvironment( void );
 

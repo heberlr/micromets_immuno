@@ -344,7 +344,7 @@ void CD8_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	else
 	{ phenotype.motility.is_motile = false; }
 
-	// check for contact with mutated cell
+	// check for contact with melanoma cell
 
 	// if I'm adhered to something ...
 	if( pCell->state.number_of_attached_cells() > 0 ) // pCell->state.neighbors.size() > 0 )
@@ -464,11 +464,11 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 				phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] = 0;// (Adrianne) contact with CD8 T cell turns off pro-inflammatory cytokine secretion
 				n=neighbors.size();
 			}
-			// (Adrianne) if it is not me, not dead and is a CD4 T cell that is within a very short distance from me, I will be able to phagocytose mutated (but not neccesarily dead) cells
+			// (Adrianne) if it is not me, not dead and is a CD4 T cell that is within a very short distance from me, I will be able to phagocytose melanoma (but not neccesarily dead) cells
 			else if( pContactCell != pCell && pContactCell->phenotype.death.dead == false && pContactCell->type == CD4_Tcell_type
 				&& pCell->custom_data["activated_immune_cell"] > 0.5 && cell_cell_distance<=parameters.doubles("epsilon_distance")*(radius_mac+radius_test_cell))
 				{
-					pCell->custom_data["ability_to_phagocytose_mutated_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose mutated cells
+					pCell->custom_data["ability_to_phagocytose_melanoma_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose melanoma cells
 					n=neighbors.size();
 				}
 				n++;
@@ -529,7 +529,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 						return;
 					}
-					else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_mutated_cell"]== 1 && /*pTestCell->custom_data[nP]>1 &&*/
+					else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_melanoma_cell"]== 1 && /*pTestCell->custom_data[nP]>1 &&*/
 					UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose infected cells that contain at least 1 pathogen protein
 					{
 						{
@@ -764,15 +764,15 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		else
 		{
 
-			// (adrianne) DCs become activated if there is an mutated cell in their neighbour with the local amount of neoantigens is greater than 10
-			static int neoantigens_index = microenvironment.find_density_index("neoantigens");
-			double neoantigens_amount = pCell->nearest_density_vector()[neoantigens_index];
+			// (adrianne) DCs become activated if there is an melanoma cell in their neighbour with the local amount of neoantigens is greater than 10
+			//double neoantigens_amount = pCell->nearest_density_vector()[neoantigens_index];
+			double neoantigens_amount = 0.0;
 
 			if( neoantigens_amount*microenvironment.mesh.voxels[1].volume > parameters.doubles("DS_needed_for_DC_activation")) // (Adrianne) amount of neoantigens in local voxel with DC is greater than 10
 			{
 				pCell->custom_data["activated_immune_cell"] = 1.0; // (Adrianne) DC becomes activated
 			}
-			else //(Adrianne) check for mutated cells nearby
+			else //(Adrianne) check for melanoma cells nearby
 			{
 				std::vector<Cell*> neighbors = pCell->cells_in_my_container();
 				int n = 0;
@@ -880,8 +880,6 @@ void immune_submodels_setup( void )
 	CD8_submodel_info.phenotype_function = CD8_Tcell_phenotype;
 	CD8_submodel_info.mechanics_function = CD8_Tcell_mechanics;
 	// what microenvironment variables do you expect?
-	CD8_submodel_info.microenvironment_variables.push_back( "neoantigens" );
-	//CD8_submodel_info.microenvironment_variables.push_back( "interferon 1" );
 	CD8_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
 	CD8_submodel_info.microenvironment_variables.push_back( "chemokine" );
 	// what custom data do I need?
@@ -970,8 +968,6 @@ void immune_submodels_setup( void )
 	CD4_submodel_info.phenotype_function = CD4_Tcell_phenotype;
 	CD4_submodel_info.mechanics_function = CD4_Tcell_mechanics;
 	// what microenvironment variables do you expect?
-	CD4_submodel_info.microenvironment_variables.push_back( "neoantigens" );
-	//CD4_submodel_info.microenvironment_variables.push_back( "interferon 1" );
 	CD4_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
 	CD4_submodel_info.microenvironment_variables.push_back( "chemokine" );
 	// what custom data do I need?
@@ -1018,9 +1014,13 @@ bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt 
 // double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" ))/ (pow(parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ),parameters.doubles( "TC_coeff_hf_PDL1_attch" )) + pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
 double PD_PDL1_attachment = 1.0/ (1.0 + pow(pTarget->custom_data["PDL1_expression"]/parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ), parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
 
-// if the target is not mutated cell, give up
-if( pTarget->custom_data[ "neoantigens_intracellular" ] < pAttacker->custom_data[ "TCell_detection" ] )
-{ return false; }
+// if the target is not melanoma cell, give up
+
+// if( pTarget->custom_data[ "neoantigens_intracellular" ] < pAttacker->custom_data[ "TCell_detection" ] )
+// { return false; }
+// MISSING USE TCell_detection VARIABLE
+static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+if ( pTarget->type == melanoma_type )
 
 // if the target cell is dead, give up
 if( pTarget->phenotype.death.dead == true )
