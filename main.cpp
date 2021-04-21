@@ -91,7 +91,8 @@ double TH2 = 1;
 double TCt = 0;
 double Tht = 0;
 
-double std_neoant_release;//parameters.doubles("std_neoant_release");
+std::vector<int> NumberofCells;
+
 double std_PDL1_exp;//parameters.doubles("std_PDL1_exp");
 
 int main( int argc, char* argv[] )
@@ -107,7 +108,6 @@ int main( int argc, char* argv[] )
 	{ exit(-1); }
 
 	// Mutation parameters
-	std_neoant_release = parameters.doubles("std_neoant_release");
 	std_PDL1_exp = parameters.doubles("std_PDL1_exp");
 
 	// OpenMP setup
@@ -182,6 +182,10 @@ int main( int argc, char* argv[] )
 	// dm_tc_file.open ("dm_tc.dat");
 	dm_tc_file.open (filename);
 
+	std::ofstream numCell_file;
+	sprintf( filename , "%s/numCell.dat" , PhysiCell_settings.folder.c_str() );
+	numCell_file.open (filename);
+
 	// main loop
 
 	try
@@ -202,7 +206,8 @@ int main( int argc, char* argv[] )
 					sprintf( filename , "%s/output%08u" , PhysiCell_settings.folder.c_str(),  PhysiCell_globals.full_output_index );
 
 					dm_tc_file << DM << " " << TC << " " << TH1 << " " << TH2 << " " << TCt << " " << Tht << std::endl; //write globals data
-
+					print_cell_count(numCell_file); // write number of cells file
+					
 					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
 				}
 

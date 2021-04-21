@@ -748,3 +748,53 @@ void check_lung_cell_out_of_domain( void )
 		}
 	}
 }
+
+void print_cell_count( std::ofstream& file )
+{
+	static int lung_cell_type = get_cell_definition( "lung cell" ).type;
+	static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
+	static int CD8_type = get_cell_definition( "CD8 Tcell" ).type;
+	static int macrophage_type = get_cell_definition( "macrophage" ).type;
+	static int neutrophil_type = get_cell_definition( "neutrophil" ).type;
+	static int DC_type = get_cell_definition( "DC" ).type;
+	static int CD4_type = get_cell_definition( "CD4 Tcell" ).type;
+
+	extern std::vector<int> NumberofCells;
+  NumberofCells = {0,0,0,0,0,0,0,0};
+	for (int i=0; i < (*all_cells).size(); i++)
+	{
+		if( (*all_cells)[i]->phenotype.death.dead == true )
+		{
+			NumberofCells[7]++;
+		}
+		else if( (*all_cells)[i]->type == lung_cell_type )
+		{
+			NumberofCells[0]++;
+		}
+		else if ( (*all_cells)[i]->type == melanoma_cell_type )
+		{
+			NumberofCells[1]++;
+		}
+		else if ( (*all_cells)[i]->type == CD8_type )
+		{
+			NumberofCells[2]++;
+		}
+		else if ( (*all_cells)[i]->type == macrophage_type )
+		{
+			NumberofCells[3]++;
+		}
+		else if ( (*all_cells)[i]->type == neutrophil_type )
+		{
+			NumberofCells[4]++;
+		}
+		else if ( (*all_cells)[i]->type == DC_type )
+		{
+			NumberofCells[5]++;
+		}
+		else //CD4 type
+		{
+			NumberofCells[6]++;
+		}
+	}
+	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << std::endl;
+}
