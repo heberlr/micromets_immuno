@@ -207,7 +207,7 @@ int main( int argc, char* argv[] )
 
 					dm_tc_file << DM << " " << TC << " " << TH1 << " " << TH2 << " " << TCt << " " << Tht << std::endl; //write globals data
 					print_cell_count(numCell_file); // write number of cells file
-					
+
 					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
 				}
 
@@ -278,8 +278,10 @@ int main( int argc, char* argv[] )
 		std::cout << e.what(); // information from length_error printed
 	}
 
-	// save a final simulation snapshot
+	dm_tc_file.close();
+	numCell_file.close();
 
+	// save a final simulation snapshot
 	sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() );
 	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
 
