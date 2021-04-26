@@ -14,7 +14,7 @@
 	</domain>
 
 	<overall>
-		<max_time units="min">60</max_time> <!--!16200-->
+		<max_time units="min">6000</max_time> <!--!16200-->
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 
@@ -216,6 +216,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -373,6 +374,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -529,6 +531,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -686,6 +689,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -844,6 +848,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -1002,6 +1007,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -1160,6 +1166,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -1318,6 +1325,7 @@
 			<custom_data>
 				<PDL1_expression description="PDL1 cell expression" type="double" units="dimensionless">0</PDL1_expression>
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
+				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<!--<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to pathogen infection" type="double" units="1/min">0.002</max_infected_apoptosis_rate>-->
 				<max_apoptosis_half_max description="pathogen load at which cells reach half max apoptosis rate" type="double" units="neoantigens">250</max_apoptosis_half_max>
@@ -1367,8 +1375,14 @@
 	<user_parameters>
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
-		<neoantigen_mutation_rate description="mutation rate of neoantigen on tumor cell" type="double" units="dimensionless">0.1</neoantigen_mutation_rate>
-		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">32</boolean_vector_size>
+		<rate_neoantigen_variability description="rate of element alteration for neoantigen signature (poisson dist)" type="double" units="dimensionless">5.0</rate_neoantigen_variability>
+		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">100</boolean_vector_size>
+		<percentage_clonal_neoantigen description="percentage clonal neoantigen" type="double" units="dimensionless">0.15</percentage_clonal_neoantigen>
+		<percentage_subclonal_neoantigen description="percentage subclonal neoantigen" type="double" units="dimensionless">0.38</percentage_subclonal_neoantigen>
+	  <probability_recog_clonal_neoantigen description="probability to recog clonal neoantigen" type="double" units="dimensionless">0.15</probability_recog_clonal_neoantigen>
+		<probability_recog_subclonal_neoantigen description="probability to recog subclonal neoantigen" type="double" units="dimensionless">0.25</probability_recog_subclonal_neoantigen>
+		<probability_recog_shared_neoantigen description="probability to recog shared neoantigen" type="double" units="dimensionless">0.25</probability_recog_shared_neoantigen>
+
 		<mean_PDL1_exp description="mean of the PDL1 expression" type="double" units="dimensionless">0.2</mean_PDL1_exp>
 		<std_PDL1_exp description="std of the PDL1 expression" type="double" units="dimensionless">0.05</std_PDL1_exp>
 

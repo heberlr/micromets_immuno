@@ -96,13 +96,11 @@ void create_cell_types( void )
 	This parses the cell definitions in the XML config file.
 	*/
 
-	//aditional custom data -- PhysiCell don't allow boolean vector in cell, only double
+	//aditional custom data -- PhysiCell don't allow boolean vector in cell, only double (always before initialize_cell_definitions_from_pugixml)
 	std::vector<double> neoantigen_signature(parameters.ints("boolean_vector_size"),0.0);
 	cell_defaults.custom_data.add_vector_variable( "neoantigen_signature" , "dimensionless" , neoantigen_signature );
 
 	initialize_cell_definitions_from_pugixml();
-
-	std::cout << "OUT:" << parameters.ints("boolean_vector_size") << std::endl;
 
 	/*
 	Put any modifications to individual cell definitions here.
@@ -687,16 +685,44 @@ Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_s
 	return;
 }
 
-void mutation (Cell* pCell, double prob_mutation){
+void mutation (Cell* pCell){
 	static int neoantigen_signature_index = pCell->custom_data.find_variable_index( "neoantigen_signature" );
-  for (int i=0; i < pCell->custom_data.vector_variables[neoantigen_signature_index].value.size(); i++)
-    if (UniformRandom() < prob_mutation)
-		{
-			if ( pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 0.0)
-				pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] = 1.0;
-			else
-				pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] = 0.0;
+	std::poisson_distribution<int> Poisson_dist( parameters.doubles( "rate_neoantigen_variability" ));
+	int NumberElements = Poisson_dist(generator); // Number of elements to be changed
+	std::uniform_int_distribution<int> unif_discrete_dist(0,parameters.ints("boolean_vector_size"));
+
+	for (int i=0; i < NumberElements; i++)
+	{
+  	int index_sample = unif_discrete_dist(generator);
+		std::cout << "Number of samples: " << NumberElements << "  Index: " << index_sample << std::endl;
+		if ( pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] == 0.0)
+			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 1.0;
+		else
+			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 0.0;
+	}
+
+	int clonal_scores = 0, subclonal_scores = 0, shared_scores = 0;
+	int limit_clonal_region = parameters.doubles( "percentage_clonal_neoantigen" )*parameters.ints("boolean_vector_size");
+	int limit_subclonal_region = parameters.ints("boolean_vector_size") - parameters.doubles( "percentage_subclonal_neoantigen" )*parameters.ints("boolean_vector_size");
+	for (int i=0; i < limit_clonal_region; i++)
+		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) clonal_scores++;
+	for (int i=limit_clonal_region; i < limit_subclonal_region; i++)
+		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) shared_scores++;
+	for (int i=limit_subclonal_region; i < parameters.ints("boolean_vector_size"); i++)
+		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) subclonal_scores++;
+
+	// Classify the cell according the maximum score
+	static int neoantigen_type_index = pCell->custom_data.find_variable_index( "neoantigen_type");
+	if ( clonal_scores > subclonal_scores && clonal_scores > shared_scores ) {
+		pCell->custom_data[neoantigen_type_index] = 0; // clonal neoantigen
+	}else{
+		if ( subclonal_scores > clonal_scores && subclonal_scores > shared_scores ) {
+			pCell->custom_data[neoantigen_type_index] = 2; // subclonal neoantigen
 		}
+		else{
+			pCell->custom_data[neoantigen_type_index] = 1; // shared neoantigen
+		}
+	}
 }
 
 void divide_custom_data()
@@ -726,10 +752,7 @@ void divide_custom_data()
 			// add generation by 1
 			pCell->custom_data[ generation_index ] += 1;
 
-      // for( int j = 0; j < m; j++ )
-      // {
-      //     pCell->custom_data.vector_variables[0].value[j] *= pass_ratio;	 // 0.5
-      // }
+      mutation (pCell);
 
 			pCell->custom_data[ last_cycle_index ] = PhysiCell_globals.current_time;
 		}
