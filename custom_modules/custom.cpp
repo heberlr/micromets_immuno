@@ -96,11 +96,13 @@ void create_cell_types( void )
 	This parses the cell definitions in the XML config file.
 	*/
 
-	initialize_cell_definitions_from_pugixml();
-
 	//aditional custom data -- PhysiCell don't allow boolean vector in cell, only double
 	std::vector<double> neoantigen_signature(parameters.ints("boolean_vector_size"),0.0);
 	cell_defaults.custom_data.add_vector_variable( "neoantigen_signature" , "dimensionless" , neoantigen_signature );
+
+	initialize_cell_definitions_from_pugixml();
+
+	std::cout << "OUT:" << parameters.ints("boolean_vector_size") << std::endl;
 
 	/*
 	Put any modifications to individual cell definitions here.
