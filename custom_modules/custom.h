@@ -83,6 +83,7 @@ void create_cell_types( void );
 void setup_tissue( void );
 void divide_custom_data( void );
 void check_lung_cell_out_of_domain( void );
+void mutation ( Cell* );
 // set up the BioFVM microenvironment
 void setup_microenvironment( void );
 

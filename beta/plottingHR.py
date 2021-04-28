@@ -19,8 +19,8 @@ class NumberOfCells:
     def __init__(self, sizeV):
         self.sizeV = sizeV
         self.times = np.zeros( last_index+1 );
-        self.skin_live = np.zeros( last_index+1 );
-        self.skin_live_mutated = np.zeros( last_index+1 );
+        self.lung = np.zeros( last_index+1 );
+        self.melanoma = np.zeros( last_index+1 );
         self.skin_dead = np.zeros( last_index+1 );
         self.macrophage = np.zeros( last_index+1 )
         self.neuthophil = np.zeros( last_index+1 );
@@ -30,8 +30,8 @@ class NumberOfCells:
     def __add__(self, other):
         Sum = NumberOfCells(self.sizeV)
         Sum.times = self.times
-        Sum.skin_live = self.skin_live + other.skin_live
-        Sum.skin_live_mutated = self.skin_live_mutated + other.skin_live_mutated
+        Sum.lung = self.lung + other.lung
+        Sum.melanoma = self.melanoma + other.melanoma
         Sum.skin_dead = self.skin_dead + other.skin_dead
         Sum.macrophage = self.macrophage + other.macrophage
         Sum.neuthophil = self.neuthophil + other.neuthophil
@@ -42,8 +42,8 @@ class NumberOfCells:
     def __sub__(self, other):
         Sum = NumberOfCells(self.sizeV)
         Sum.times = self.times
-        Sum.skin_live = self.skin_live - other.skin_live
-        Sum.skin_live_mutated = self.skin_live_mutated - other.skin_live_mutated
+        Sum.lung = self.lung - other.lung
+        Sum.melanoma = self.melanoma - other.melanoma
         Sum.skin_dead = self.skin_dead - other.skin_dead
         Sum.macrophage = self.macrophage - other.macrophage
         Sum.neuthophil = self.neuthophil - other.neuthophil
@@ -59,8 +59,8 @@ class NumberOfCells:
     def __truediv__(self, other):
         if not isinstance(other, (int, float)):
             return NotImplemented
-        self.skin_live = self.skin_live / other
-        self.skin_live_mutated = self.skin_live_mutated / other
+        self.lung = self.lung / other
+        self.melanoma = self.melanoma / other
         self.skin_dead = self.skin_dead / other
         self.macrophage = self.macrophage / other
         self.neuthophil = self.neuthophil / other
@@ -71,8 +71,8 @@ class NumberOfCells:
     def __pow__(self, other):
         if not isinstance(other, (int, float)):
             return NotImplemented
-        self.skin_live = self.skin_live ** other
-        self.skin_live_mutated = self.skin_live_mutated ** other
+        self.lung = self.lung ** other
+        self.melanoma = self.melanoma ** other
         self.skin_dead = self.skin_dead ** other
         self.macrophage = self.macrophage ** other
         self.neuthophil = self.neuthophil ** other
@@ -81,8 +81,8 @@ class NumberOfCells:
         self.CD4 = self.CD4 ** other
         return self
     def __abs__(self):
-        self.skin_live = abs(self.skin_live)
-        self.skin_live_mutated = abs(self.skin_live_mutated)
+        self.lung = abs(self.lung)
+        self.melanoma = abs(self.melanoma)
         self.skin_dead = abs(self.skin_dead)
         self.macrophage = abs(self.macrophage)
         self.neuthophil = abs(self.neuthophil)
@@ -97,7 +97,6 @@ def Std_class(mean_QOI, list_QOI):
         std_QOI = std_QOI + (list_QOI[i] - mean_QOI)**2
     std_QOI = ( std_QOI / len(list_QOI) )**0.5
     return std_QOI
-
 
 def Replicates_plot(initial_index,last_index,folder,Nsamples):
     list_QOI = [NumberOfCells(last_index-initial_index+1) for j in range(Nsamples)]
@@ -115,6 +114,33 @@ def Replicates_plot(initial_index,last_index,folder,Nsamples):
 
     plotCurves(mean_QOI,std_QOI)
 
+def Neoantigens_plot(initial_index,last_index,folder):
+    times = np.zeros( last_index-initial_index+1 );
+    clonal_count = np.zeros( last_index-initial_index+1 );
+    subclonal_count = np.zeros( last_index-initial_index+1 );
+    shared_count = np.zeros( last_index-initial_index+1 );
+    for n in range( initial_index,last_index+1 ):
+        filenameOut=folder+'/output'+"%08i"%n+'.png'
+        filename= "output%08i"%n+'.xml'
+        mcds=pyMCDS(filename,folder)
+        times[n]= mcds.get_time()
+        TypeNeoantigen = mcds.data['discrete_cells']['neoantigen_type']
+        cell_type = mcds.data['discrete_cells']['cell_type']
+        cycle = mcds.data['discrete_cells']['cycle_model']
+        Melanoma = np.argwhere( (cell_type==2)  & (cycle < 100) ).flatten()
+        ClonalNeoantigen = np.argwhere( (cell_type==2)  & (cycle < 100) & (TypeNeoantigen == 0) ).flatten()
+        SubClonalNeoantigen = np.argwhere( (cell_type==2) & (cycle < 100) & (TypeNeoantigen == 2) ).flatten()
+        SharedNeoantigen = np.argwhere( (cell_type==2) & (cycle < 100) & (TypeNeoantigen == 1) ).flatten()
+        clonal_count[n] = len(ClonalNeoantigen)/len(Melanoma)
+        subclonal_count[n] = len(SubClonalNeoantigen)/len(Melanoma)
+        shared_count[n] = len(SharedNeoantigen)/len(Melanoma)
+    plt.plot(times/1440.0,clonal_count, 'o', color='blue', label='Clonal')
+    plt.plot(times/1440.0,subclonal_count, 'o', color='red', label='Subclonal')
+    plt.plot(times/1440.0,shared_count, 'o', color='yellow', label='Shared')
+    plt.xlabel("Time (days)")
+    plt.ylabel("Neoantigens fraction")
+    plt.legend()
+    plt.show()
 
 def Read_QOIs(mcds,n,QOIs):
     cycle = mcds.data['discrete_cells']['cycle_model']
@@ -122,17 +148,17 @@ def Read_QOIs(mcds,n,QOIs):
     cell_type = cell_type.astype(int)
     Neo = mcds.data['discrete_cells']['neoantigens_intracellular']
 
-    skin_live_mutated = np.argwhere( (Neo > 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_live = np.argwhere( (Neo == 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) ).flatten()
+    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
+    lung = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
+    skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) | (cell_type==2) ).flatten()
     macrophage = np.argwhere( cell_type==4 ).flatten()
     neuthophil = np.argwhere( cell_type==5 ).flatten()
     dendritic = np.argwhere( cell_type==6 ).flatten()
     CD8 = np.argwhere( cell_type==3 ).flatten()
     CD4 = np.argwhere( cell_type==7 ).flatten()
 
-    QOIs.skin_live[n] = len(skin_live)
-    QOIs.skin_live_mutated[n] = len(skin_live_mutated)
+    QOIs.lung[n] = len(lung)
+    QOIs.melanoma[n] = len(melanoma)
     QOIs.skin_dead[n] = len(skin_dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.neuthophil[n] = len(neuthophil)
@@ -159,17 +185,17 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     PDL1 = mcds.data['discrete_cells']['PDL1_expression']
 
 
-    skin_live_mutated = np.argwhere( (Neo > 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_live = np.argwhere( (Neo == 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) ).flatten()
+    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
+    lung = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
+    dead = np.argwhere( (cycle >= 100) & (cell_type==1) | (cell_type==2) ).flatten()
     macrophage = np.argwhere( cell_type==4 ).flatten()
     neuthophil = np.argwhere( cell_type==5 ).flatten()
     dendritic = np.argwhere( cell_type==6 ).flatten()
     CD8 = np.argwhere( cell_type==3 ).flatten()
     CD4 = np.argwhere( cell_type==7 ).flatten()
 
-    QOIs.skin_live[n] = len(skin_live)
-    QOIs.skin_live_mutated[n] = len(skin_live_mutated)
+    QOIs.lung[n] = len(lung)
+    QOIs.melanoma[n] = len(melanoma)
     QOIs.skin_dead[n] = len(skin_dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.neuthophil[n] = len(neuthophil)
@@ -178,12 +204,12 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     QOIs.CD4[n] = len(CD4)
 
 
-    figure.suptitle( '#NC:'+str("%04i"%(QOIs.skin_live[n]))+'  #MC:'+str("%04i"%(QOIs.skin_live_mutated[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #N:'+str("%04i"%(QOIs.neuthophil[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.skin_dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
-    # figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #MC:'+str("%04i"%(skin_live_mutated_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+    figure.suptitle( '#NC:'+str("%04i"%(QOIs.lung[n]))+'  #MC:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #N:'+str("%04i"%(QOIs.neuthophil[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.skin_dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
+    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
 
     plt.subplot(221)
-    plt.scatter( cx[skin_live],cy[skin_live],c='blue',s=Lcell_size,label='NC');
-    plt.scatter( cx[skin_live_mutated],cy[skin_live_mutated],c='yellow',s=Lcell_size,label='MC');
+    plt.scatter( cx[lung],cy[lung],c='blue',s=Lcell_size,label='NC');
+    plt.scatter( cx[melanoma],cy[melanoma],c='yellow',s=Lcell_size,label='MC');
     plt.scatter( cx[skin_dead],cy[skin_dead],c='black',s=Dcell_size,label='D', alpha=0.25);
     plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
     plt.scatter( cx[neuthophil],cy[neuthophil],c='cyan',s=Ecell_size,label='N' );
@@ -322,17 +348,17 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     PDL1 = mcds.data['discrete_cells']['PDL1_expression']
 
 
-    skin_live_mutated = np.argwhere( (NeoCell > 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_live = np.argwhere( (NeoCell == 0.0) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) ).flatten()
+    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
+    lung = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
+    skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) | (cell_type==2) ).flatten()
     macrophage = np.argwhere( cell_type==4 ).flatten()
     neuthophil = np.argwhere( cell_type==5 ).flatten()
     dendritic = np.argwhere( cell_type==6 ).flatten()
     CD8 = np.argwhere( cell_type==3 ).flatten()
     CD4 = np.argwhere( cell_type==7 ).flatten()
 
-    QOIs.skin_live[n] = len(skin_live)
-    QOIs.skin_live_mutated[n] = len(skin_live_mutated)
+    QOIs.lung[n] = len(lung)
+    QOIs.melanoma[n] = len(melanoma)
     QOIs.skin_dead[n] = len(skin_dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.neuthophil[n] = len(neuthophil)
@@ -341,12 +367,12 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     QOIs.CD4[n] = len(CD4)
 
 
-    figure.suptitle( '#NC:'+str("%04i"%(QOIs.skin_live[n]))+'  #MC:'+str("%04i"%(QOIs.skin_live_mutated[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #N:'+str("%04i"%(QOIs.neuthophil[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.skin_dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
-    # figure.suptitle( '#NC:'+str("%04i"%(skin_live_count[n]))+'  #MC:'+str("%04i"%(skin_live_mutated_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+    figure.suptitle( '#NC:'+str("%04i"%(QOIs.lung[n]))+'  #MC:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #N:'+str("%04i"%(QOIs.neuthophil[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.skin_dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
+    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #N:'+str("%04i"%(neuthophil_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
 
     ax = plt.subplot2grid((4,4), (0,0), colspan=3, rowspan=3)
-    plt.scatter( cx[skin_live],cy[skin_live],c='blue',s=Lcell_size,label='NC');
-    plt.scatter( cx[skin_live_mutated],cy[skin_live_mutated],c='yellow',s=Lcell_size,label='MC');
+    plt.scatter( cx[lung],cy[lung],c='blue',s=Lcell_size,label='NC');
+    plt.scatter( cx[melanoma],cy[melanoma],c='yellow',s=Lcell_size,label='MC');
     plt.scatter( cx[skin_dead],cy[skin_dead],c='black',s=Dcell_size,label='D', alpha=0.25);
     plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
     plt.scatter( cx[neuthophil],cy[neuthophil],c='cyan',s=Ecell_size,label='N' );
@@ -463,16 +489,16 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     sns.set()
     sns.set_style('white')
     plt.xlim(0, 1)
-    sns.distplot(NeoCell[skin_live_mutated],color='black').get_lines()[0]
+    sns.distplot(NeoCell[melanoma],color='black').get_lines()[0]
     plt.title("Neoantigen")
 
     plt.subplot2grid((4,4), (3,3))
     plt.xlim(0, 1)
-    if (np.std(PDL1[skin_live_mutated]) < 1.0e-15):
+    if (np.std(PDL1[melanoma]) < 1.0e-15):
         print("\n")
     else:
-        print(np.std(PDL1[skin_live_mutated]))
-        sns.distplot(PDL1[skin_live_mutated],color='black').get_lines()[0]
+        print(np.std(PDL1[melanoma]))
+        sns.distplot(PDL1[melanoma],color='black').get_lines()[0]
     plt.title("PDL1 expression")
 
     if (SavePNG):
@@ -485,12 +511,11 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     plt.clf()
 
 def plotCurves(QOIs,STD):
-
     #fig, ax = plt.subplots()
-    # plt.plot(QOIs.times/1440.0,QOIs.skin_live, color='blue',label='normal')
-    # plt.fill_between(QOIs.times/1440.0, QOIs.skin_live - STD.skin_live, QOIs.skin_live + STD.skin_live, alpha=0.2, color='blue')
-    plt.plot(QOIs.times/1440.0,QOIs.skin_live_mutated, color='gold',label='cancer')
-    plt.fill_between(QOIs.times/1440.0, QOIs.skin_live_mutated - STD.skin_live_mutated, QOIs.skin_live_mutated + STD.skin_live_mutated, alpha=0.2, color='gold')
+    # plt.plot(QOIs.times/1440.0,QOIs.lung, color='blue',label='normal')
+    # plt.fill_between(QOIs.times/1440.0, QOIs.lung - STD.lung, QOIs.lung + STD.lung, alpha=0.2, color='blue')
+    plt.plot(QOIs.times/1440.0,QOIs.melanoma, color='gold',label='melanoma')
+    plt.fill_between(QOIs.times/1440.0, QOIs.melanoma - STD.melanoma, QOIs.melanoma + STD.melanoma, alpha=0.2, color='gold')
     plt.plot(QOIs.times/1440.0,QOIs.skin_dead, color='black',label='dead')
     plt.fill_between(QOIs.times/1440.0, QOIs.skin_dead - STD.skin_dead, QOIs.skin_dead + STD.skin_dead, alpha=0.2, color='black')
     plt.plot(QOIs.times/1440.0,QOIs.macrophage, color='green',label='macrophage')
@@ -549,5 +574,6 @@ if __name__ == '__main__':
     folder = sys.argv[4]
 
     #Read_files(initial_index,last_index,folder,SavePNG)
-    Read_files(initial_index,last_index,folder,SavePNG,func=plotAll_hist)
+    #Read_files(initial_index,last_index,folder,SavePNG,func=plotAll_hist)
+    Neoantigens_plot(initial_index,last_index,folder)
     #Replicates_plot(initial_index,last_index,folder,5)

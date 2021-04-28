@@ -686,31 +686,34 @@ Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_s
 }
 
 void mutation (Cell* pCell){
-	static int neoantigen_signature_index = pCell->custom_data.find_variable_index( "neoantigen_signature" );
+	static int neoantigen_signature_index = pCell->custom_data.find_vector_variable_index( "neoantigen_signature" );
 	std::poisson_distribution<int> Poisson_dist( parameters.doubles( "rate_neoantigen_variability" ));
 	int NumberElements = Poisson_dist(generator); // Number of elements to be changed
-	std::uniform_int_distribution<int> unif_discrete_dist(0,parameters.ints("boolean_vector_size"));
-
+	std::uniform_int_distribution<int> unif_discrete_dist(0,parameters.ints("boolean_vector_size")-1);
+	std::cout << "-------------------------------------------------------" << std::endl;
 	for (int i=0; i < NumberElements; i++)
 	{
   	int index_sample = unif_discrete_dist(generator);
-		std::cout << "Number of samples: " << NumberElements << "  Index: " << index_sample << std::endl;
+		std::cout << "Number of samples: " << NumberElements << "  Index: " << index_sample << " size: " << pCell->custom_data.vector_variables[neoantigen_signature_index].value.size()  << std::endl;
 		if ( pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] == 0.0)
+		{
 			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 1.0;
-		else
+		}else
+		{
 			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 0.0;
+		}
 	}
-
 	int clonal_scores = 0, subclonal_scores = 0, shared_scores = 0;
 	int limit_clonal_region = parameters.doubles( "percentage_clonal_neoantigen" )*parameters.ints("boolean_vector_size");
 	int limit_subclonal_region = parameters.ints("boolean_vector_size") - parameters.doubles( "percentage_subclonal_neoantigen" )*parameters.ints("boolean_vector_size");
+
 	for (int i=0; i < limit_clonal_region; i++)
 		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) clonal_scores++;
 	for (int i=limit_clonal_region; i < limit_subclonal_region; i++)
 		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) shared_scores++;
 	for (int i=limit_subclonal_region; i < parameters.ints("boolean_vector_size"); i++)
 		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) subclonal_scores++;
-
+	std::cout << "Scores -- Clonal: " << clonal_scores << " Subclonal: " << subclonal_scores << " Shared: " << shared_scores << std::endl;
 	// Classify the cell according the maximum score
 	static int neoantigen_type_index = pCell->custom_data.find_variable_index( "neoantigen_type");
 	if ( clonal_scores > subclonal_scores && clonal_scores > shared_scores ) {
@@ -723,14 +726,15 @@ void mutation (Cell* pCell){
 			pCell->custom_data[neoantigen_type_index] = 1; // shared neoantigen
 		}
 	}
+	std::cout << "Neoantigen type: " << pCell->custom_data[neoantigen_type_index] << std::endl;
+	std::cout << "-------------------------------------------------------" << std::endl;
 }
 
 void divide_custom_data()
 {
 	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-
 	static double tolerance = 0.001;
-  static double mutation_rate = parameters.doubles( "neoantigen_mutation_rate" );
+
   #pragma omp parallel for
 	for( int i=0; i < (*all_cells).size() ;i++ )
 	{
@@ -751,7 +755,7 @@ void divide_custom_data()
 		{
 			// add generation by 1
 			pCell->custom_data[ generation_index ] += 1;
-
+			// #pragma omp critical
       mutation (pCell);
 
 			pCell->custom_data[ last_cycle_index ] = PhysiCell_globals.current_time;
