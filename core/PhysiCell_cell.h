@@ -272,7 +272,7 @@ void detach_cells( Cell* pCell_1 , Cell* pCell_2 );
 };
 
 // MUTATION PARAMETERS - HEBER
-extern double std_neoant_release;
-extern double std_PDL1_exp;
+// extern double std_neoant_release;
+// extern double std_PDL1_exp;
 
 #endif
