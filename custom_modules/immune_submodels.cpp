@@ -1012,15 +1012,15 @@ bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt 
 {
 // PD-L1 response
 // double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" ))/ (pow(parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ),parameters.doubles( "TC_coeff_hf_PDL1_attch" )) + pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
-double PD_PDL1_attachment = 1.0/ (1.0 + pow(pTarget->custom_data["PDL1_expression"]/parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ), parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
+//double PD_PDL1_attachment = 1.0/ (1.0 + pow(pTarget->custom_data["PDL1_expression"]/parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ), parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
+
+// neoantigen recognition
+
 
 // if the target is not melanoma cell, give up
-
-// if( pTarget->custom_data[ "neoantigens_intracellular" ] < pAttacker->custom_data[ "TCell_detection" ] )
-// { return false; }
-// MISSING USE TCell_detection VARIABLE
 static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-if ( pTarget->type == melanoma_type )
+if ( pTarget->type != melanoma_type )
+{ return false; }
 
 // if the target cell is dead, give up
 if( pTarget->phenotype.death.dead == true )
@@ -1036,7 +1036,7 @@ if( distance_scale > pAttacker->custom_data["max_attachment_distance"] )
 
 // now, get the attachment probability
 
-double attachment_probability = PD_PDL1_attachment * pAttacker->custom_data["cell_attachment_rate"] * dt;
+double attachment_probability = pAttacker->custom_data["cell_attachment_rate"] * dt;
 
 // don't need to cap it at 1.00: if prob > 100%,
 // then this statement always evaluates as true,

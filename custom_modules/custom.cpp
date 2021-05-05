@@ -114,9 +114,6 @@ void create_cell_types( void )
 	Cell_Definition* pCD = find_cell_definition( "lung cell" );
 
 	immune_submodels_setup();
-	// receptor_dynamics_model_setup();
-	// internal_pathogen_model_setup();
-	// internal_pathogen_response_model_setup();
 	epithelium_submodel_setup();
 	melanoma_submodel_setup();
 
@@ -412,7 +409,7 @@ bool Write_SVG_circle_opacity( std::ostream& os, double center_x, double center_
 
 
 //
-void SVG_plot_pathogen( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) )
+void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) )
 {
 		static double X_lower = M.mesh.bounding_box[0];
 		static double X_upper = M.mesh.bounding_box[3];

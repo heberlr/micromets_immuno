@@ -83,8 +83,8 @@
 using namespace BioFVM;
 using namespace PhysiCell;
 
-
-double DM = 0; // global ICs
+// global ICs (external_immune)
+double DM = 0;
 double TC = 10;
 double TH1 = 1;
 double TH2 = 1;
@@ -159,7 +159,7 @@ int main( int argc, char* argv[] )
 
 	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() );
 //	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-	SVG_plot_pathogen( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 
 	display_citations();
 
@@ -221,7 +221,7 @@ int main( int argc, char* argv[] )
 				if( PhysiCell_settings.enable_SVG_saves == true )
 				{
 					sprintf( filename , "%s/snapshot%08u.svg" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
-					SVG_plot_pathogen( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+					SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 
  					PhysiCell_globals.SVG_output_index++;
 					PhysiCell_globals.next_SVG_save_time  += PhysiCell_settings.SVG_save_interval;
@@ -234,23 +234,16 @@ int main( int argc, char* argv[] )
 			//external_immune_main_model( diffusion_dt );
 			external_immune_model( diffusion_dt );
 
-			// receptor dynamics
-			//receptor_dynamics_main_model( diffusion_dt );
-
-			// detach dead cells
-			// detach_all_dead_cells( diffusion_dt );
-
 			cells_to_move_from_edge.clear();
 
 			// run PhysiCell
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
-			check_lung_cell_out_of_domain();
 			divide_custom_data();
 
 			/*
 			  Custom add-ons could potentially go here.
 			*/
-
+			check_lung_cell_out_of_domain(); // change to vector instead of loop all cell (check the neeed for it)
 			process_tagged_cells_on_edge();
 
 			immune_cell_recruitment( diffusion_dt );
@@ -287,7 +280,7 @@ int main( int argc, char* argv[] )
 
 	sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
 //	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-	SVG_plot_pathogen( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 
 	// timer
 

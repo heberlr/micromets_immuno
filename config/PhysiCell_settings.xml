@@ -225,7 +225,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -383,7 +382,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -540,7 +538,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -698,7 +695,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0.2</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">8.5</cell_attachment_lifetime>
@@ -857,7 +853,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -1016,7 +1011,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -1175,7 +1169,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
@@ -1334,7 +1327,6 @@
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
 				<melanoma_cell_chemokine_secretion_activated description="used internally to track activation of chemokine secretion" type="double" units="none">0</melanoma_cell_chemokine_secretion_activated>
 
-				<TCell_detection description="protein value at which a T Cell can detect an melanoma cell" type="double" units="protein">0.8</TCell_detection>
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
