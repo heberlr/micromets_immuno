@@ -91,10 +91,6 @@ double TH2 = 1;
 double TCt = 0;
 double Tht = 0;
 
-std::vector<int> NumberofCells;
-
-double std_PDL1_exp;//parameters.doubles("std_PDL1_exp");
-
 int main( int argc, char* argv[] )
 {
 	// load and parse settings file(s)

@@ -785,7 +785,7 @@ void print_cell_count( std::ofstream& file )
 	static int DC_type = get_cell_definition( "DC" ).type;
 	static int CD4_type = get_cell_definition( "CD4 Tcell" ).type;
 
-	extern std::vector<int> NumberofCells;
+	std::vector<int> NumberofCells;
   NumberofCells = {0,0,0,0,0,0,0,0};
 	for (int i=0; i < (*all_cells).size(); i++)
 	{
