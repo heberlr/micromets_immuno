@@ -26,7 +26,6 @@ int main()
     pCell.ID = 0;
     pCell.neoantigen_signature = neoant_sig;
     all_cells.push_back(&pCell);
-    pCell.neoantigen_signature[1] = 1;
     std::cout << "Size: " << all_cells.size() << " ID: " << pCell.ID << " Neoatigen sig: ";
     print(pCell.neoantigen_signature);
     std::cout << std::endl;

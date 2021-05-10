@@ -208,7 +208,8 @@ void setup_tissue( void )
 		}
 	}
 	int Max_number_of_cell = valid_position.size();
-
+	extern double EPICOUNT;
+  EPICOUNT = Max_number_of_cell;
 	// place immune cells
 	initial_immune_cell_placement();
 

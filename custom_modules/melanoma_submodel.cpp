@@ -34,17 +34,18 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
 	}
 
-	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
-	int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
+
 	//proliferation, mechanics, and chemokine secretion activated
 
 	// Mechanical contribution to proliferation
-	double mechanics_factor = pow(500.0 - pCell->state.simple_pressure,0.5)/pow(500.0,0.5);
+	double mechanics_factor = pow(100.0 - pCell->state.simple_pressure,0.5)/pow(500.0,0.5);
 	if (mechanics_factor < 0.0) mechanics_factor = 0.0;
 	// proliferation rate based on mechanical aspect
+	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
+	int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
 	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = parameters.doubles("prolif_rate_CancerCell")*mechanics_factor;
-	pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] = 1.0;
 
+	pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] = 1.0;
 	static int chemokine_index = microenvironment.find_density_index( "chemokine" );
 	if( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1 && phenotype.death.dead == false )
 	{
