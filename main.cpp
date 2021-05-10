@@ -90,7 +90,7 @@ double TH1 = 1;
 double TH2 = 1;
 double TCt = 0;
 double Tht = 0;
-double EPICOUNT = 1;
+double GridCOUNT = 1;
 
 int main( int argc, char* argv[] )
 {

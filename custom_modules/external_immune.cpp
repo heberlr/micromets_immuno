@@ -38,7 +38,7 @@ void external_immune_model( double dt )
 	extern double TH2;
 	extern double TCt;
 	extern double Tht;
-	extern double EPICOUNT;
+	extern double GridCOUNT;
 	static double dC = parameters.doubles( "TC_death_rate" );
 	static double pT1 = parameters.doubles( "max_activation_TC" );
 	static double pT2 = parameters.doubles( "half_max_activation_TC" );
@@ -56,7 +56,7 @@ void external_immune_model( double dt )
 	static double ro = 1;
 	static double CD8_Tcell_recruitment_rate = parameters.doubles( "T_Cell_Recruitment" );
 
-	double lypmh_scale = EPICOUNT / 500000;
+	double lypmh_scale = GridCOUNT / 1e5;
 
 	// actual model goes here
 
@@ -91,7 +91,7 @@ void external_immune_model( double dt )
 
 	for(j = 0; j < 4; j++){
 		f[j][0] = {-dDm*x[j][0]}; //define function
-		f[j][1] = {dR_TC-dC*x[j][1]+pT1*x[j][0]*x[j][1]/(x[j][0]+pT2)-dT1*x[j][0]*x[j][1]/(x[j][0]+dT2)};
+		f[j][1] = {dR_TC-dC*x[j][1]+pT1*x[j][0]*x[j][1]/(x[j][0]+pT2)-dT1*x[j][0]*x[j][1]/(x[j][0]+dT2)};// /* TEST */ + (1e6 - x[j][1])/1e6};
 		f[j][2] = {(sTh1*x[j][2])/((1+x[j][3])*(1+x[j][3]))+(pTh1*x[j][0]*x[j][2]*x[j][2])/((1+x[j][3])*(1+x[j][3]))-(dTh1*x[j][0]*x[j][2]*x[j][2]*x[j][2])/(500+x[j][3])-mTh*x[j][2]}; //define function
 		f[j][3] = {(sTh2*x[j][3])/(1+x[j][3])+(pTh2*(ro+x[j][2])*x[j][0]*x[j][3]*x[j][3])/((1+x[j][3])*(1+x[j][2]+x[j][3]))-mTh*x[j][3]}; //define function
 		f[j][4] = {CD8_Tcell_recruitment_rate*x[j][1]}; //define function
