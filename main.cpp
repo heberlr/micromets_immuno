@@ -90,6 +90,7 @@ double TH1 = 1;
 double TH2 = 1;
 double TCt = 0;
 double Tht = 0;
+double EPICOUNT = 1;
 
 int main( int argc, char* argv[] )
 {
@@ -102,9 +103,6 @@ int main( int argc, char* argv[] )
 	{ XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" ); }
 	if( !XML_status )
 	{ exit(-1); }
-
-	// Mutation parameters
-	std_PDL1_exp = parameters.doubles("std_PDL1_exp");
 
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
