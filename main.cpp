@@ -83,6 +83,8 @@
 using namespace BioFVM;
 using namespace PhysiCell;
 
+AntigenLibrary AntigenLib;
+
 // global ICs (external_immune)
 double DM = 0;
 double TC = 10;

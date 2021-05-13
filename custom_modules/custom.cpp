@@ -231,7 +231,7 @@ void setup_tissue( void )
 		}
 		while (sample < 0.0 || sample > 1.0);
 		pC->custom_data["PDL1_expression"] = sample;
-		std::cout << "Pos: " << pC->position << " PDL1 expression: " << pC->custom_data["PDL1_expression"] << std::endl;
+		//std::cout << "Pos: " << pC->position << " PDL1 expression: " << pC->custom_data["PDL1_expression"] << std::endl;
 	}
 
 	// Ephitelium cells
@@ -688,11 +688,11 @@ void mutation (Cell* pCell){
 	std::poisson_distribution<int> Poisson_dist( parameters.doubles( "rate_neoantigen_variability" ));
 	int NumberElements = Poisson_dist(generator); // Number of elements to be changed
 	std::uniform_int_distribution<int> unif_discrete_dist(0,parameters.ints("boolean_vector_size")-1);
-	std::cout << "-------------------------------------------------------" << std::endl;
+	//std::cout << "-------------------------------------------------------" << std::endl;
 	for (int i=0; i < NumberElements; i++)
 	{
   	int index_sample = unif_discrete_dist(generator);
-		std::cout << "Number of samples: " << NumberElements << "  Index: " << index_sample << " size: " << pCell->custom_data.vector_variables[neoantigen_signature_index].value.size()  << std::endl;
+		//std::cout << "Number of samples: " << NumberElements << "  Index: " << index_sample << " size: " << pCell->custom_data.vector_variables[neoantigen_signature_index].value.size()  << std::endl;
 		if ( pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] == 0.0)
 		{
 			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 1.0;
@@ -711,10 +711,10 @@ void mutation (Cell* pCell){
 		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) shared_scores++;
 	for (int i=limit_subclonal_region; i < parameters.ints("boolean_vector_size"); i++)
 		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) subclonal_scores++;
-	std::cout << "Scores -- Clonal: " << clonal_scores << " Subclonal: " << subclonal_scores << " Shared: " << shared_scores << std::endl;
+	//std::cout << "Scores -- Clonal: " << clonal_scores << " Subclonal: " << subclonal_scores << " Shared: " << shared_scores << std::endl;
 	// Classify the cell according the maximum score
 	static int neoantigen_type_index = pCell->custom_data.find_variable_index( "neoantigen_type");
-	if ( clonal_scores > subclonal_scores && clonal_scores > shared_scores ) {
+	if ( clonal_scores >= subclonal_scores && clonal_scores >= shared_scores ) {
 		pCell->custom_data[neoantigen_type_index] = 0; // clonal neoantigen
 	}else{
 		if ( subclonal_scores > clonal_scores && subclonal_scores > shared_scores ) {
@@ -724,8 +724,8 @@ void mutation (Cell* pCell){
 			pCell->custom_data[neoantigen_type_index] = 1; // shared neoantigen
 		}
 	}
-	std::cout << "Neoantigen type: " << pCell->custom_data[neoantigen_type_index] << std::endl;
-	std::cout << "-------------------------------------------------------" << std::endl;
+	//std::cout << "Neoantigen type: " << pCell->custom_data[neoantigen_type_index] << std::endl;
+	//std::cout << "-------------------------------------------------------" << std::endl;
 }
 
 void divide_custom_data()

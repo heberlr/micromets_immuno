@@ -21,6 +21,8 @@ extern std::vector<std::vector <double>> valid_position;
 // generator sample from distribution
 extern std::default_random_engine generator;
 
+extern AntigenLibrary AntigenLib;
+
 // return true if out of bounds, within a tolerance
 bool check_for_out_of_bounds( Cell* pC , double tolerance )
 {
@@ -173,6 +175,13 @@ void create_infiltrating_immune_cell( Cell_Definition* pCD )
 	std::vector<double> position = choose_vascularized_position();
 
 	pC->assign_position( position );
+
+	// Specific CD8 T cell (Heber)
+	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
+	static int neoantigen_signature_index = pC->custom_data.find_vector_variable_index( "neoantigen_signature" );
+	if ( pC->type == CD8_Tcell_type ){
+		pC->custom_data.vector_variables[neoantigen_signature_index].value = AntigenLib.sample_antigen();
+	}
 
 	return;
 }
@@ -711,16 +720,34 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	// (Adrianne) get type of CD8+ T cell
 	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
+	Cell* pTempCell = NULL;
+
+	// Index neoantigen signature
+	static int neoantigen_signature_index = pCell->custom_data.find_vector_variable_index( "neoantigen_signature" );
 
 	// (Adrianne) if DC is already activated, then check whether it leaves the tissue
 	if( pCell->custom_data["activated_immune_cell"] >  0.5 && UniformRandom() < 0.002)
 	{
+		// if this returns non-NULL, we're now attached to at least one cell
+		if( immune_cell_check_neighbors_for_attachment( pCell , dt) )
+		{
+			// Look around by melanoma cells attached)
+			for (int i = 0; i < pCell->state.number_of_attached_cells(); i++){
+				pTempCell = pCell->state.attached_cells[i];
+				//Add antigen to library
+				AntigenLib.add_antigen(pTempCell->custom_data.vector_variables[neoantigen_signature_index].value, PhysiCell_globals.current_time ); // add neoantigens library
+				AntigenLib.print();
+			}
+		}
+
 		extern double DM; //declare existance of DC lymph
 		// (Adrianne) DC leaves the tissue and so we lyse that DC
 		std::cout<<"DC leaves tissue"<<std::endl;
 		pCell->lyse_cell();
 		#pragma omp critical
-		{ DM++; } // add one
+		{
+			DM++; // add one
+		}
 		return;
 
 	}
@@ -732,6 +759,7 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		Cell* pTestCell = neighbors[n];
 		while( n < neighbors.size() )
 		{
+			if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false && pTestCell->type == CD8_Tcell_type)
 			pTestCell = neighbors[n];
 
 			// (Adrianne) find the euclidean distance between the DC and the cell it's testing
@@ -1010,12 +1038,9 @@ return NULL;
 
 bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt )
 {
-// PD-L1 response
-// double PD_PDL1_attachment = pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" ))/ (pow(parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ),parameters.doubles( "TC_coeff_hf_PDL1_attch" )) + pow(pTarget->custom_data["PDL1_expression"],parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
-//double PD_PDL1_attachment = 1.0/ (1.0 + pow(pTarget->custom_data["PDL1_expression"]/parameters.doubles( "TC_dissociationConst_hf_PDL1_attch" ), parameters.doubles( "TC_coeff_hf_PDL1_attch" )));
 
-// neoantigen recognition
-
+static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
+static int neoantigen_signature_index = pAttacker->custom_data.find_vector_variable_index( "neoantigen_signature" );
 
 // if the target is not melanoma cell, give up
 static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
@@ -1038,6 +1063,11 @@ if( distance_scale > pAttacker->custom_data["max_attachment_distance"] )
 
 double attachment_probability = pAttacker->custom_data["cell_attachment_rate"] * dt;
 
+// neoantigen recognition for CD8 T cell attacking
+if ( pAttacker->type == CD8_Tcell_type){
+	int HammingDistance = Hamming_Distance(pAttacker->custom_data.vector_variables[neoantigen_signature_index].value, pTarget->custom_data.vector_variables[neoantigen_signature_index].value);
+	attachment_probability = (1.0/(1.0 + pow(HammingDistance/parameters.doubles( "half_hamming_distance" ), parameters.doubles( "hill_coefficient_recognition" )) ) ) * pAttacker->custom_data["cell_attachment_rate"] * dt;
+}
 // don't need to cap it at 1.00: if prob > 100%,
 // then this statement always evaluates as true,
 // just the same as capping probability at 100%
@@ -1052,6 +1082,7 @@ return false;
 
 Cell* immune_cell_check_neighbors_for_attachment( Cell* pAttacker , double dt )
 {
+	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
 	std::vector<Cell*> nearby = pAttacker->cells_in_my_container();
 	int i = 0;
 	while( i < nearby.size() )
@@ -1059,13 +1090,17 @@ Cell* immune_cell_check_neighbors_for_attachment( Cell* pAttacker , double dt )
 		// don't try to kill yourself
 		if( nearby[i] != pAttacker )
 		{
-			if( attempt_immune_cell_attachment( pAttacker, nearby[i] , dt ) )
+			// CD8 T cell attaches only to one cell
+			if( attempt_immune_cell_attachment( pAttacker, nearby[i] , dt ) && pAttacker->type == CD8_Tcell_type )
 			{
 				return nearby[i];
 			}
 		}
 		i++;
 	}
+
+	// Cell has more than one attached cell (Heber)
+	if ( pAttacker->state.number_of_attached_cells() > 0 ) return pAttacker->state.attached_cells[0];
 
 	return NULL;
 }
@@ -1339,4 +1374,12 @@ void initial_immune_cell_placement( void )
 	for( int n = 0 ; n < parameters.ints("number_of_CD4_Tcells") ; n++ )
 	{ create_infiltrating_immune_cell_initial( pCD4 ); }
 	return;
+}
+
+int Hamming_Distance(const std::vector<double> &Seq1, const std::vector<double> &Seq2){
+  int count = 0;
+  for (int i=0; i < Seq1.size(); i++){
+    if (Seq1[i] != Seq2[i]) count++;
+  }
+  return count;
 }

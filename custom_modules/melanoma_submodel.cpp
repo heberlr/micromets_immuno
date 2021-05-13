@@ -50,7 +50,7 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	if( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1 && phenotype.death.dead == false )
 	{
 		double rate = 1.0; //AV; // P;
-		rate /= pCell->custom_data["max_apoptosis_half_max"];
+		rate /= pCell->custom_data["max_apoptosis_half_max"]; // Review this parameter, no make sense in melnoma dynamic
 		if( rate > 1.0 )
 		{ rate = 1.0; }
 		rate *= pCell->custom_data[ "melanoma_cell_chemokine_secretion_rate" ];
