@@ -224,14 +224,6 @@ void setup_tissue( void )
 		pC->assign_position( valid_position[index_sample] );
 		valid_position.erase (valid_position.begin()+index_sample);
 		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
-		// Sample to PDL1 concentration
-		double sample;
-		do {
-			 sample = NormalRandom( parameters.doubles("mean_PDL1_exp"), parameters.doubles("std_PDL1_exp"));
-		}
-		while (sample < 0.0 || sample > 1.0);
-		pC->custom_data["PDL1_expression"] = sample;
-		//std::cout << "Pos: " << pC->position << " PDL1 expression: " << pC->custom_data["PDL1_expression"] << std::endl;
 	}
 
 	// Ephitelium cells
