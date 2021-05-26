@@ -735,8 +735,11 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			for (int i = 0; i < pCell->state.number_of_attached_cells(); i++){
 				pTempCell = pCell->state.attached_cells[i];
 				//Add antigen to library
-				AntigenLib.add_antigen(pTempCell->custom_data.vector_variables[neoantigen_signature_index].value, PhysiCell_globals.current_time ); // add neoantigens library
-				AntigenLib.print();
+				#pragma omp critical
+				{
+					AntigenLib.add_antigen(pTempCell->custom_data.vector_variables[neoantigen_signature_index].value, PhysiCell_globals.current_time ); // add neoantigens library
+					AntigenLib.print();
+				}
 			}
 		}
 

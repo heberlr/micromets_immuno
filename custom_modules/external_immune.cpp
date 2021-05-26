@@ -160,16 +160,11 @@ void AntigenLibrary::add_antigen(const std::vector<double> &antigen_signature, c
 	{
 		antigen AntigenTemp;
 		AntigenTemp.signature = antigen_signature;
-		AntigenTemp.ID = Collection.size();
+		AntigenTemp.ID = Collection.size() + TempCollection.size();
 		AntigenTemp.time = current_time;
 		TempCollection.push_back(AntigenTemp);
 	}
 	return;
-}
-
-void RemoveAntigenFromTempCollection( const int index)
-{
-
 }
 
 void AntigenLibrary::update_collection(const double current_time, const double intervalToRecord)

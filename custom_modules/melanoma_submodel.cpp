@@ -38,7 +38,8 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	//proliferation, mechanics, and chemokine secretion activated
 
 	// Mechanical contribution to proliferation
-	double mechanics_factor = pow(500.0 - pCell->state.simple_pressure,0.5)/pow(500.0,0.5);
+	double max_simple_pressure = 100.0;
+	double mechanics_factor = pow(max_simple_pressure - pCell->state.simple_pressure,0.5)/pow(max_simple_pressure,0.5);
 	if (mechanics_factor < 0.0) mechanics_factor = 0.0;
 	// proliferation rate based on mechanical aspect
 	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
