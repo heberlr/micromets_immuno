@@ -20,12 +20,14 @@ class antigen{
 		int ID;
 		std::vector<double> signature;
 		double time;
+		int probability_weight;
 };
 
 class AntigenLibrary{
 	public:
 			std::vector<antigen> Collection;
 			std::vector<antigen> TempCollection;
+
 			//Methods
 			bool check_library(const std::vector<double> &);
 			void add_antigen(const std::vector<double> &, const double);

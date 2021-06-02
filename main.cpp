@@ -88,10 +88,7 @@ AntigenLibrary AntigenLib;
 // global ICs (external_immune)
 double DM = 0;
 double TC = 10;
-double TH1 = 1;
-double TH2 = 1;
 double TCt = 0;
-double Tht = 0;
 double GridCOUNT = 1;
 
 int main( int argc, char* argv[] )
@@ -201,7 +198,7 @@ int main( int argc, char* argv[] )
 				{
 					sprintf( filename , "%s/output%08u" , PhysiCell_settings.folder.c_str(),  PhysiCell_globals.full_output_index );
 
-					dm_tc_file << DM << " " << TC << " " << TH1 << " " << TH2 << " " << TCt << " " << Tht << std::endl; //write globals data
+					dm_tc_file << DM << " " << TC << " " << TCt << std::endl; //write globals data
 					print_cell_count(numCell_file); // write number of cells file
 
 					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
@@ -285,30 +282,23 @@ int main( int argc, char* argv[] )
 
 
 
-	extern int recruited_neutrophils;
 	extern int recruited_Tcells;
 	extern int recruited_macrophages;
 
 	extern double first_macrophage_recruitment_time;
-	extern double first_neutrophil_recruitment_time;
 	extern double first_CD8_T_cell_recruitment_time;
 
 	std::cout << std::endl;
 	std::cout << "recruited macrophages: " << recruited_macrophages << " starting at time "
 		<< first_macrophage_recruitment_time <<	std::endl;
-	std::cout << "recruited neutrophils: " << recruited_neutrophils << " starting at time "
-		<< first_neutrophil_recruitment_time << std::endl;
 	std::cout << "recruited T cells: " << recruited_Tcells << " starting at time "
 		<< first_CD8_T_cell_recruitment_time << std::endl << std::endl;
-	recruited_neutrophils = 0;
 	recruited_Tcells = 0;
 	recruited_macrophages = 0;
 
 	for( int n =0 ; n < (*all_cells).size() ; n++ )
 	{
 		Cell* pC = (*all_cells)[n];
-		if( pC->type == 5 )
-		{ recruited_neutrophils++; }
 		if( pC->type == 3 )
 		{ recruited_Tcells++; }
 		if( pC->type == 4 )
@@ -316,7 +306,6 @@ int main( int argc, char* argv[] )
 
 	}
 	std::cout << "remaining macrophages: " << recruited_macrophages << std::endl;
-	std::cout << "remaining neutrophils: " << recruited_neutrophils << std::endl;
 	std::cout << "remaining T cells: " << recruited_Tcells << std::endl;
 
 	return 0;

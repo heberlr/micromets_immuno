@@ -281,10 +281,7 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
 	static int Macrophage_type = get_cell_definition( "macrophage" ).type;
-	static int Neutrophil_type = get_cell_definition( "neutrophil" ).type;
 	static int DC_type = get_cell_definition( "DC" ).type;
-	static int CD4_Tcell_type = get_cell_definition( "CD4 Tcell" ).type;
-	//static int fibroblast_type = get_cell_definition( "fibroblast" ).type;
 
 	// start with white
 
@@ -340,15 +337,6 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 		return output;
 	}
 
-	// (Adrianne) adding CD4 T cell colouring
-	if( pCell->phenotype.death.dead == false && pCell->type == CD4_Tcell_type )
-	{
-		output[0] = parameters.strings("CD4_Tcell_color");
-		output[2] = output[0];
-		output[3] = output[0];
-		return output;
-	}
-
 	if( pCell->phenotype.death.dead == false && pCell->type == Macrophage_type )
 	{
 		std::string color = parameters.strings("Macrophage_color");
@@ -362,14 +350,6 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 		{ color = parameters.strings("hyperactivated_macrophage_color"); }
 
 		output[0] = color;
-		output[2] = output[0];
-		output[3] = output[0];
-		return output;
-	}
-
-	if( pCell->phenotype.death.dead == false && pCell->type == Neutrophil_type )
-	{
-		output[0] = parameters.strings("Neutrophil_color");
 		output[2] = output[0];
 		output[3] = output[0];
 		return output;
@@ -774,17 +754,15 @@ void print_cell_count( std::ofstream& file )
 	static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
 	static int CD8_type = get_cell_definition( "CD8 Tcell" ).type;
 	static int macrophage_type = get_cell_definition( "macrophage" ).type;
-	static int neutrophil_type = get_cell_definition( "neutrophil" ).type;
 	static int DC_type = get_cell_definition( "DC" ).type;
-	static int CD4_type = get_cell_definition( "CD4 Tcell" ).type;
 
 	std::vector<int> NumberofCells;
-  NumberofCells = {0,0,0,0,0,0,0,0};
+  NumberofCells = {0,0,0,0,0,0};
 	for (int i=0; i < (*all_cells).size(); i++)
 	{
 		if( (*all_cells)[i]->phenotype.death.dead == true )
 		{
-			NumberofCells[7]++;
+			NumberofCells[5]++;
 		}
 		else if( (*all_cells)[i]->type == lung_cell_type )
 		{
@@ -802,18 +780,10 @@ void print_cell_count( std::ofstream& file )
 		{
 			NumberofCells[3]++;
 		}
-		else if ( (*all_cells)[i]->type == neutrophil_type )
+		else // DC_type
 		{
 			NumberofCells[4]++;
 		}
-		else if ( (*all_cells)[i]->type == DC_type )
-		{
-			NumberofCells[5]++;
-		}
-		else //CD4 type
-		{
-			NumberofCells[6]++;
-		}
 	}
-	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << std::endl;
+	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << std::endl;
 }

@@ -37,10 +37,10 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0.0;
 
 	// Normal cells neighbor to melanoma cells dead by inflammation (kill cells with high pro-inf concentration)
-	if( (pCell->nearest_density_vector())[ proinflammatory_cytokine_index ] > 0.9 )
-	{
-			pCell->start_death( apoptosis_index );
-	}
+	// if( (pCell->nearest_density_vector())[ proinflammatory_cytokine_index ] > 0.9 ) // Check neighbor if have high density of melanoma cells.
+	// {
+	// 		pCell->start_death( apoptosis_index );
+	// }
 
 	// if I am dead, don't bother executing this function again
 	if( phenotype.death.dead == true )
@@ -113,7 +113,6 @@ void epithelium_submodel_setup( void )
 	// what microenvironment variables do you expect?
 	epithelium_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
 	epithelium_submodel_info.microenvironment_variables.push_back( "chemokine" );
-	epithelium_submodel_info.microenvironment_variables.push_back( "anti-inflammatory cytokine" );
 
 	// what custom data do I need?
 	//epithelium_submodel_info.cell_variables.push_back( "something" );

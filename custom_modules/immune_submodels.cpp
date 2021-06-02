@@ -7,9 +7,7 @@ std::string immune_submodels_version = "0.4.0";
 
 Submodel_Information CD8_submodel_info;
 Submodel_Information Macrophage_submodel_info;
-Submodel_Information Neutrophil_submodel_info;
 Submodel_Information DC_submodel_info;
-Submodel_Information CD4_submodel_info;
 
 std::vector<Cell*> cells_to_move_from_edge;
 
@@ -253,26 +251,10 @@ void create_infiltrating_immune_cell( std::string cell_name )
 	return;
 }
 
-void create_infiltrating_neutrophil(void)
-{
-	static Cell_Definition* pCD = find_cell_definition( "neutrophil" );
-	create_infiltrating_immune_cell( pCD );
-
-	return;
-}
 
 void create_infiltrating_Tcell(void)
 {
 	static Cell_Definition* pCD = find_cell_definition( "CD8 Tcell" );
-	create_infiltrating_immune_cell( pCD );
-
-	return;
-}
-
-// (Adrianne) creating infiltrating CD4 cells
-void create_infiltrating_CD4Tcell(void)
-{
-	static Cell_Definition* pCD = find_cell_definition( "CD4 Tcell" );
 	create_infiltrating_immune_cell( pCD );
 
 	return;
@@ -286,6 +268,7 @@ void create_infiltrating_DC(void)
 
 	return;
 }
+
 void create_infiltrating_macrophage(void)
 {
 	static Cell_Definition* pCD = find_cell_definition( "macrophage" );
@@ -451,9 +434,8 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	if( neighbors.size() < 2 )
 	{ return; }
 
-	// (Adrianne) get type of CD8+ T cell and CD4+ t CELL
+	// (Adrianne) get type of CD8+ T cell
 	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
-	static int CD4_Tcell_type = get_cell_definition( "CD4 Tcell" ).type;
 
 	// (Adrianne) if there is a T cell in a mac's neighbourhood AND a mac has already begin phagocytosing, then there will be changes to the macs actions
 	int n = 0;
@@ -473,103 +455,96 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 				phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] = 0;// (Adrianne) contact with CD8 T cell turns off pro-inflammatory cytokine secretion
 				n=neighbors.size();
 			}
-			// (Adrianne) if it is not me, not dead and is a CD4 T cell that is within a very short distance from me, I will be able to phagocytose melanoma (but not neccesarily dead) cells
-			else if( pContactCell != pCell && pContactCell->phenotype.death.dead == false && pContactCell->type == CD4_Tcell_type
-				&& pCell->custom_data["activated_immune_cell"] > 0.5 && cell_cell_distance<=parameters.doubles("epsilon_distance")*(radius_mac+radius_test_cell))
+			n++;
+	}
+
+	// (Adrianne) if macrophage volume exceeds a threshold value we say it is "exhausted" and unable to phagocytose until it's volume drops below this threshold
+	if( pCell->phenotype.volume.total> pCell->custom_data["threshold_macrophage_volume"])
+	{
+		// (Adrianne) when a macrophage is in an exhausted state it has a death rate  2.1e-4
+		phenotype.death.rates[apoptosis_index] = pCell->custom_data["exhausted_macrophage_death_rate"];
+		return;
+	}
+
+	// (Adrianne) obtain index for tracking time when next phagocytosis event is possible
+	int time_to_next_phagocytosis_index = pCell->custom_data.find_variable_index( "time_to_next_phagocytosis" );
+	// (Adrianne) check if still phagocytosing something, added if statement to say that if cell is still internalising current material not to phagocytose anything else
+	if( pCell->custom_data.variables[time_to_next_phagocytosis_index].value>PhysiCell_globals.current_time )
+	{return;}
+
+	double probability_of_phagocytosis = pCell->custom_data["phagocytosis_rate"] * dt;
+
+	// (Adrianne) add an additional variable that is the time taken to ingest material
+	double material_internalisation_rate = pCell->custom_data["material_internalisation_rate"];
+
+	n = 0;
+	Cell* pTestCell = neighbors[n];
+	while( n < neighbors.size() )
+	{
+		pTestCell = neighbors[n];
+		//int nP  = pTestCell->custom_data.find_variable_index( "pathogen_protein" ); //(Adrianne) finding the pathogen protein inside cells
+		// if it is not me and not a macrophage
+		if( pTestCell != pCell && pTestCell->phenotype.death.dead == true &&
+			UniformRandom() < probability_of_phagocytosis ) // && // remove in v 3.2
+			//			pTestCell->phenotype.volume.total < max_phagocytosis_volume ) / remove in v 3.2
+			{
 				{
-					pCell->custom_data["ability_to_phagocytose_melanoma_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose melanoma cells
-					n=neighbors.size();
-				}
-				n++;
-			}
+					// (Adrianne) obtain volume of cell to be ingested
+					double volume_ingested_cell = pTestCell->phenotype.volume.total;
 
-			// (Adrianne) if macrophage volume exceeds a threshold value we say it is "exhausted" and unable to phagocytose until it's volume drops below this threshold
-			if( pCell->phenotype.volume.total> pCell->custom_data["threshold_macrophage_volume"])
-			{
-				// (Adrianne) when a macrophage is in an exhausted state it has a death rate  2.1e-4
-				phenotype.death.rates[apoptosis_index] = pCell->custom_data["exhausted_macrophage_death_rate"];
+					pCell->ingest_cell( pTestCell );
+
+					// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
+					double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
+					// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
+					pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
+				}
+
+				// activate the cell
+				phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] =
+				pCell->custom_data["activated_cytokine_secretion_rate"]; // 10;
+				phenotype.secretion.saturation_densities[proinflammatory_cytokine_index] = 1;
+
+				phenotype.secretion.uptake_rates[proinflammatory_cytokine_index] = 0.0;
+
+				phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
+
+				pCell->custom_data["activated_immune_cell"] = 1.0;
+
 				return;
 			}
-
-			// (Adrianne) obtain index for tracking time when next phagocytosis event is possible
-			int time_to_next_phagocytosis_index = pCell->custom_data.find_variable_index( "time_to_next_phagocytosis" );
-			// (Adrianne) check if still phagocytosing something, added if statement to say that if cell is still internalising current material not to phagocytose anything else
-			if( pCell->custom_data.variables[time_to_next_phagocytosis_index].value>PhysiCell_globals.current_time )
-			{return;}
-
-			double probability_of_phagocytosis = pCell->custom_data["phagocytosis_rate"] * dt;
-
-			// (Adrianne) add an additional variable that is the time taken to ingest material
-			double material_internalisation_rate = pCell->custom_data["material_internalisation_rate"];
-
-			n = 0;
-			Cell* pTestCell = neighbors[n];
-			while( n < neighbors.size() )
+			else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_melanoma_cell"]== 1 && /*pTestCell->custom_data[nP]>1 &&*/
+			UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose infected cells that contain at least 1 pathogen protein
 			{
-				pTestCell = neighbors[n];
-				//int nP  = pTestCell->custom_data.find_variable_index( "pathogen_protein" ); //(Adrianne) finding the pathogen protein inside cells
-				// if it is not me and not a macrophage
-				if( pTestCell != pCell && pTestCell->phenotype.death.dead == true &&
-					UniformRandom() < probability_of_phagocytosis ) // && // remove in v 3.2
-					//			pTestCell->phenotype.volume.total < max_phagocytosis_volume ) / remove in v 3.2
-					{
-						{
-							// (Adrianne) obtain volume of cell to be ingested
-							double volume_ingested_cell = pTestCell->phenotype.volume.total;
+				{
+					// (Adrianne) obtain volume of cell to be ingested
+					double volume_ingested_cell = pTestCell->phenotype.volume.total;
 
-							pCell->ingest_cell( pTestCell );
+					pCell->ingest_cell( pTestCell );
 
-							// (Adrianne)(assume neutrophils same as macrophages) neutrophils phagocytose material 1micron3/s so macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
-							double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
-							// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
-							pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
-						}
-
-						// activate the cell
-						phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] =
-						pCell->custom_data["activated_cytokine_secretion_rate"]; // 10;
-						phenotype.secretion.saturation_densities[proinflammatory_cytokine_index] = 1;
-
-						phenotype.secretion.uptake_rates[proinflammatory_cytokine_index] = 0.0;
-
-						phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
-
-						pCell->custom_data["activated_immune_cell"] = 1.0;
-
-						return;
-					}
-					else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_melanoma_cell"]== 1 && /*pTestCell->custom_data[nP]>1 &&*/
-					UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose infected cells that contain at least 1 pathogen protein
-					{
-						{
-							// (Adrianne) obtain volume of cell to be ingested
-							double volume_ingested_cell = pTestCell->phenotype.volume.total;
-
-							pCell->ingest_cell( pTestCell );
-
-							// (Adrianne)(assume neutrophils same as macrophages) neutrophils phagocytose material 1micron3/s so macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
-							double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
-							// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
-							pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
-						}
-
-						// activate the cell
-						phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] =
-						pCell->custom_data["activated_cytokine_secretion_rate"]; // 10;
-						phenotype.secretion.saturation_densities[proinflammatory_cytokine_index] = 1;
-
-						phenotype.secretion.uptake_rates[proinflammatory_cytokine_index] = 0.0;
-
-						phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
-
-						pCell->custom_data["activated_immune_cell"] = 1.0;
-
-						return;
-					}
-					n++;
+					// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
+					double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
+					// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
+					pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
 				}
+
+				// activate the cell
+				phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] =
+				pCell->custom_data["activated_cytokine_secretion_rate"]; // 10;
+				phenotype.secretion.saturation_densities[proinflammatory_cytokine_index] = 1;
+
+				phenotype.secretion.uptake_rates[proinflammatory_cytokine_index] = 0.0;
+
+				phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
+
+				pCell->custom_data["activated_immune_cell"] = 1.0;
+
 				return;
 			}
+			n++;
+		}
+	return;
+}
 
 void macrophage_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
@@ -600,121 +575,6 @@ void macrophage_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 				return;
 }
 
-void neutrophil_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
-{
-	//	std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;
-	static int apoptosis_index = phenotype.death.find_death_model_index( "apoptosis" );
-	static Cell_Definition* pCD = find_cell_definition( "neutrophil" );
-	static int proinflammatory_cytokine_index = microenvironment.find_density_index( "pro-inflammatory cytokine");
-	static int debris_index = microenvironment.find_density_index( "debris" );
-	static int chemokine_index = microenvironment.find_density_index( "chemokine");
-
-	if( phenotype.death.dead == true )
-	{
-		pCell->functions.update_phenotype = NULL;
-		pCell->functions.custom_cell_rule = NULL;
-
-		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
-		return;
-	}
-
-	// check for cells to eat
-	std::vector<Cell*> neighbors = pCell->cells_in_my_container();
-
-	// at least one of the cells is pCell
-	if( neighbors.size() < 2 )
-	{ return; }
-
-	// (Adrianne) if neutrophil volume exceeds a threshold value we say it is "exhausted" and unable to phagocytose until it's volume drops below this threshold
-	if( pCell->phenotype.volume.total> pCell->custom_data["threshold_neutrophil_volume"])
-	{return;}
-
-	// (Adrianne) obtain index for tracking time to next phagocytosis event is possible
-	int time_to_next_phagocytosis_index = pCell->custom_data.find_variable_index( "time_to_next_phagocytosis" );
-	// (Adrianne) check if still phagocytosing something, added if statement to say that if cell is still internalising current material not to phagocytose anything else
-	if( pCell->custom_data.variables[time_to_next_phagocytosis_index].value>PhysiCell_globals.current_time )
-	{return;}
-
-	int n = 0;
-	Cell* pTestCell = neighbors[n];
-
-	double probability_of_phagocytosis = pCell->custom_data["phagocytosis_rate"] * dt;
-	double max_phagocytosis_volume = pCell->custom_data["phagocytosis_relative_target_cutoff_size" ] * pCD->phenotype.volume.total;
-
-	// (Adrianne) add an additional variable that is the time taken to ingest material
-	double material_internalisation_rate = pCell->custom_data["material_internalisation_rate"];
-
-	while( n < neighbors.size() )
-	{
-	pTestCell = neighbors[n];
-	// if it is not me and the target is dead
-	if( pTestCell != pCell && pTestCell->phenotype.death.dead == true &&
-		UniformRandom() < probability_of_phagocytosis &&
-		pTestCell->phenotype.volume.total < max_phagocytosis_volume )
-		{
-			// #pragma omp critical(neutrophil_eat)
-			{
-				// (Adrianne) obtain volume of cell to be ingested
-				double volume_ingested_cell = pTestCell->phenotype.volume.total;
-
-				// remove_all_adhesions( pTestCell ); // debug
-				pCell->ingest_cell( pTestCell );
-
-				// (Adrianne)(assume neutrophils same as macrophages) neutrophils phagocytose material 1micron3/s so macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
-				double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
-				// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
-				pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
-			}
-
-			// activate the cell
-			phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] =
-			pCell->custom_data["activated_cytokine_secretion_rate"]; // 10;
-			phenotype.secretion.saturation_densities[proinflammatory_cytokine_index] = 1;
-
-			phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
-
-			pCell->custom_data["activated_immune_cell"] = 1.0;
-
-			return;
-		}
-
-		n++;
-	}
-	// if neutrophil isn't killing any cell then return to normal speed
-	// pCell->phenotype.motility.migration_speed =
-	//	pCell->custom_data["normal_neutrophil_speed"];
-
-	return;
-}
-
-void neutrophil_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
-{
-	static int debris_index = microenvironment.find_density_index( "debris");
-
-	if( phenotype.death.dead == true )
-	{
-		pCell->functions.update_phenotype = NULL;
-		pCell->functions.custom_cell_rule = NULL;
-
-		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
-		return;
-	}
-
-	// bounds check
-	if( check_for_out_of_bounds( pCell , 10.0 ) )
-	{
-		#pragma omp critical
-		{ cells_to_move_from_edge.push_back( pCell ); }
-		// replace_out_of_bounds_cell( pCell, 10.0 );
-		// return;
-	}
-
-	//	// death check
-	//	if( phenotype.death.dead == true )
-	//	{ remove_all_adhesions( pCell ); }
-
-	return;
-}
 // (Adrianne) DC phenotype function
 void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
@@ -859,43 +719,6 @@ void DC_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 
 	return;
 }
-// (Adrianne CD4 phenotype function
-void CD4_Tcell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
-{
-	//(Adrianne) currently CD4's don't have any rules
-	return;
-}
-
-// (Adrianne) CD4 mechanics function
-void CD4_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
-{
-	static int debris_index = microenvironment.find_density_index( "debris");
-
-	if( phenotype.death.dead == true )
-	{
-		pCell->functions.update_phenotype = NULL;
-		pCell->functions.custom_cell_rule = NULL;
-
-		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
-		return;
-	}
-
-	// bounds check
-	if( check_for_out_of_bounds( pCell , 10.0 ) )
-	{
-		#pragma omp critical
-		{ cells_to_move_from_edge.push_back( pCell ); }
-		// replace_out_of_bounds_cell( pCell, 10.0 );
-		// return;
-	}
-
-	//	// death check
-	//	if( phenotype.death.dead == true )
-	//	{ remove_all_adhesions( pCell ); }
-
-	return;
-}
-
 
 void immune_submodels_setup( void )
 {
@@ -944,27 +767,6 @@ void immune_submodels_setup( void )
 	pCD->functions.custom_cell_rule = Macrophage_submodel_info.mechanics_function;
 	pCD->functions.update_migration_bias = immune_cell_motility_direction;
 
-	// set up neutrophils
-	// set up macrophages
-	Neutrophil_submodel_info = CD8_submodel_info; // much shared information
-	// set version info
-	Neutrophil_submodel_info.name = "neutrophil model";
-	Neutrophil_submodel_info.version = immune_submodels_version;
-	// set functions
-	Neutrophil_submodel_info.main_function = NULL;
-	Neutrophil_submodel_info.phenotype_function = neutrophil_phenotype;
-	Neutrophil_submodel_info.mechanics_function = neutrophil_mechanics;
-	// what microenvironment variables do you expect?
-	// nothing unique
-	// what custom data do I need?
-	//CD8_submodel_info.cell_variables.push_back( "something" );
-	// register the submodel
-	Neutrophil_submodel_info.register_model();
-	// set functions for the corresponding cell definition
-	pCD = find_cell_definition( "neutrophil" );
-	pCD->functions.update_phenotype = Neutrophil_submodel_info.phenotype_function;
-	pCD->functions.custom_cell_rule = Neutrophil_submodel_info.mechanics_function;
-	pCD->functions.update_migration_bias = immune_cell_motility_direction;
 
 	// (Adrianne) set up DC submodel info
 	DC_submodel_info = CD8_submodel_info; // much shared information
@@ -986,29 +788,6 @@ void immune_submodels_setup( void )
 	pCD->functions.update_phenotype = DC_submodel_info.phenotype_function;
 	pCD->functions.custom_cell_rule = DC_submodel_info.mechanics_function;
 	pCD->functions.update_migration_bias = immune_cell_motility_direction;
-
-
-	// (Adrianne) set up CD4 Tcells ** we don't want CD4's to do anything expect be recruited to the tissue and migrate in tissue
-	// set version info
-	CD4_submodel_info = CD8_submodel_info; // much shared information
-	CD4_submodel_info.name = "CD4 Tcell model";
-	CD4_submodel_info.version = immune_submodels_version;
-
-	// set functions
-	CD4_submodel_info.main_function = NULL;
-	CD4_submodel_info.phenotype_function = CD4_Tcell_phenotype;
-	CD4_submodel_info.mechanics_function = CD4_Tcell_mechanics;
-	// what microenvironment variables do you expect?
-	CD4_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
-	CD4_submodel_info.microenvironment_variables.push_back( "chemokine" );
-	// what custom data do I need?
-	//CD8_submodel_info.cell_variables.push_back( "something" );
-	// register the submodel
-	CD4_submodel_info.register_model();
-	// set functions for the corresponding cell definition
-	pCD = find_cell_definition( "CD4 Tcell" );
-	pCD->functions.update_phenotype = CD4_submodel_info.phenotype_function;
-	pCD->functions.custom_cell_rule = CD4_submodel_info.mechanics_function;
 }
 
 Cell* check_for_live_neighbor_for_interaction( Cell* pAttacker , double dt )
@@ -1041,8 +820,8 @@ return NULL;
 
 bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt )
 {
-
 static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
+static int DC_type = get_cell_definition( "DC" ).type;
 static int neoantigen_signature_index = pAttacker->custom_data.find_vector_variable_index( "neoantigen_signature" );
 
 // if the target is not melanoma cell, give up
@@ -1050,8 +829,12 @@ static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
 if ( pTarget->type != melanoma_type )
 { return false; }
 
-// if the target cell is dead, give up
-if( pTarget->phenotype.death.dead == true )
+// if the target cell is dead, give up for CD8 attack
+if( pTarget->phenotype.death.dead == true && pAttacker->type == CD8_Tcell_type)
+{ return false; }
+
+// if the target cell is not dead, give up for DC attach (melanoma dead cell presenting antigen)
+if( pTarget->phenotype.death.dead != true && pAttacker->type == DC_type)
 { return false; }
 
 // if the target cell is too far away, give up
@@ -1069,7 +852,7 @@ double attachment_probability = pAttacker->custom_data["cell_attachment_rate"] *
 // neoantigen recognition for CD8 T cell attacking
 if ( pAttacker->type == CD8_Tcell_type){
 	int HammingDistance = Hamming_Distance(pAttacker->custom_data.vector_variables[neoantigen_signature_index].value, pTarget->custom_data.vector_variables[neoantigen_signature_index].value);
-	attachment_probability = (1.0/(1.0 + pow(HammingDistance/parameters.doubles( "half_hamming_distance" ), parameters.doubles( "hill_coefficient_recognition" )) ) ) * pAttacker->custom_data["cell_attachment_rate"] * dt;
+	attachment_probability *= (1.0/(1.0 + pow(HammingDistance/parameters.doubles( "half_hamming_distance" ), parameters.doubles( "hill_coefficient_recognition" )) ) );
 }
 // don't need to cap it at 1.00: if prob > 100%,
 // then this statement always evaluates as true,
@@ -1109,23 +892,17 @@ Cell* immune_cell_check_neighbors_for_attachment( Cell* pAttacker , double dt )
 }
 
 int recruited_Tcells = 0;
-int recruited_neutrophils = 0;
 int recruited_macrophages = 0;
-int recruited_CD4Tcells = 0;
 int recruited_DCs = 0;
 
 double first_macrophage_recruitment_time = 9e9;
-double first_neutrophil_recruitment_time = 9e9;
 double first_CD8_T_cell_recruitment_time = 9e9;
-double first_CD4_T_cell_recruitment_time = 9e9;
 double first_DC_recruitment_time = 9e9;
 
 void immune_cell_recruitment( double dt )
 {
 	static int proinflammatory_cytokine_index =
 	microenvironment.find_density_index("pro-inflammatory cytokine");
-
-	static int antiinflammatory_cytokine_index = microenvironment.find_density_index("anti-inflammatory cytokine");
 
 	static double dt_immune = parameters.doubles( "immune_dt" );
 	static double t_immune = 0.0;
@@ -1167,9 +944,8 @@ void immune_cell_recruitment( double dt )
 		total_rate *= microenvironment.mesh.dV;
 		total_rate *= macrophage_recruitment_rate;
 
-		// expected number of new neutrophils
+		// expected number of new macrophages
 		double number_of_new_cells_prob = total_rate * elapsed_time ;
-		// recruited_DCs += number_of_new_cells;
 
 		int number_of_new_cells_int = floor( number_of_new_cells_prob );
 		double alpha = number_of_new_cells_prob - number_of_new_cells_int;
@@ -1193,59 +969,6 @@ void immune_cell_recruitment( double dt )
 			{ create_infiltrating_macrophage(); }
 		}
 
-		// neutrophil recruitment
-		static double neutrophil_recruitment_rate = parameters.doubles( "neutrophil_max_recruitment_rate" );
-		static double NR_min_signal = parameters.doubles( "neutrophil_recruitment_min_signal" );
-		static double NR_sat_signal = parameters.doubles( "neutrophil_recruitment_saturation_signal" );
-		static double NR_max_minus_min = NR_sat_signal - NR_min_signal;
-
-		total_rate = 0;
-		// integrate \int_domain r_max * (signal-signal_min)/(signal_max-signal_min) * dV
-		total_scaled_signal= 0.0;
-		for( int n=0; n<microenvironment.mesh.voxels.size(); n++ )
-		{
-			// (signal(x)-signal_min)/(signal_max/signal_min)
-			double dRate = ( microenvironment(n)[proinflammatory_cytokine_index] - NR_min_signal );
-			dRate /= NR_max_minus_min;
-			// crop to [0,1]
-			if( dRate > 1 )
-			{ dRate = 1; }
-			if( dRate < 0 )
-			{ dRate = 0; }
-			total_rate += dRate;
-		}
-		// multiply by dV and rate_max
-		total_scaled_signal = total_rate;
-
-		total_rate *= microenvironment.mesh.dV;
-		total_rate *= neutrophil_recruitment_rate;
-
-		// expected number of new neutrophils
-		number_of_new_cells_prob = total_rate * elapsed_time ;
-		// recruited_DCs += number_of_new_cells;
-
-		number_of_new_cells_int = floor( number_of_new_cells_prob );
-		alpha = number_of_new_cells_prob - number_of_new_cells_int;
-
-		//STOCHASTIC PORTION
-
-		if( UniformRandom()< alpha )
-		{
-			number_of_new_cells_int++;
-		}
-		recruited_neutrophils += number_of_new_cells_int;
-
-		if( number_of_new_cells_int )
-		{
-			if( t_immune < first_neutrophil_recruitment_time )
-			{ first_neutrophil_recruitment_time = t_immune; }
-
-			std::cout << "\tRecruiting " << number_of_new_cells_int << " neutrophils ... " << std::endl;
-
-			for( int n = 0; n < number_of_new_cells_int ; n++ )
-			{ create_infiltrating_neutrophil(); }
-		}
-
 		// CD8 Tcell recruitment (Michael) changed to take floor of ODE value
 
 		extern double TCt;
@@ -1263,25 +986,6 @@ void immune_cell_recruitment( double dt )
 
 			for( int n = 0; n < number_of_new_cells ; n++ )
 			{ create_infiltrating_Tcell(); }
-		}
-
-
-		// CD4 recruitment (Michael) changed to take floor of ODE value
-		extern double Tht;
-
-		number_of_new_cells = (int) floor( Tht );
-		Tht=Tht-number_of_new_cells;
-		recruited_CD4Tcells += number_of_new_cells;
-
-		if( number_of_new_cells )
-		{
-			if( t_immune < first_CD4_T_cell_recruitment_time )
-			{ first_CD4_T_cell_recruitment_time = t_immune; }
-
-			std::cout << "\tRecruiting " << number_of_new_cells << " CD4 T cells ... " << std::endl;
-
-			for( int n = 0; n < number_of_new_cells ; n++ )
-			{ create_infiltrating_CD4Tcell(); }
 		}
 
 		// (Adrianne) DC recruitment - *** This section will be changed to be Tarun's model  so I've left recruitment parameters to be mac cell parameters**
@@ -1311,9 +1015,8 @@ void immune_cell_recruitment( double dt )
 		total_rate *= microenvironment.mesh.dV;
 		total_rate *= DC_recruitment_rate;
 
-		// expected number of new neutrophils
+		// expected number of new DCs
 		number_of_new_cells_prob = total_rate * elapsed_time ;
-		// recruited_DCs += number_of_new_cells;
 
 		number_of_new_cells_int = floor( number_of_new_cells_prob );
 		alpha = number_of_new_cells_prob - number_of_new_cells_int;
@@ -1353,9 +1056,7 @@ void initial_immune_cell_placement( void )
 {
 	Cell_Definition* pCD8 = find_cell_definition( "CD8 Tcell" );
 	Cell_Definition* pMF = find_cell_definition( "macrophage" );
-	Cell_Definition* pN = find_cell_definition( "neutrophil" );
 	Cell_Definition* pDC = find_cell_definition( "DC" );
-	Cell_Definition* pCD4 = find_cell_definition( "CD4 Tcell" );
 
 	// CD8+ T cells;
 	for( int n = 0 ; n < parameters.ints("number_of_CD8_Tcells") ; n++ )
@@ -1365,17 +1066,10 @@ void initial_immune_cell_placement( void )
 	for( int n = 0 ; n < parameters.ints("number_of_macrophages") ; n++ )
 	{ create_infiltrating_immune_cell_initial( pMF ); }
 
-	// neutrophils
-	for( int n = 0 ; n < parameters.ints("number_of_neutrophils") ; n++ )
-	{ create_infiltrating_immune_cell( pN ); }
-
 	// DC
 	for( int n = 0 ; n < parameters.ints("number_of_DCs") ; n++ )
 	{ create_infiltrating_immune_cell_initial( pDC ); }
 
-	// CD4+ T cells
-	for( int n = 0 ; n < parameters.ints("number_of_CD4_Tcells") ; n++ )
-	{ create_infiltrating_immune_cell_initial( pCD4 ); }
 	return;
 }
 
