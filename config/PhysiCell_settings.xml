@@ -996,7 +996,7 @@
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
 		<rate_neoantigen_variability description="rate of element alteration for neoantigen signature (poisson dist)" type="double" units="dimensionless">0.0</rate_neoantigen_variability>
-		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">10</boolean_vector_size>
+		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">100</boolean_vector_size>
 		<percentage_clonal_neoantigen description="percentage clonal neoantigen" type="double" units="dimensionless">0.15</percentage_clonal_neoantigen>
 		<percentage_subclonal_neoantigen description="percentage subclonal neoantigen" type="double" units="dimensionless">0.38</percentage_subclonal_neoantigen>
 	  <probability_recog_clonal_neoantigen description="probability to recog clonal neoantigen" type="double" units="dimensionless">0.15</probability_recog_clonal_neoantigen>
@@ -1007,6 +1007,7 @@
 		<hill_coefficient_recognition description="Hill coefficient for recognition function" type="double" units="dimensionless">5.0</hill_coefficient_recognition>
 
 		<prolif_rate_CancerCell description="proliferation rate of melanoma cell" type="double" units="dimensionless">0.002</prolif_rate_CancerCell>
+		<death_rate_CancerCell description="death rate of melanoma cell" type="double" units="dimensionless">0.002</death_rate_CancerCell>
 
 		<div_immune description="--Immune activation parameters--" type="divider" />
 		<immune_dt description="how often we check to introduce immune cells" type="double" units="min">10</immune_dt>

@@ -598,7 +598,7 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 				#pragma omp critical
 				{
 					AntigenLib.add_antigen(pTempCell->custom_data.vector_variables[neoantigen_signature_index].value, PhysiCell_globals.current_time ); // add neoantigens library
-					AntigenLib.print();
+					//AntigenLib.print();
 				}
 			}
 		}

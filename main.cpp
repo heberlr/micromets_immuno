@@ -149,10 +149,12 @@ int main( int argc, char* argv[] )
 	// for simplicity, set a pathology coloring function
 
 	std::vector<std::string> (*cell_coloring_function)(Cell*) = tissue_coloring_function;
-
-	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() );
-//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-	SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	if( PhysiCell_settings.enable_SVG_saves == true )
+	{
+		sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() );
+		//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+		SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+  }
 
 	display_citations();
 
@@ -171,13 +173,20 @@ int main( int argc, char* argv[] )
 	}
 
 	std::ofstream dm_tc_file;
-	sprintf( filename , "%s/dm_tc.dat" , PhysiCell_settings.folder.c_str() );
-	// dm_tc_file.open ("dm_tc.dat");
-	dm_tc_file.open (filename);
+	if( PhysiCell_settings.enable_full_saves == true )
+	{
+		sprintf( filename , "%s/dm_tc.dat" , PhysiCell_settings.folder.c_str() );
+		// dm_tc_file.open ("dm_tc.dat");
+		dm_tc_file.open (filename);
+	}
 
-	std::ofstream numCell_file;
-	sprintf( filename , "%s/numCell.dat" , PhysiCell_settings.folder.c_str() );
-	numCell_file.open (filename);
+	std::ofstream QOI_file;
+	QOI_file.open (argv[2]);
+	parameters.doubles( "rate_neoantigen_variability" ) = atof(argv[3]);
+	parameters.doubles( "half_hamming_distance" ) = atof(argv[4]);
+	parameters.doubles( "prolif_rate_CancerCell" ) = atof(argv[5]);
+	parameters.doubles( "death_rate_CancerCell" ) = atof(argv[6]);
+	QOI_file << "#Parameters -- rate_neoantigen_variability " << parameters.doubles( "rate_neoantigen_variability" ) << "  half_hamming_distance: " << parameters.doubles( "half_hamming_distance" ) << "  prolif_rate_CancerCell: " << parameters.doubles( "prolif_rate_CancerCell" ) << "  death_rate_CancerCell: " << parameters.doubles( "death_rate_CancerCell" ) << std::endl;
 
 	// main loop
 
@@ -199,10 +208,12 @@ int main( int argc, char* argv[] )
 					sprintf( filename , "%s/output%08u" , PhysiCell_settings.folder.c_str(),  PhysiCell_globals.full_output_index );
 
 					dm_tc_file << DM << " " << TC << " " << TCt << std::endl; //write globals data
-					print_cell_count(numCell_file); // write number of cells file
 
 					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
 				}
+
+				//write output
+				print_cell_count(QOI_file); // write number of cells file
 
 				PhysiCell_globals.full_output_index++;
 				PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
@@ -264,20 +275,26 @@ int main( int argc, char* argv[] )
 		std::cout << e.what(); // information from length_error printed
 	}
 
-	dm_tc_file.close();
-	numCell_file.close();
+	// Close QOI files
+	QOI_file.close();
 
-	// save a final simulation snapshot
-	sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() );
-	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
+	if( PhysiCell_settings.enable_full_saves == true )
+	{
+		dm_tc_file.close();
+		// save a final simulation snapshot
+		sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() );
+		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
+	}
 
-	sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
-//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-	SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	if( PhysiCell_settings.enable_SVG_saves == true )
+	{
+		sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
+		//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+		SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	}
 
 	// timer
-
-	std::cout << std::endl << "Total simulation runtime: " << std::endl;
+	std::cout << std::endl << "Rank: " << argv[1] << "Total simulation runtime: " << std::endl;
 	BioFVM::display_stopwatch_value( std::cout , BioFVM::runtime_stopwatch_value() );
 
 

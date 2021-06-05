@@ -141,6 +141,9 @@ void melanoma_submodel_setup( void )
 	pCD->functions.custom_cell_rule = melanoma_submodel_info.mechanics_function;
 	pCD->functions.contact_function = melanoma_contact_function;
 
+	// Death rate for melanoma cells
+	pCD->phenotype.death.rates[apoptosis_index] = parameters.doubles( "death_rate_CancerCell" );
+
 	return;
 }
 
