@@ -14,20 +14,52 @@ void epithelium_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype
 	return;
 }
 
+bool strain_based_apoptosis( Cell* pCell )
+{
+	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
+	static double  max_strain = parameters.doubles("max_mechanical_strain");
+	if( pCell->custom_data[strain_index] <= max_strain ) return false;
+
+	std::vector<Cell*> neighbors = pCell->cells_in_my_container();//find cells in a neighbourhood of melanoma cells
+	static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
+	int n = 0;
+	Cell* pTestCell;
+	while( n < neighbors.size() )
+	{
+		pTestCell = neighbors[n];
+		if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false && pTestCell->type == melanoma_cell_type){
+			double cell_cell_distance = sqrt((pTestCell->position[0]-pCell->position[0])*(pTestCell->position[0]-pCell->position[0])+(pTestCell->position[1]-pCell->position[1])*(pTestCell->position[1]-pCell->position[1]));
+			double radius_DC = pCell->phenotype.geometry.radius; // (Adrianne) radius of DC)
+			double radius_test_cell = pTestCell->phenotype.geometry.radius;
+			if( cell_cell_distance <= parameters.doubles("epsilon_distance")*(radius_DC+radius_test_cell) ){
+				return true;
+			}
+		}
+		n++;
+	}
+	return false;
+}
+
 void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
-	static int proinflammatory_cytokine_index = microenvironment.find_density_index("pro-inflammatory cytokine");
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
 
 	phenotype.motility.is_motile = false;
+
+	// update mechanical strain
+	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
+	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
+	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value = pCell->custom_data.vector_variables[ECM_attachment_point_index].value;
+	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value -= pCell->position;
+	pCell->custom_data[strain_index] = norm( pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
 
 	// if I am dead, remove all adhesions
 	if( phenotype.death.dead == true )
 	{
 		// detach all attached cells
 		// remove_all_adhesions( pCell );
-
 		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
 	}
 
@@ -36,11 +68,10 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// turn off proliferation
 	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0.0;
 
-	// Normal cells neighbor to melanoma cells dead by inflammation (kill cells with high pro-inf concentration)
-	// if( (pCell->nearest_density_vector())[ proinflammatory_cytokine_index ] > 0.9 ) // Check neighbor if have high density of melanoma cells.
-	// {
-	// 		pCell->start_death( apoptosis_index );
-	// }
+	if( strain_based_apoptosis( pCell ) )
+	{
+		pCell->phenotype.death.rates[apoptosis_index] = 9e9;
+	}
 
 	// if I am dead, don't bother executing this function again
 	if( phenotype.death.dead == true )
@@ -54,12 +85,6 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 void epithelium_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
-
-	//melanoma cells are movable
-	// if ( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1)
-	// 	pCell->is_movable = true;
-	// else
-	// 	pCell->is_movable = false;
 
 	// if I'm dead, don't bother
 	if( phenotype.death.dead == true )
@@ -76,16 +101,18 @@ void epithelium_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 		return;
 	}
 
-	// this is now part of contact_function
-	/*
-	// if I'm adhered to something ...
-	if( pCell->state.neighbors.size() > 0 )
-	{
-	// add the elastic forces
-	extra_elastic_attachment_mechanics( pCell, phenotype, dt );
-}
-*/
-return;
+	// plastoelastic mechanics
+	static int spring_constant_index = pCell->custom_data.find_variable_index( "spring_constant" );
+	static int relaxation_constant_index = pCell->custom_data.find_variable_index( "mechanical_relaxation_rate" );
+	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
+	// first, update the cell's velocity based upon the elastic model
+	axpy( &( pCell->velocity ) , pCell->custom_data[spring_constant_index] , pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
+
+	// now, plastic mechanical relaxation
+	static double plastic_temp_constant = -dt * pCell->custom_data[relaxation_constant_index];
+	axpy( &(pCell->custom_data.vector_variables[ECM_attachment_point_index].value) , plastic_temp_constant , pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
+	return;
 }
 
 void epithelium_submodel_setup( void )

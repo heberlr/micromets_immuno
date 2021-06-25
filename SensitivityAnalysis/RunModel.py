@@ -27,6 +27,7 @@ def model(parameter=None, Sample=-1, Replica=-1):
     
     os.chdir(cwd)
     
+    
     return data
 
 def scattering(samples, idSample, idReplica): #Scattering NumPy arrays

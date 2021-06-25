@@ -88,7 +88,10 @@ AntigenLibrary AntigenLib;
 // global ICs (external_immune)
 double DM = 0;
 double TC = 10;
+double TH1 = 1;
+double TH2 = 1;
 double TCt = 0;
+double Tht = 0;
 double GridCOUNT = 1;
 
 int main( int argc, char* argv[] )
@@ -96,8 +99,18 @@ int main( int argc, char* argv[] )
 	// load and parse settings file(s)
 
 	bool XML_status = false;
+	int rank;
+	std::ofstream QOI_file;
 	if( argc > 1 )
-	{ XML_status = load_PhysiCell_config_file( argv[1] ); }
+	{ XML_status = load_PhysiCell_config_file( argv[1] );
+		rank = atoi(argv[2]);
+		QOI_file.open (argv[3]);
+		parameters.doubles( "rate_neoantigen_variability" ) = atof(argv[4]);
+		parameters.doubles( "half_hamming_distance" ) = atof(argv[5]);
+		parameters.doubles( "prolif_rate_CancerCell" ) = atof(argv[6]);
+		parameters.doubles( "death_rate_CancerCell" ) = atof(argv[7]);
+		QOI_file << "#Parameters -- rate_neoantigen_variability " << parameters.doubles( "rate_neoantigen_variability" ) << "  half_hamming_distance: " << parameters.doubles( "half_hamming_distance" ) << "  prolif_rate_CancerCell: " << parameters.doubles( "prolif_rate_CancerCell" ) << "  death_rate_CancerCell: " << parameters.doubles( "death_rate_CancerCell" ) << std::endl;
+	}
 	else
 	{ XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" ); }
 	if( !XML_status )
@@ -120,7 +133,6 @@ int main( int argc, char* argv[] )
 	Cell_Container* cell_container = create_cell_container_for_microenvironment( microenvironment, mechanics_voxel_size );
 
 	/* Users typically start modifying here. START USERMODS */
-
 	create_cell_types();
 	setup_tissue();
 
@@ -138,8 +150,11 @@ int main( int argc, char* argv[] )
 	// save a simulation snapshot
 
 	char filename[1024],filename2[1024];
-	sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() );
-	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
+	if( PhysiCell_settings.enable_full_saves == true )
+	{
+		sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() );
+		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
+	}
 
 	// save a quick SVG cross section through z = 0, after setting its
 	// length bar to 200 microns
@@ -180,16 +195,7 @@ int main( int argc, char* argv[] )
 		dm_tc_file.open (filename);
 	}
 
-	std::ofstream QOI_file;
-	QOI_file.open (argv[2]);
-	parameters.doubles( "rate_neoantigen_variability" ) = atof(argv[3]);
-	parameters.doubles( "half_hamming_distance" ) = atof(argv[4]);
-	parameters.doubles( "prolif_rate_CancerCell" ) = atof(argv[5]);
-	parameters.doubles( "death_rate_CancerCell" ) = atof(argv[6]);
-	QOI_file << "#Parameters -- rate_neoantigen_variability " << parameters.doubles( "rate_neoantigen_variability" ) << "  half_hamming_distance: " << parameters.doubles( "half_hamming_distance" ) << "  prolif_rate_CancerCell: " << parameters.doubles( "prolif_rate_CancerCell" ) << "  death_rate_CancerCell: " << parameters.doubles( "death_rate_CancerCell" ) << std::endl;
-
 	// main loop
-
 	try
 	{
 		while( PhysiCell_globals.current_time < PhysiCell_settings.max_time + 0.1*diffusion_dt )
@@ -207,13 +213,13 @@ int main( int argc, char* argv[] )
 				{
 					sprintf( filename , "%s/output%08u" , PhysiCell_settings.folder.c_str(),  PhysiCell_globals.full_output_index );
 
-					dm_tc_file << DM << " " << TC << " " << TCt << std::endl; //write globals data
+					dm_tc_file << PhysiCell_globals.current_time << " " << DM << " " << TC << " " << TH1 << " " << TH2 << " " << TCt << " " << Tht << std::endl; //write globals data
 
 					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
 				}
 
 				//write output
-				print_cell_count(QOI_file); // write number of cells file
+				if( argc > 1 ) print_cell_count(QOI_file); // write number of cells file
 
 				PhysiCell_globals.full_output_index++;
 				PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
@@ -276,7 +282,7 @@ int main( int argc, char* argv[] )
 	}
 
 	// Close QOI files
-	QOI_file.close();
+	if( argc > 1 ) QOI_file.close();
 
 	if( PhysiCell_settings.enable_full_saves == true )
 	{
@@ -294,7 +300,7 @@ int main( int argc, char* argv[] )
 	}
 
 	// timer
-	std::cout << std::endl << "Rank: " << argv[1] << "Total simulation runtime: " << std::endl;
+	std::cout << std::endl << "Rank: " << rank << "Total simulation runtime: " << std::endl;
 	BioFVM::display_stopwatch_value( std::cout , BioFVM::runtime_stopwatch_value() );
 
 

@@ -1039,7 +1039,7 @@
 
 		<departure_rate_of_DCs description="Departure rate of activated DCs" type="double" units="cells/min/micron^3">0.001</departure_rate_of_DCs>
 
-		<DS_needed_for_DC_activation descriptions="Number of neoantigens needed to activate DC" type="int" units="neoantigens">10</DS_needed_for_DC_activation>
+
 
 		<epsilon_distance descriptions="Multiple of interaction distance for immune cells" type="double" units="dimensionless">1.75</epsilon_distance>
 

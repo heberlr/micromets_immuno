@@ -71,6 +71,8 @@ std::vector<std::vector <double>> valid_position;
 // generator sample from distribution
 std::default_random_engine generator{123456789};
 
+extern AntigenLibrary AntigenLib;
+
 void create_cell_types( void )
 {
 	// set the random seed
@@ -95,10 +97,23 @@ void create_cell_types( void )
 	/*
 	This parses the cell definitions in the XML config file.
 	*/
+	std::vector<double> myvec(3,0.0);
+	cell_defaults.custom_data.add_vector_variable( "ECM_attachment_point", "micron", myvec );
+	cell_defaults.custom_data.add_vector_variable( "mechanical_strain_displacement" , "micron", myvec );
 
+	// assume elastic movement on the order of 10 min at maximum 10 micron elongation
+	cell_defaults.custom_data.add_variable( "spring_constant", "1/min" , 0.05 );  // 0.05    // (1.0/10.0) * (1.0/10.0)
+	// assume plastic movement on the order of 1 day at maximum 10 micron elongation
+	cell_defaults.custom_data.add_variable( "mechanical_relaxation_rate", "1/min" , 0.0005 );  // 0.0005  // (1.0/10.0) * (1.0/(24.0*60.0)
+	cell_defaults.custom_data.add_variable( "mechanical_strain", "micron" , 0.0 );
+	//cell_defaults.custom_data.add_variable( "max_mechanical_strain", "micron" , 0.75); // 0.75
+	//cell_defaults.custom_data.add_variable( "max_mechanical_strain_TumorProl", "micron" , 10.0); // 0.75
+	cell_defaults.custom_data.add_variable( "simple_pressure", "micron" , 0.0 );
 	//aditional custom data -- PhysiCell don't allow boolean vector in cell, only double (always before initialize_cell_definitions_from_pugixml)
 	std::vector<double> neoantigen_signature(parameters.ints("boolean_vector_size"),0.0);
 	cell_defaults.custom_data.add_vector_variable( "neoantigen_signature" , "dimensionless" , neoantigen_signature );
+	// Initialize neoantigens_library
+	AntigenLib.add_first_antigen(neoantigen_signature);
 
 	initialize_cell_definitions_from_pugixml();
 
@@ -213,6 +228,7 @@ void setup_tissue( void )
 	// place immune cells
 	initial_immune_cell_placement();
 
+	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
 	// Melanoma cells
 	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
 
@@ -222,6 +238,7 @@ void setup_tissue( void )
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
 		pC->assign_position( valid_position[index_sample] );
+		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
 		valid_position.erase (valid_position.begin()+index_sample);
 		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
 	}
@@ -232,6 +249,7 @@ void setup_tissue( void )
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
 		pC->assign_position( valid_position[index_sample] );
+		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
 		valid_position.erase (valid_position.begin()+index_sample);
 		if (valid_position.size() == 0) break;
 	}

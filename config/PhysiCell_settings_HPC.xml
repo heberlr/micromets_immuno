@@ -14,7 +14,7 @@
 	</domain>
 
 	<overall>
-		<max_time units="min">16200</max_time> <!--!16200-->
+		<max_time units="min">14400</max_time> <!--!14400-->
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 
@@ -307,8 +307,8 @@
 				</volume>
 
 				<mechanics>
-					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
-					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
+					<cell_cell_adhesion_strength units="micron/min">0.3</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">7.5</cell_cell_repulsion_strength>
 					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
 
 					<options>
@@ -769,7 +769,7 @@
 				<motility>
 					<speed units="micron/min">4</speed>
 					<persistence_time units="min">5</persistence_time>
-					<migration_bias units="dimensionless">0.7</migration_bias>
+					<migration_bias units="dimensionless">0.2</migration_bias>
 
 					<options>
 						<enabled>true</enabled>
@@ -919,7 +919,7 @@
 				<motility>
 					<speed units="micron/min">2</speed>
 					<persistence_time units="min">5</persistence_time>
-					<migration_bias units="dimensionless">0.7</migration_bias>
+					<migration_bias units="dimensionless">0.2</migration_bias>
 
 					<options>
 						<enabled>true</enabled>
@@ -996,18 +996,20 @@
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
 		<rate_neoantigen_variability description="rate of element alteration for neoantigen signature (poisson dist)" type="double" units="dimensionless">0.0</rate_neoantigen_variability>
-		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">100</boolean_vector_size>
+		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">1</boolean_vector_size>
 		<percentage_clonal_neoantigen description="percentage clonal neoantigen" type="double" units="dimensionless">0.15</percentage_clonal_neoantigen>
 		<percentage_subclonal_neoantigen description="percentage subclonal neoantigen" type="double" units="dimensionless">0.38</percentage_subclonal_neoantigen>
 	  <probability_recog_clonal_neoantigen description="probability to recog clonal neoantigen" type="double" units="dimensionless">0.15</probability_recog_clonal_neoantigen>
 		<probability_recog_subclonal_neoantigen description="probability to recog subclonal neoantigen" type="double" units="dimensionless">0.25</probability_recog_subclonal_neoantigen>
 		<probability_recog_shared_neoantigen description="probability to recog shared neoantigen" type="double" units="dimensionless">0.25</probability_recog_shared_neoantigen>
 
-		<half_hamming_distance description="Hamming distance with a half probability of recognition" type="double" units="dimensionless">2.0</half_hamming_distance>
-		<hill_coefficient_recognition description="Hill coefficient for recognition function" type="double" units="dimensionless">5.0</hill_coefficient_recognition>
+		<half_hamming_distance description="Hamming distance with a half probability of recognition" type="double" units="dimensionless">0.0</half_hamming_distance>
+		<hill_coefficient_recognition description="Hill coefficient for recognition function" type="double" units="dimensionless">0.0</hill_coefficient_recognition>
 
-		<prolif_rate_CancerCell description="proliferation rate of melanoma cell" type="double" units="dimensionless">0.002</prolif_rate_CancerCell>
-		<death_rate_CancerCell description="death rate of melanoma cell" type="double" units="dimensionless">0.002</death_rate_CancerCell>
+		<max_mechanical_strain description="maximum tolerated deformation of lung cell (death)" type="double" units="micron">0.75</max_mechanical_strain>
+		<max_simple_pressure_TumorProl description="maximum tolerated pressure of melanoma cell (proliferation)" type="double" units="micron">10.0</max_simple_pressure_TumorProl>
+		<prolif_rate_CancerCell description="proliferation rate of melanoma cell" type="double" units="dimensionless">0.0</prolif_rate_CancerCell>
+		<death_rate_CancerCell description="death rate of melanoma cell" type="double" units="dimensionless">0.0</death_rate_CancerCell>
 
 		<div_immune description="--Immune activation parameters--" type="divider" />
 		<immune_dt description="how often we check to introduce immune cells" type="double" units="min">10</immune_dt>
@@ -1029,17 +1031,15 @@
 
 		<div_initialization description="---Initialization Options--" type="divider" />
 		<cell_confluence_lung_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_lung_cells>
-		<number_of_melanoma_cells description="initial number of melanoma cells in tissue" type="int" units="none">5</number_of_melanoma_cells>
+		<number_of_melanoma_cells description="initial number of melanoma cells in tissue" type="int" units="none">10</number_of_melanoma_cells>
 		<number_of_CD8_Tcells description="initial number of CD8 T cells in tissue" type="int" units="none">0</number_of_CD8_Tcells>
-		<number_of_macrophages description="initial number of macrophages" type="int" units="none">20</number_of_macrophages>
-		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">10</number_of_DCs>
+		<number_of_macrophages description="initial number of macrophages" type="int" units="none">5</number_of_macrophages>
+		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">5</number_of_DCs>
 
 		<DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
 		<DC_induced_CD8_attachment description="DC induced CD8 attachement rate" type="double" units="cells/min/micron^3">0.6</DC_induced_CD8_attachment>
 
 		<departure_rate_of_DCs description="Departure rate of activated DCs" type="double" units="cells/min/micron^3">0.001</departure_rate_of_DCs>
-
-		<DS_needed_for_DC_activation descriptions="Number of neoantigens needed to activate DC" type="int" units="neoantigens">10</DS_needed_for_DC_activation>
 
 		<epsilon_distance descriptions="Multiple of interaction distance for immune cells" type="double" units="dimensionless">1.75</epsilon_distance>
 

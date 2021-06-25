@@ -14,10 +14,63 @@ void melanoma_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& 
 	return;
 }
 
+double strain_based_proliferation( Cell* pCell )
+{
+	// std::vector<Cell*> neighbors = pCell->cells_in_my_container();//find cells in a neighbourhood of melanoma cells
+	// static int lung_cell_type = get_cell_definition( "lung cell" ).type;
+	// static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
+	// int n = 0;
+	// int CountNeighbors = 0;
+	// Cell* pTestCell;
+	// double radius_Cell = pCell->phenotype.geometry.radius;
+	// while( n < neighbors.size() )
+	// {
+	// 	pTestCell = neighbors[n];
+	// 	if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false ){
+	// 		double cell_cell_distance = sqrt((pTestCell->position[0]-pCell->position[0])*(pTestCell->position[0]-pCell->position[0])+(pTestCell->position[1]-pCell->position[1])*(pTestCell->position[1]-pCell->position[1]));
+	// 		double radius_test_cell = pTestCell->phenotype.geometry.radius;
+	// 		if( cell_cell_distance <= parameters.doubles("epsilon_distance")*(radius_Cell+radius_test_cell) ){
+	// 			CountNeighbors++;
+	// 		}
+	// 	}
+	// 	n++;
+	// }
+	//
+	//
+	// static double Xmin = microenvironment.mesh.bounding_box[0];
+	// static double Ymin = microenvironment.mesh.bounding_box[1];
+	// static double Xmax = microenvironment.mesh.bounding_box[3];
+	// static double Ymax = microenvironment.mesh.bounding_box[4];
+	//
+	// if ( abs(pCell->position[0]-Xmin) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
+	// if ( abs(pCell->position[0]-Xmax) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
+	// if ( abs(pCell->position[1]-Ymin) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
+	// if ( abs(pCell->position[1]-Ymax) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
+	//
+	// if ( CountNeighbors < 6 ) return 1.0;
+	// else return 0.0;
+
+	// static int strain_index = parameters.doubles("max_simple_pressure_TumorProl");//pCell->custom_data.find_variable_index( "mechanical_strain" );
+	// static double  max_strain = parameters.doubles("max_mechanical_strain_TumorProl");
+	//
+	// if( pCell->custom_data[strain_index] < max_strain )
+	// {
+	// 	return pow( (max_strain - pCell->custom_data[strain_index])/max_strain, 1.0 );
+	// }
+	// return 0.0;
+
+	static double  max_pressure = parameters.doubles("max_simple_pressure_TumorProl");
+	if( pCell->state.simple_pressure < max_pressure )
+	{
+		return pow( (max_pressure - pCell->state.simple_pressure)/max_pressure, 1.0 );
+	}
+	return 0.0;
+}
+
 void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
-	static int proinflammatory_cytokine_index = microenvironment.find_density_index("pro-inflammatory cytokine");
+	static int chemokine_index = microenvironment.find_density_index( "chemokine" );
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
 
 	phenotype.motility.is_motile = false;
@@ -33,21 +86,25 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
 	}
-
+	// update mechanical strain
+	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
+	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
+	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value = pCell->custom_data.vector_variables[ECM_attachment_point_index].value;
+	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value -= pCell->position;
+	pCell->custom_data[strain_index] = norm( pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
 
 	//proliferation, mechanics, and chemokine secretion activated
-
 	// Mechanical contribution to proliferation
-	double max_simple_pressure = 100.0;
-	double mechanics_factor = pow(max_simple_pressure - pCell->state.simple_pressure,0.5)/pow(max_simple_pressure,0.5);
-	if (mechanics_factor < 0.0) mechanics_factor = 0.0;
+	double mechanics_factor = strain_based_proliferation( pCell );
+	//if (mechanics_factor == 0) pCell->phenotype.death.rates[apoptosis_index] = 9e9;
+
 	// proliferation rate based on mechanical aspect
 	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
 	int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
 	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = parameters.doubles("prolif_rate_CancerCell")*mechanics_factor;
 
 	pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] = 1.0;
-	static int chemokine_index = microenvironment.find_density_index( "chemokine" );
 	if( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1 && phenotype.death.dead == false )
 	{
 		double rate = 1.0; //AV; // P;
@@ -72,13 +129,6 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 void melanoma_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
-
-	//melanoma cells are movable
-	// if ( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1)
-	// 	pCell->is_movable = true;
-	// else
-	// 	pCell->is_movable = false;
-
 	// if I'm dead, don't bother
 	if( phenotype.death.dead == true )
 	{
@@ -93,17 +143,24 @@ void melanoma_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
 		return;
 	}
+	static int simple_pressure_index = pCell->custom_data.find_variable_index( "simple_pressure" );
+	pCell->custom_data[simple_pressure_index]	= pCell->state.simple_pressure;
+	//plastoelastic mechanics
+	static int spring_constant_index = pCell->custom_data.find_variable_index( "spring_constant" );
+	static int relaxation_constant_index = pCell->custom_data.find_variable_index( "mechanical_relaxation_rate" );
+	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
 
-	// this is now part of contact_function
-	/*
-	// if I'm adhered to something ...
-	if( pCell->state.neighbors.size() > 0 )
-	{
-	// add the elastic forces
-	extra_elastic_attachment_mechanics( pCell, phenotype, dt );
-}
-*/
-return;
+	pCell->custom_data[relaxation_constant_index] = 10e-3;
+
+	// first, update the cell's velocity based upon the elastic model
+	axpy( &( pCell->velocity ) , pCell->custom_data[spring_constant_index] , pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
+
+	// now, plastic mechanical relaxation
+	static double plastic_temp_constant = -dt * pCell->custom_data[relaxation_constant_index];
+	axpy( &(pCell->custom_data.vector_variables[ECM_attachment_point_index].value) , plastic_temp_constant , pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
+
+	return;
 }
 
 void melanoma_submodel_setup( void )
@@ -142,6 +199,7 @@ void melanoma_submodel_setup( void )
 	pCD->functions.contact_function = melanoma_contact_function;
 
 	// Death rate for melanoma cells
+	static int apoptosis_index = pCD->phenotype.death.find_death_model_index( "Apoptosis" );
 	pCD->phenotype.death.rates[apoptosis_index] = parameters.doubles( "death_rate_CancerCell" );
 
 	return;
@@ -151,7 +209,6 @@ void TCell_induced_apoptosis( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
 	static int debris_index = microenvironment.find_density_index( "debris" );
-	static int proinflammatory_cytokine_index = microenvironment.find_density_index("pro-inflammatory cytokine");
 
 	if( pCell->custom_data["TCell_contact_time"] > pCell->custom_data["TCell_contact_death_threshold"] )
 	{
@@ -166,7 +223,6 @@ void TCell_induced_apoptosis( Cell* pCell, Phenotype& phenotype, double dt )
 
 		// induce death
 		pCell->start_death( apoptosis_index );
-		pCell->phenotype.secretion.secretion_rates[proinflammatory_cytokine_index] = 0;
 		pCell->phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
 
 		pCell->functions.update_phenotype = NULL;

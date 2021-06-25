@@ -382,7 +382,6 @@ void immune_cell_motility_direction( Cell* pCell, Phenotype& phenotype , double 
 	static int debris_index = microenvironment.find_density_index( "debris");
 
 	// if not activated, chemotaxis along debris
-
 	phenotype.motility.migration_bias_direction = pCell->nearest_gradient(debris_index);
 	normalize( &phenotype.motility.migration_bias_direction );
 	if( pCell->custom_data["activated_immune_cell"] < 0.5 )
@@ -409,7 +408,6 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
 	static Cell_Definition* pCD = find_cell_definition( "macrophage" );
 	static int proinflammatory_cytokine_index = microenvironment.find_density_index( "pro-inflammatory cytokine");
-	static int chemokine_index = microenvironment.find_density_index( "chemokine");
 	static int debris_index = microenvironment.find_density_index( "debris");
 
 	// no apoptosis until activation (resident macrophages in constant number for homeostasis)
@@ -575,6 +573,14 @@ void macrophage_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 				return;
 }
 
+void DC_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2 , double dt )
+{
+	//std::cout << pC1 << " " << pC1->type_name << " contact with " << pC2 << " " << pC2->type_name << std::endl;
+	// elastic adhesions
+	standard_elastic_contact_function( pC1,p1, pC2, p2, dt );
+
+	return;
+}
 // (Adrianne) DC phenotype function
 void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
@@ -588,21 +594,6 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// (Adrianne) if DC is already activated, then check whether it leaves the tissue
 	if( pCell->custom_data["activated_immune_cell"] >  0.5 && UniformRandom() < 0.002)
 	{
-		// if this returns non-NULL, we're now attached to at least one cell
-		if( immune_cell_check_neighbors_for_attachment( pCell , dt) )
-		{
-			// Look around by melanoma cells attached)
-			for (int i = 0; i < pCell->state.number_of_attached_cells(); i++){
-				pTempCell = pCell->state.attached_cells[i];
-				//Add antigen to library
-				#pragma omp critical
-				{
-					AntigenLib.add_antigen(pTempCell->custom_data.vector_variables[neoantigen_signature_index].value, PhysiCell_globals.current_time ); // add neoantigens library
-					//AntigenLib.print();
-				}
-			}
-		}
-
 		extern double DM; //declare existance of DC lymph
 		// (Adrianne) DC leaves the tissue and so we lyse that DC
 		std::cout<<"DC leaves tissue"<<std::endl;
@@ -654,39 +645,24 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		}
 		else
 		{
-
-			// (adrianne) DCs become activated if there is an melanoma cell in their neighbour with the local amount of neoantigens is greater than 10
-			//double neoantigens_amount = pCell->nearest_density_vector()[neoantigens_index];
-			double neoantigens_amount = 0.0;
-
-			if( neoantigens_amount*microenvironment.mesh.voxels[1].volume > parameters.doubles("DS_needed_for_DC_activation")) // (Adrianne) amount of neoantigens in local voxel with DC is greater than 10
+			//Activation of DC cells - attach with death melanoma cells
+			// if this returns non-NULL, we're now attached to at least one cell
+			if( immune_cell_check_neighbors_for_attachment( pCell , dt) )
 			{
-				pCell->custom_data["activated_immune_cell"] = 1.0; // (Adrianne) DC becomes activated
-			}
-			else //(Adrianne) check for melanoma cells nearby
-			{
-				std::vector<Cell*> neighbors = pCell->cells_in_my_container();
-				int n = 0;
-				Cell* pTestCell = neighbors[n];
-				//int nP  = pTestCell->custom_data.find_variable_index( "pathogen_protein" ); //(Adrianne) finding the pathogen protein inside cells
-				while( n < neighbors.size() )
-				{
-					pTestCell = neighbors[n];
-					// if it is not me and the target is dead
-					if( pTestCell != pCell && pTestCell->phenotype.death.dead == false /*&& pTestCell->custom_data[nP]>1*/ )
+				// Look around by melanoma cells attached)
+				for (int i = 0; i < pCell->state.number_of_attached_cells(); i++){
+					pTempCell = pCell->state.attached_cells[i];
+					//Add antigen to library
+					#pragma omp critical
 					{
+						AntigenLib.add_antigen(pTempCell->custom_data.vector_variables[neoantigen_signature_index].value, PhysiCell_globals.current_time );
+						//AntigenLib.print();
 						pCell->custom_data["activated_immune_cell"] = 1.0;
-
-						n = neighbors.size();
-
+						phenotype.motility.is_motile = false;
 					}
-
-					n++;
 				}
-				return;
 			}
 		}
-
 		return;
 	}
 
@@ -787,6 +763,7 @@ void immune_submodels_setup( void )
 	pCD = find_cell_definition( "DC" );
 	pCD->functions.update_phenotype = DC_submodel_info.phenotype_function;
 	pCD->functions.custom_cell_rule = DC_submodel_info.mechanics_function;
+	pCD->functions.contact_function = DC_contact_function; // (Heber) Attached cells
 	pCD->functions.update_migration_bias = immune_cell_motility_direction;
 }
 

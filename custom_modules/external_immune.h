@@ -27,8 +27,8 @@ class AntigenLibrary{
 	public:
 			std::vector<antigen> Collection;
 			std::vector<antigen> TempCollection;
-
 			//Methods
+			void add_first_antigen(const std::vector<double> &);
 			bool check_library(const std::vector<double> &);
 			void add_antigen(const std::vector<double> &, const double);
 			void update_collection(const double, const double);
