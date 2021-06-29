@@ -138,8 +138,7 @@ void epithelium_submodel_setup( void )
 	epithelium_submodel_info.mechanics_function = epithelium_mechanics;
 
 	// what microenvironment variables do you expect?
-	epithelium_submodel_info.microenvironment_variables.push_back( "pro-inflammatory cytokine" );
-	epithelium_submodel_info.microenvironment_variables.push_back( "chemokine" );
+	epithelium_submodel_info.microenvironment_variables.push_back( "TNF" );
 
 	// what custom data do I need?
 	//epithelium_submodel_info.cell_variables.push_back( "something" );

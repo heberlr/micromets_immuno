@@ -34,7 +34,7 @@ void external_immune_model_setup( void )
 
 void external_immune_model( double dt )
 {
-	AntigenLib.update_collection(PhysiCell_globals.current_time, 720.0); // update collection of antigens
+	AntigenLib.update_collection(PhysiCell_globals.current_time, 720.0); // update collection of antigens (720 mim, time to include neoantigen on library)
 	// bookkeeping -- find microenvironment variables we need
 
 	extern double DM;
@@ -50,19 +50,18 @@ void external_immune_model( double dt )
 	static double dT1 = parameters.doubles( "max_clearance_TC" );
 	static double dT2 = parameters.doubles( "half_max_clearance_TC" );
 	static double Tc0 = parameters.doubles( "TC_population_threshold" );
-	static double immunevolume = 1;
 	static double dDm = parameters.doubles( "DM_decay" );
-	static double sTh1 = 7e-4;
-	static double pTh1 = 8.3e-6; //new value 1.5e-5;
-	static double dTh1 = 7e-7;
-	static double mTh = 1.5e-5; // new value 1.56e-5
-	static double sTh2 = 3e-5 ; // new value 2.8e-5
-	static double pTh2 = 2e-6;
-	static double ro = 1;
+	static double sTh1 = parameters.doubles( "Th1_max_activation" );
+	static double pTh1 = parameters.doubles( "Th1_damping" ); //8.3e-6;
+	static double dTh1 = parameters.doubles( "Th1_decay" );
+	static double mTh = parameters.doubles( "Th_base_decay" ); //1.5e-5;
+	static double sTh2 = parameters.doubles( "Th2_self_feeback" ); //3e-5
+	static double pTh2 = parameters.doubles( "Th2_max_conversion" );
+	static double ro = parameters.doubles( "Th1_Th2_conversion_weight" );
 	static double CD8_Tcell_recruitment_rate = parameters.doubles( "T_Cell_Recruitment" );
 
-	//double lypmh_scale = GridCOUNT / 3e6; // default 5e6
-	double lypmh_scale = 0.02; // old version
+	double lypmh_scale = GridCOUNT / 5e5;
+	//double lypmh_scale = 0.02; // old version
 
 	// actual model goes here
 
@@ -72,7 +71,10 @@ void external_immune_model( double dt )
 
 	// TC update
 	double dR_TC = dC * Tc0;
-	x[0][0] = DM/lypmh_scale;
+
+	extern std::vector<int>history;
+
+	x[0][0] = (DM+history.back())/lypmh_scale;
 	x[0][1] = TC; //initial values
 	x[0][2] = TH1; //initial values
 	x[0][3] = TH2; //initial values
@@ -81,7 +83,7 @@ void external_immune_model( double dt )
 
 	for(j = 0; j < 4; j++){
 		f[j][0] = {-dDm*x[j][0]}; //define function
-		f[j][1] = {dR_TC-dC*x[j][1]+pT1*x[j][0]*x[j][1]/(x[j][0]+pT2)-dT1*x[j][0]*x[j][1]/(x[j][0]+dT2)};// /* TEST */ + (1e6 - x[j][1])/1e6};
+		f[j][1] = {dR_TC-dC*x[j][1]+pT1*((1000000-x[j][1])/(1000000))*x[j][0]*x[j][1]/(x[j][0]+pT2)-dT1*x[j][0]*x[j][1]/(x[j][0]+dT2)};// /* TEST */ + (1e6 - x[j][1])/1e6};
 		f[j][2] = {(sTh1*x[j][2])/((1+x[j][3])*(1+x[j][3]))+(pTh1*x[j][0]*x[j][2]*x[j][2])/((1+x[j][3])*(1+x[j][3]))-(dTh1*x[j][0]*x[j][2]*x[j][2]*x[j][2])/(500+x[j][3])-mTh*x[j][2]}; //define function
 		f[j][3] = {(sTh2*x[j][3])/(1+x[j][3])+(pTh2*(ro+x[j][2])*x[j][0]*x[j][3]*x[j][3])/((1+x[j][3])*(1+x[j][2]+x[j][3]))-mTh*x[j][3]}; //define function
 		f[j][4] = {CD8_Tcell_recruitment_rate*x[j][1]}; //define function

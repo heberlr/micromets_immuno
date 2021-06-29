@@ -72,6 +72,7 @@
 #include <cmath>
 #include <omp.h>
 #include <fstream>
+#include <algorithm>    // std::rotate
 
 #include "./core/PhysiCell.h"
 #include "./modules/PhysiCell_standard_modules.h"
@@ -86,6 +87,7 @@ using namespace PhysiCell;
 AntigenLibrary AntigenLib;
 
 // global ICs (external_immune)
+double DCAMOUNT = 0;
 double DM = 0;
 double TC = 10;
 double TH1 = 1;
@@ -93,6 +95,10 @@ double TH2 = 1;
 double TCt = 0;
 double Tht = 0;
 double GridCOUNT = 1;
+
+std::vector<int> history(144000);
+std::vector<int> historyTc(120);
+std::vector<int> historyTh(120);
 
 int main( int argc, char* argv[] )
 {
@@ -243,6 +249,9 @@ int main( int argc, char* argv[] )
 
 			//external_immune_main_model( diffusion_dt );
 			external_immune_model( diffusion_dt );
+
+			// history functions
+			DC_history_main_model( diffusion_dt );
 
 			cells_to_move_from_edge.clear();
 

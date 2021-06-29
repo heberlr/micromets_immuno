@@ -70,7 +70,7 @@ double strain_based_proliferation( Cell* pCell )
 void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
-	static int chemokine_index = microenvironment.find_density_index( "chemokine" );
+	static int TNF_index = microenvironment.find_density_index( "TNF" );
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
 
 	phenotype.motility.is_motile = false;
@@ -104,18 +104,18 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
 	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = parameters.doubles("prolif_rate_CancerCell")*mechanics_factor;
 
-	pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] = 1.0;
-	if( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1 && phenotype.death.dead == false )
-	{
-		double rate = 1.0; //AV; // P;
-		rate /= pCell->custom_data["max_apoptosis_half_max"]; // Review this parameter, no make sense in melnoma dynamic
-		if( rate > 1.0 )
-		{ rate = 1.0; }
-		rate *= pCell->custom_data[ "melanoma_cell_chemokine_secretion_rate" ];
-
-		phenotype.secretion.secretion_rates[chemokine_index] = rate;
-		phenotype.secretion.saturation_densities[chemokine_index] = 1.0;
-	}
+	// pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] = 1.0;
+	// if( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1 && phenotype.death.dead == false )
+	// {
+	// 	double rate = 1.0; //AV; // P;
+	// 	rate /= pCell->custom_data["max_apoptosis_half_max"]; // Review this parameter, no make sense in melnoma dynamic
+	// 	if( rate > 1.0 )
+	// 	{ rate = 1.0; }
+	// 	rate *= pCell->custom_data[ "melanoma_cell_chemokine_secretion_rate" ];
+	//
+	// 	phenotype.secretion.secretion_rates[chemokine_index] = rate;
+	// 	phenotype.secretion.saturation_densities[chemokine_index] = 1.0;
+	// }
 
 	// if I am dead, don't bother executing this function again
 	if( phenotype.death.dead == true )
@@ -186,7 +186,7 @@ void melanoma_submodel_setup( void )
 	melanoma_submodel_info.mechanics_function = melanoma_mechanics;
 
 	// what microenvironment variables do you expect?
-	melanoma_submodel_info.microenvironment_variables.push_back( "chemokine" );
+	melanoma_submodel_info.microenvironment_variables.push_back( "TNF" );
 
 	// what custom data do I need?
 	//melanoma_submodel_info.cell_variables.push_back( "something" );

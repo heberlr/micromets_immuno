@@ -52,9 +52,6 @@ void immune_cell_motility_direction( Cell* pCell, Phenotype& phenotype , double 
 void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt );
 void macrophage_mechanics( Cell* pCell, Phenotype& phenotype, double dt );
 
-void neutrophil_phenotype( Cell* pCell, Phenotype& phenotype, double dt );
-void neutrophil_mechanics( Cell* pCell, Phenotype& phenotype, double dt );
-
 // (Adrianne) DC functions
 void DC_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2 , double dt );
 void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt );
