@@ -191,7 +191,7 @@ std::vector<double> AntigenLibrary::sample_antigen()
 	for(int i=0; i < Collection.size(); i++) prob[i] = Collection[i].probability_weight;
 	std::discrete_distribution<int> discrete_dist(prob.begin(),prob.end());
 	int index = discrete_dist(generator);
-	std::cout << "Size: " << Collection.size() << " SampleIndex: " << index << std::endl;
+	//std::cout << "Size: " << Collection.size() << " SampleIndex: " << index << std::endl;
 	return Collection[index].signature;
 }
 

@@ -371,7 +371,6 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 		if( pCell->custom_data["activated_immune_cell" ] > 0.5 )
 		{ color = parameters.strings("activated_macrophage_color"); }
 
-		// (Adrianne) added colours to show when macrophages are exhausted and when they are hyperactivated
 		if( pCell->phenotype.volume.total> pCell->custom_data["threshold_macrophage_volume"] )// macrophage exhausted
 		{ color = parameters.strings("exhausted_macrophage_color"); }
 		else if( pCell->custom_data["ability_to_phagocytose_infected_cell"] == 1)// macrophage has been activated to kill infected cells by T cell
@@ -786,12 +785,14 @@ void print_cell_count( std::ofstream& file )
 	static int DC_type = get_cell_definition( "DC" ).type;
 
 	std::vector<int> NumberofCells;
-  NumberofCells = {0,0,0,0,0,0,0};
+  NumberofCells = {0,0,0,0,0,0,0,0,0};
 	for (int i=0; i < (*all_cells).size(); i++)
 	{
 		if( (*all_cells)[i]->phenotype.death.dead == true )
 		{
-			NumberofCells[6]++;
+			if( (*all_cells)[i]->type == lung_cell_type ) NumberofCells[6]++; // Dead melanoma cells
+			else if( (*all_cells)[i]->type == melanoma_cell_type ) NumberofCells[7]++; // Dead lung cells
+			else NumberofCells[8]++; // Dead immune cells
 		}
 		else if( (*all_cells)[i]->type == lung_cell_type )
 		{
@@ -818,5 +819,5 @@ void print_cell_count( std::ofstream& file )
 			NumberofCells[5]++;
 		}
 	}
-	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << std::endl;
+	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << " " << NumberofCells[8] << std::endl;
 }

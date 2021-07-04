@@ -190,7 +190,6 @@ void create_infiltrating_immune_cell_initial( Cell_Definition* pCD )
 {
 
 	Cell* pC = create_cell( *pCD );
-
 	// Sample from mesh positions (Heber)
 	std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 	int index_sample = distribution_index(generator);
@@ -895,9 +894,9 @@ static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
 if ( pTarget->type != melanoma_type && pAttacker->type == CD8_Tcell_type)
 { return false; }
 
-// if the target is melanoma or lung cell, give up for DC attack
+// if the target is not melanoma or lung cell, give up for DC attack
 static int lung_type = get_cell_definition( "lung cell" ).type;
-if ( (pTarget->type == melanoma_type || pTarget->type == lung_type)  && pAttacker->type == DC_type)
+if ( pTarget->type != melanoma_type && pTarget->type != lung_type  && pAttacker->type == DC_type)
 { return false; }
 
 // if the target cell is dead, give up for CD8 attack
@@ -1059,7 +1058,7 @@ void immune_cell_recruitment( double dt )
 			if( t_immune < first_CD8_T_cell_recruitment_time )
 			{ first_CD8_T_cell_recruitment_time = t_immune; }
 
-			std::cout << "\tRecruiting " << number_of_new_cells << " CD8 T cells ... " << std::endl;
+			std::cout << "\tRecruiting " << historyTc.back() << " CD8 T cells ... " << std::endl;
 
 			for( int n = 0; n < historyTc.back(); n++ )
 			{ create_infiltrating_Tcell(); }
@@ -1089,9 +1088,9 @@ void immune_cell_recruitment( double dt )
 		}
 
 		// (Adrianne) DC recruitment - *** This section will be changed to be Tarun's model  so I've left recruitment parameters to be mac cell parameters**
-		static double DC_recruitment_rate = parameters.doubles( "macrophage_max_recruitment_rate" );
-		static double DC_min_signal = parameters.doubles( "macrophage_recruitment_min_signal" );
-		static double DC_sat_signal = parameters.doubles( "macrophage_recruitment_saturation_signal" );
+		static double DC_recruitment_rate = parameters.doubles( "DC_max_recruitment_rate" );
+		static double DC_min_signal = parameters.doubles( "DC_recruitment_min_signal" );
+		static double DC_sat_signal = parameters.doubles( "DC_recruitment_saturation_signal" );
 		static double DC_max_minus_min = DC_sat_signal - DC_min_signal;
 
 		total_rate = 0;

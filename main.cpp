@@ -105,22 +105,25 @@ int main( int argc, char* argv[] )
 	// load and parse settings file(s)
 
 	bool XML_status = false;
+	XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" );
+	if( !XML_status ) { exit(-1); }
 	int rank;
-	std::ofstream QOI_file;
 	if( argc > 1 )
-	{ XML_status = load_PhysiCell_config_file( argv[1] );
-		rank = atoi(argv[2]);
-		QOI_file.open (argv[3]);
-		parameters.doubles( "rate_neoantigen_variability" ) = atof(argv[4]);
-		parameters.doubles( "half_hamming_distance" ) = atof(argv[5]);
-		parameters.doubles( "prolif_rate_CancerCell" ) = atof(argv[6]);
-		parameters.doubles( "death_rate_CancerCell" ) = atof(argv[7]);
-		QOI_file << "#Parameters -- rate_neoantigen_variability " << parameters.doubles( "rate_neoantigen_variability" ) << "  half_hamming_distance: " << parameters.doubles( "half_hamming_distance" ) << "  prolif_rate_CancerCell: " << parameters.doubles( "prolif_rate_CancerCell" ) << "  death_rate_CancerCell: " << parameters.doubles( "death_rate_CancerCell" ) << std::endl;
+	{
+		rank = atoi(argv[1]);
+		parameters.doubles( "prolif_rate_CancerCell" ) = atof(argv[2]);
+		parameters.doubles( "death_rate_CancerCell" ) = atof(argv[3]);
+		parameters.doubles( "max_simple_pressure_TumorProl" ) = atof(argv[4]);
+		parameters.doubles( "DC_leave_prob" ) = atof(argv[5]);
+		parameters.doubles( "T_Cell_Recruitment" ) = atof(argv[6]);
+		parameters.doubles( "percentage_tissue_vascularized" ) = atof(argv[7]);
 	}
-	else
-	{ XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" ); }
-	if( !XML_status )
-	{ exit(-1); }
+	std::ofstream QOI_file;
+	char FileNameQOI[1024];
+	sprintf( FileNameQOI , "%s/Cells.dat" , PhysiCell_settings.folder.c_str() );
+	QOI_file.open (FileNameQOI);
+	QOI_file << "# Parameters -- prolif_rate_CancerCell: " << parameters.doubles( "prolif_rate_CancerCell" ) << ""<< "  death_rate_CancerCell: " << parameters.doubles( "death_rate_CancerCell" ) << "  max_simple_pressure_TumorProl: " << parameters.doubles( "max_simple_pressure_TumorProl" ) << "  DC_leave_prob: " << parameters.doubles( "DC_leave_prob" ) << "  T_Cell_Recruitment: " << parameters.doubles( "T_Cell_Recruitment" )<< "  percentage_tissue_vascularized: " << parameters.doubles( "percentage_tissue_vascularized" )<< std::endl;
+	QOI_file << "# Columns -- Time, lung_cell, melanoma_cell, CD8_Tcell, Macrophage, Dendritic, CD4, Dead_lung, Dead_melanoma, Dead_immune\n";
 
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
@@ -155,7 +158,7 @@ int main( int argc, char* argv[] )
 
 	// save a simulation snapshot
 
-	char filename[1024],filename2[1024];
+	char filename[1024];
 	if( PhysiCell_settings.enable_full_saves == true )
 	{
 		sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() );
@@ -225,7 +228,7 @@ int main( int argc, char* argv[] )
 				}
 
 				//write output
-				if( argc > 1 ) print_cell_count(QOI_file); // write number of cells file
+				print_cell_count(QOI_file); // write number of cells file
 
 				PhysiCell_globals.full_output_index++;
 				PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
@@ -291,7 +294,7 @@ int main( int argc, char* argv[] )
 	}
 
 	// Close QOI files
-	if( argc > 1 ) QOI_file.close();
+	QOI_file.close();
 
 	if( PhysiCell_settings.enable_full_saves == true )
 	{

@@ -72,7 +72,6 @@ void create_infiltrating_immune_cell( std::string cell_name );
 void create_infiltrating_immune_cell_initial( Cell_Definition* pCD );
 
 void create_infiltrating_Tcell( void );
-void create_infiltrating_neutrophil( void );
 void create_infiltrating_macrophage( void );
 void create_infiltrating_DCcell( void );
 void create_infiltrating_CD4Tcell( void );
