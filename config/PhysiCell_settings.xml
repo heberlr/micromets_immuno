@@ -953,8 +953,8 @@
 		<cell_confluence_lung_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_lung_cells>
 		<number_of_melanoma_cells description="initial number of melanoma cells in tissue" type="int" units="none">10</number_of_melanoma_cells>
 		<number_of_CD8_Tcells description="initial number of CD8 T cells in tissue" type="int" units="none">0</number_of_CD8_Tcells>
-		<number_of_macrophages description="initial number of macrophages" type="int" units="none">5</number_of_macrophages>
-		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">5</number_of_DCs>
+		<number_of_macrophages description="initial number of macrophages" type="int" units="none">0</number_of_macrophages>
+		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">0</number_of_DCs>
 		<number_of_CD4_Tcells type="int" units="none" description="initial number of CD4 Tcells in tissue">0</number_of_CD4_Tcells>
 
 		<DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
