@@ -470,7 +470,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		else if( pContactCell != pCell && pContactCell->phenotype.death.dead == false && pContactCell->type == CD4_Tcell_type
 			&& pCell->custom_data["activated_immune_cell"] > 0.5 && cell_cell_distance<=parameters.doubles("epsilon_distance")*(radius_mac+radius_test_cell))
 			{
-				pCell->custom_data["ability_to_phagocytose_infected_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose tumor cells
+				pCell->custom_data["ability_to_phagocytose_melanoma_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose tumor cells
 				n=neighbors.size();
 			}
 			n++;
