@@ -1,0 +1,6 @@
+
+*.o
+*.exe
+*.pyc
+/output_*
+config/tmp.xml
