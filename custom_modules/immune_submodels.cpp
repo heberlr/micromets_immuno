@@ -4,7 +4,7 @@
 using namespace PhysiCell;
 
 std::string immune_submodels_version = "0.4.0";
-// Submodel_Information Immune_submodels_info; // not needed for now
+// Submodel_Information Immune_submodels_info; // not needed for now 
 
 Submodel_Information CD8_submodel_info;
 Submodel_Information Macrophage_submodel_info;

@@ -35,7 +35,7 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// T-cell based death
 	TCell_induced_apoptosis(pCell, phenotype, dt );
 
-	// if I am dead, remove all adhesions
+	// if I am dead, remove all adhesions 
 	if( phenotype.death.dead == true )
 	{
 		// detach all attached cells
