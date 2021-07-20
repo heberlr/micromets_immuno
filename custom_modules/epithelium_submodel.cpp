@@ -8,7 +8,7 @@ Submodel_Information epithelium_submodel_info;
 
 void epithelium_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2, double dt )
 {
-	// elastic adhesions
+	// elastic adhesions 
 	standard_elastic_contact_function( pC1,p1, pC2, p2, dt );
 
 	return;

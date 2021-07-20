@@ -1,6 +1,6 @@
 /*
 #############################################################################
-# If you use BioFVM in your project, please cite BioFVM and the version     #
+# If you use BioFVM in your project, please cite BioFVM and the version    #
 # number, such as below:                                                    #
 #                                                                           #
 # We solved the diffusion equations using BioFVM (Version 1.1.7) [1]        #
@@ -64,18 +64,18 @@ namespace BioFVM{
 
 // #include "Matrix.h"
 
-// Paul Macklin wrote these based on documentation on the web. 
+// Paul Macklin wrote these based on documentation on the web.
 // So far, matlab v4 is (partially) supported. Exceptions:
 //   no complex matrices
-//   no sparse matrices 
+//   no sparse matrices
 //   no text matrices
 
-// To save in matlab and make it compatible, make sure you use: 
+// To save in matlab and make it compatible, make sure you use:
 //   save -v4 <filename> <variable_name>
 
 struct named_vector_data{
-std::vector<std::string> names; 
-std::vector< std::vector<double> > data; 
+std::vector<std::string> names;
+std::vector< std::vector<double> > data;
 };
 
 std::vector< std::vector<double> > read_matlab( std::string filename );
@@ -84,11 +84,11 @@ named_vector_data read_matlab_with_names( std::string filename );
 bool write_matlab( std::vector< std::vector<double> >& input , std::string filename );
 bool write_matlab( std::vector< std::vector<double> >& input , std::string filename , std::vector<std::string>& names );
 
-FILE* write_matlab_header( unsigned int rows, unsigned int cols, std::string filename, std::string variable_name );  
+FILE* write_matlab_header( unsigned int rows, unsigned int cols, std::string filename, std::string variable_name );
 
-// output: FILE pointer, and overwrites rows, cols so you know the size 
-FILE* read_matlab_header( unsigned int* rows, unsigned int* cols , std::string filename ); 
+// output: FILE pointer, and overwrites rows, cols so you know the size
+FILE* read_matlab_header( unsigned int* rows, unsigned int* cols , std::string filename );
 
 };
 
-#endif 
+#endif

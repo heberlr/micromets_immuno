@@ -1,6 +1,6 @@
 /*
 #############################################################################
-# If you use BioFVM in your project, please cite BioFVM and the version     #
+# If you use BioFVM in your project, please cite BioFVM and the version    #
 # number, such as below:                                                    #
 #                                                                           #
 # We solved the diffusion equations using BioFVM (Version 1.1.7) [1]        #
@@ -51,16 +51,16 @@
 
 namespace BioFVM{
 /*
-std::string BioFVM_Version; 
-std::string BioFVM_URL; 
+std::string BioFVM_Version;
+std::string BioFVM_URL;
 */
 
-std::chrono::steady_clock::time_point tic_time; 
-std::chrono::steady_clock::time_point toc_time; 
-std::chrono::steady_clock::time_point program_tic_time; 
-std::chrono::steady_clock::time_point program_toc_time; 
+std::chrono::steady_clock::time_point tic_time;
+std::chrono::steady_clock::time_point toc_time;
+std::chrono::steady_clock::time_point program_tic_time;
+std::chrono::steady_clock::time_point program_toc_time;
 
-double total_tictoc_time = 0.0; 
+double total_tictoc_time = 0.0;
 
 void TIC(void)
 { tic_time = std::chrono::steady_clock::now(); }
@@ -68,7 +68,7 @@ void TIC(void)
 void TOC(void)
 {
 	toc_time = std::chrono::steady_clock::now();
-	total_tictoc_time += stopwatch_value(); 
+	total_tictoc_time += stopwatch_value();
 }
 
 void RUNTIME_TIC(void)
@@ -79,16 +79,16 @@ void RUNTIME_TOC(void)
 
 double stopwatch_value(void)
 {
-	static std::chrono::duration<double> time_span; 
+	static std::chrono::duration<double> time_span;
 	time_span = std::chrono::duration_cast<std::chrono::duration<double>>(toc_time-tic_time);
-	return time_span.count(); 
+	return time_span.count();
 }
 
 double runtime_stopwatch_value(void)
 {
-	static std::chrono::duration<double> time_span; 
+	static std::chrono::duration<double> time_span;
 	time_span = std::chrono::duration_cast<std::chrono::duration<double>>(program_toc_time-program_tic_time);
-	return time_span.count(); 
+	return time_span.count();
 }
 
 void display_stopwatch_value( std::ostream& os, double dIn )
@@ -98,15 +98,15 @@ void display_stopwatch_value( std::ostream& os, double dIn )
 	int nMinutes = (int) floor( (double) ( (dIn - nDays*60*60*24 - nHours*60*60 ) / (60.0)) );
 	double dSeconds = dIn - nDays*60.0*60.0*24.0 - nHours * 60.0*60.0 - nMinutes * 60.0;
 
-	os << nDays << " days, " << nHours << " hours, " 
+	os << nDays << " days, " << nHours << " hours, "
 	  << nMinutes << " minutes, and " << dSeconds << " seconds ";
-	return; 
+	return;
 }
 
 std::string format_stopwatch_value( double dIn)
 {
-	std::string output; 
-	output.resize( 1024 ); 
+	std::string output;
+	output.resize( 1024 );
 	int nDays = (int) floor( (double) (dIn / (60.0*60.0*24.0)) );
 	int nHours = (int) floor( (double) ( (dIn - nDays*60*60*24) / (60.0*60.0)) );
 	int nMinutes = (int) floor( (double) ( (dIn - nDays*60*60*24 - nHours*60*60 ) / (60.0)) );
@@ -116,19 +116,19 @@ std::string format_stopwatch_value( double dIn)
 	"%d days, %d hours, %d minutes, and %2.4f seconds",
 	nDays,nHours,nMinutes,dSeconds);
 
-	return output; 
+	return output;
 }
 
 double total_stopwatch_time( void )
 { return total_tictoc_time; }
 
-std::mt19937_64 biofvm_PRNG_generator; 
-unsigned int biofvm_random_seed; 
+std::mt19937_64 biofvm_PRNG_generator;
+unsigned int biofvm_random_seed;
 
 void seed_random( unsigned int new_seed )
 {
-	biofvm_random_seed = new_seed; 
-	biofvm_PRNG_generator.seed( biofvm_random_seed ); 	
+	biofvm_random_seed = new_seed;
+	biofvm_PRNG_generator.seed( biofvm_random_seed );
 }
 
 void seed_random( void )
@@ -136,42 +136,42 @@ void seed_random( void )
 
 double uniform_random( void )
 {
-	static std::uniform_real_distribution<double> distribution(0.0,1.0); 
-	return distribution(biofvm_PRNG_generator); 
+	static std::uniform_real_distribution<double> distribution(0.0,1.0);
+	return distribution(biofvm_PRNG_generator);
 }
 
 double compute_mean( std::vector<double>& values )
 {
-	static double sum; 
-	sum = 0.0; 
+	static double sum;
+	sum = 0.0;
 	for( unsigned int i=0; i < values.size(); i++ )
 	{ sum += values[i]; }
-	sum /= (double) values.size(); 
-	return sum; 	
+	sum /= (double) values.size();
+	return sum;
 }
 
 double compute_variance( std::vector<double>& values, double mean )
 {
-	static double output; 
-	output = 0.0; 
+	static double output;
+	output = 0.0;
 	for( unsigned int i=0; i < values.size() ; i++ )
 	{
-		static double temp; 
-		temp = values[i]; 
-		temp -= mean; 
-		temp *= temp; 
-		output += temp; 	
+		static double temp;
+		temp = values[i];
+		temp -= mean;
+		temp *= temp;
+		output += temp;
 	}
-	static int n; 
-	n = values.size(); 
-	n--; 
-	output /= (double) n; 
-	return output; 
+	static int n;
+	n = values.size();
+	n--;
+	output /= (double) n;
+	return output;
 }
 double compute_variance( std::vector<double>& values )
 {
-	double mean = compute_mean( values ); 
-	return compute_variance( values , mean ); 
-}	
+	double mean = compute_mean( values );
+	return compute_variance( values , mean );
+}
 
 };

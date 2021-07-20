@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -68,7 +68,7 @@
 #include "PhysiCell_utilities.h"
 #include "PhysiCell_constants.h"
 
-#include "PhysiCell.h" 
+#include "PhysiCell.h"
 
 #include <iostream>
 #include <fstream>
@@ -86,7 +86,7 @@ long SeedRandom( long input )
 
 
 long SeedRandom( void )
-{ 
+{
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	gen.seed(seed);
 	return seed;
@@ -100,94 +100,94 @@ double UniformRandom()
 double NormalRandom( double mean, double standard_deviation )
 {
 	std::normal_distribution<> d(mean,standard_deviation);
-	return d(gen); 
+	return d(gen);
 }
 
 std::vector<double> UniformOnUnitSphere( void )
 {
-	std::vector<double> output = {0,0,0}; 
+	std::vector<double> output = {0,0,0};
 
 	double z = UniformRandom();
-	z *= 2.0; 
+	z *= 2.0;
 	z -= 1.0; // Choose z uniformly distributed in [-1,1].
 
-	static double two_pi = 6.283185307179586476925286766559; 
+	static double two_pi = 6.283185307179586476925286766559;
 	double theta = UniformRandom();
 	theta *= two_pi; // Choose theta uniformly distributed on [0, 2*pi).
 
-	double r = z; 
-	r *= z; 
+	double r = z;
+	r *= z;
 	r *= -1;
-	r += 1; 
+	r += 1;
 	r = sqrt(r); // Let r = sqrt(1-z^2).
 
-	output[0] = cos(theta); 
+	output[0] = cos(theta);
 	output[1] = sin(theta);
-	output *= r; 
+	output *= r;
 	output[2] = z; // (r*cos(theta) , r*sin(theta) , z )
 
-	return output; 
+	return output;
 }
 
 std::vector<double> UniformOnUnitCircle( void )
 {
-	std::vector<double> output = {0,0,0}; 
+	std::vector<double> output = {0,0,0};
 
-	static double two_pi = 6.283185307179586476925286766559; 
+	static double two_pi = 6.283185307179586476925286766559;
 	double theta = UniformRandom();
 	theta *= two_pi; // Choose theta uniformly distributed on [0, 2*pi).
 
-	output[0] = cos(theta); 
+	output[0] = cos(theta);
 	output[1] = sin(theta); // (cos(t) , sin(t) , 0 )
 
-	return output; 
+	return output;
 }
 
 std::vector<double> LegacyRandomOnUnitSphere( void )
 {
-	static bool warned = false; 
+	static bool warned = false;
 	if( warned == false )
 	{
-		std::cout << "Warning! LegacyRandomOnUnitSphere() has bad random properties. " << std::endl 
-				  << "         It generates points that aren't uniform on the random sphere," << std::endl 
-				  << "         but instead are concentrated towards the poles." << std::endl 
-				  << "         Use UniformOnUnitSphere() instead!" << std::endl << std::endl; 
-		warned = true; 
+		std::cout << "Warning! LegacyRandomOnUnitSphere() has bad random properties. " << std::endl
+				  << "         It generates points that aren't uniform on the random sphere," << std::endl
+				  << "         but instead are concentrated towards the poles." << std::endl
+				  << "         Use UniformOnUnitSphere() instead!" << std::endl << std::endl;
+		warned = true;
 	}
-	
-	std::vector<double> output = {0,0,0}; 
 
-	static double pi = 3.1415926535897932384626433832795; 
-	static double two_pi = 6.283185307179586476925286766559; 
+	std::vector<double> output = {0,0,0};
+
+	static double pi = 3.1415926535897932384626433832795;
+	static double two_pi = 6.283185307179586476925286766559;
 	double theta = UniformRandom();
-	
-	
+
+
 	double temp_angle = two_pi*UniformRandom();
 	double temp_phi = pi*UniformRandom();
-	
-	
+
+
 	output[0]= cos( temp_angle );
 	output[1]= sin( temp_angle );
 	output *= sin( temp_phi );
 	output[2]= cos( temp_phi );
-	
-	return output; 
+
+	return output;
 }
 
 
 // Squared distance between two points
-// This is already in BioFVM_vector as: 
-// double norm_squared( const std::vector<double>& v ); 
-// The following function will be deprecated. 
+// This is already in BioFVM_vector as:
+// double norm_squared( const std::vector<double>& v );
+// The following function will be deprecated.
 double dist_squared(std::vector<double> p1, std::vector<double> p2)
 {
 	return (p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]) + (p1[2]-p2[2])*(p1[2]-p2[2]);
 }
 
 // Distance between two points
-// This is already in BioFVM_vector as: 
-// double norm( const std::vector<double>& v ); 
-// The following function will be deprecated. 
+// This is already in BioFVM_vector as:
+// double norm( const std::vector<double>& v );
+// The following function will be deprecated.
 double dist(std::vector<double> p1, std::vector<double> p2)
 {
 	return sqrt(dist_squared(p1, p2));
@@ -195,82 +195,82 @@ double dist(std::vector<double> p1, std::vector<double> p2)
 
 std::string get_PhysiCell_version( void )
 {
-//	extern std::string PhysiCell_version; 
-	return PhysiCell_Version; 
-}	
+//	extern std::string PhysiCell_version;
+	return PhysiCell_Version;
+}
 void get_PhysiCell_version( std::string& pString )
 {
-//	extern std::string PhysiCell_version; 
-	pString.assign( PhysiCell_Version ); 
+//	extern std::string PhysiCell_version;
+	pString.assign( PhysiCell_Version );
 }
 
-std::vector<std::string> software_versions; 
-std::vector<std::string> software_names; 
-std::vector<std::string> software_DOIs; 
-std::vector<std::string> software_URLs; 
+std::vector<std::string> software_versions;
+std::vector<std::string> software_names;
+std::vector<std::string> software_DOIs;
+std::vector<std::string> software_URLs;
 
 void display_citations( std::ostream& os )
 {
-	static bool PhysiCell_citation_added = false; 
+	static bool PhysiCell_citation_added = false;
 	if( PhysiCell_citation_added == false )
 	{
-		add_software_citation( "PhysiCell" , get_PhysiCell_version() , 
-			PhysiCell_DOI , PhysiCell_URL ); 
-		PhysiCell_citation_added = true; 
+		add_software_citation( "PhysiCell" , get_PhysiCell_version() ,
+			PhysiCell_DOI , PhysiCell_URL );
+		PhysiCell_citation_added = true;
 	}
-	
+
 	std::ofstream of( "ALL_CITATIONS.txt" , std::ios::out );
 	for( int i=0; i < software_versions.size() ; i++ )
 	{
-		os << "Using " << software_names[i] 
-		<< " version " << software_versions[i] 
-		<< std::endl << "\tPlease cite DOI: " << software_DOIs[i] 
-		<< std::endl << "\tProject website: " << software_URLs[i] 
-		<< std::endl; 
-		
-		of << "Using " << software_names[i] 
-		<< " version " << software_versions[i] 
-		<< std::endl << "\tPlease cite DOI: " << software_DOIs[i] 
-		<< std::endl << "\tProject website: " << software_URLs[i] 
-		<< std::endl; 
+		os << "Using " << software_names[i]
+		<< " version " << software_versions[i]
+		<< std::endl << "\tPlease cite DOI: " << software_DOIs[i]
+		<< std::endl << "\tProject website: " << software_URLs[i]
+		<< std::endl;
+
+		of << "Using " << software_names[i]
+		<< " version " << software_versions[i]
+		<< std::endl << "\tPlease cite DOI: " << software_DOIs[i]
+		<< std::endl << "\tProject website: " << software_URLs[i]
+		<< std::endl;
 	}
-	os << std::endl << "See ALL_CITATIONS.txt for this list." << std::endl; 
-	
-	of << std::endl; 
-	of.close(); 
-	
-	return; 
+	os << std::endl << "See ALL_CITATIONS.txt for this list." << std::endl;
+
+	of << std::endl;
+	of.close();
+
+	return;
 }
 
 void display_citations( void )
 {
-	return display_citations( std::cout ); 
+	return display_citations( std::cout );
 }
 
 void add_software_citation( std::string name , std::string version, std::string DOI , std::string URL )
 {
-	software_names.push_back( name ); 
-	software_versions.push_back( version ); 
-	software_DOIs.push_back( DOI ); 
-	software_URLs.push_back( URL ); 
-	return; 
+	software_names.push_back( name );
+	software_versions.push_back( version );
+	software_DOIs.push_back( DOI );
+	software_URLs.push_back( URL );
+	return;
 }
 
 int choose_event( std::vector<double>& probabilities )
 {
-	double rand_number = UniformRandom(); 
-	
+	double rand_number = UniformRandom();
+
 	for( int i=0 ; i < probabilities.size() ; i++ )
 	{
 		if( rand_number <= probabilities[i] )
 		{ return i; }
 		else
 		{
-			rand_number -= probabilities[i]; 
+			rand_number -= probabilities[i];
 		}
 	}
-	
-	return probabilities.size(); 
+
+	return probabilities.size();
 }
 
 };

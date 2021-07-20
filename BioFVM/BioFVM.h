@@ -42,7 +42,7 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING      #
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS        #
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.              #
-#                                                                           #
+#                                                                          #
 #############################################################################
 */
 
@@ -53,17 +53,17 @@
 #include <fstream>
 
 namespace BioFVM{
-extern std::string BioFVM_Version; 
-extern std::string BioFVM_URL; 
+extern std::string BioFVM_Version;
+extern std::string BioFVM_URL;
 };
 
-#include "BioFVM_utilities.h" 
-#include "BioFVM_vector.h" 
-#include "BioFVM_vector.h" 
+#include "BioFVM_utilities.h"
+#include "BioFVM_vector.h"
+#include "BioFVM_vector.h"
 #include "BioFVM_mesh.h"
 #include "BioFVM_microenvironment.h"
 #include "BioFVM_solvers.h"
-#include "BioFVM_basic_agent.h" 
+#include "BioFVM_basic_agent.h"
 
 
 #endif

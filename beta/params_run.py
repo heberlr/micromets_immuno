@@ -2,7 +2,7 @@
 # a new folder (subdirectory) for each set of parameters, makes changes to a default 
 # configuration (.xml) file using specified parameter values (in an accompanying .txt file),
 # copies the new config file into the new folder, then
-# runs the simulation (in the background) which writes results into the new folder.
+# runs the simulation (in the background) which writes results into the new folder
 # 
 
 import xml.etree.ElementTree as ET

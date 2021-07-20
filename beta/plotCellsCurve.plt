@@ -18,4 +18,5 @@ plot folder.'dm_tc.dat' u 0:1 axis x1y1 w l lw 4 lc 1 title 'DM', folder.'dm_tc.
 
 #plot folder.'dm_tc.dat' u 1:2 w l lw 4 lc 1 title 'DM', folder.'dm_tc.dat' u 1:3 w l lw 4 lc 2 title 'TC', folder.'dm_tc.dat' u 1:4 w l lw 4 lc 3 title 'TH1', folder.'dm_tc.dat' u 1:5 w l lw 4 lc 4 title 'TH2', folder.'dm_tc.dat' u 1:6 w l lw 4 lc rgb '#FF33CC' title 'TCt', folder.'dm_tc.dat' u 1:7 w l lw 4 lc 6 title 'Tht'
 
+
 pause -1 "Hit any key to continue"

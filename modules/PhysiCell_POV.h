@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -75,69 +75,69 @@
 #ifndef _PhysiCell_POV_h_
 #define _PhysiCell_POV_h_
 
-#include "../BioFVM/BioFVM_vector.h" 
+#include "../BioFVM/BioFVM_vector.h"
 
 class Clipping_Plane
 {
  private:
  public:
-	std::vector<double> normal; 
-	std::vector<double> point_on_plane; 
-	
-	// store [a,b,c,d], where 
+	std::vector<double> normal;
+	std::vector<double> point_on_plane;
+
+	// store [a,b,c,d], where
 	// [a,b,c].*x + d = 0 on the plane
-	std::vector<double> coefficients; 
-	
-	double signed_distance_to_plane( std::vector<double>& test_point ); // done 
-	bool is_or_behind_plane( std::vector<double>& test_point );  // done 
-	bool is_in_front_of_plane( std::vector<double>& test_point ); // done 
-	
+	std::vector<double> coefficients;
+
+	double signed_distance_to_plane( std::vector<double>& test_point ); // done
+	bool is_or_behind_plane( std::vector<double>& test_point );  // done
+	bool is_in_front_of_plane( std::vector<double>& test_point ); // done
+
 	Clipping_Plane(); // done
-	void normal_point_to_coefficients( void ); // done 
-	void coefficients_to_normal_point( void );  // done 
+	void normal_point_to_coefficients( void ); // done
+	void coefficients_to_normal_point( void );  // done
 };
 
 class POV_Options
 {
  private:
  public:
-	POV_Options(); // done 
+	POV_Options(); // done
 
 	std::vector<double> domain_center;
-	std::vector<double> domain_size; 
-	
-	std::vector<double> background; 
- 
-	std::vector<double> camera_position; 
-	std::vector<double> camera_look_at; 
-	std::vector<double> camera_right; 
-	std::vector<double> camera_up; 
-	std::vector<double> camera_sky; 
-	
+	std::vector<double> domain_size;
+
+	std::vector<double> background;
+
+	std::vector<double> camera_position;
+	std::vector<double> camera_look_at;
+	std::vector<double> camera_right;
+	std::vector<double> camera_up;
+	std::vector<double> camera_sky;
+
 	int max_trace_level;
 	double assumed_gamma;
-	
-	std::vector<double> light_position; 
-	double light_rgb; // a scalar, so it's a shade of white 
-	double light_fade_distance; 
-	int light_fade_power; 
-	
+
+	std::vector<double> light_position;
+	double light_rgb; // a scalar, so it's a shade of white
+	double light_fade_distance;
+	int light_fade_power;
+
 	bool no_shadow;
-	bool no_reflection; 
-	
-	std::vector<Clipping_Plane> clipping_planes; 
-	
-	// distance from center of domain, angle from x-axis, angle from z-axis 
-	void set_camera_from_spherical_location( double distance, double theta, double phi ); // done 
+	bool no_reflection;
+
+	std::vector<Clipping_Plane> clipping_planes;
+
+	// distance from center of domain, angle from x-axis, angle from z-axis
+	void set_camera_from_spherical_location( double distance, double theta, double phi ); // done
 };
 
-extern POV_Options default_POV_options; 
+extern POV_Options default_POV_options;
 
-void Write_POV_start( POV_Options& options , std::ostream& os ); 
-void Write_POV_start( std::ostream& os ); 
+void Write_POV_start( POV_Options& options , std::ostream& os );
+void Write_POV_start( std::ostream& os );
 
-// pigment: [r,g,b,f], where they vary from 0 to 1. I suggest f = 0. 
+// pigment: [r,g,b,f], where they vary from 0 to 1. I suggest f = 0.
 // finish: [ambient,diffuse,specular]
 void Write_POV_sphere( std::ostream& os, std::vector<double>& center, double radius, std::vector<double>& pigment, std::vector<double>& finish );
-					
+
 #endif

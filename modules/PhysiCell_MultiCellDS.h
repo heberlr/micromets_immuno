@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -81,13 +81,13 @@
 
 namespace PhysiCell{
 
-void add_PhysiCell_cell_to_open_xml_pugi(  pugi::xml_document& xml_dom, Cell& C ); // not implemented -- future edition 
-void add_PhysiCell_cells_to_open_xml_pugi( pugi::xml_document& xml_dom, std::string filename_base, Microenvironment& M  ); 
+void add_PhysiCell_cell_to_open_xml_pugi(  pugi::xml_document& xml_dom, Cell& C ); // not implemented -- future edition
+void add_PhysiCell_cells_to_open_xml_pugi( pugi::xml_document& xml_dom, std::string filename_base, Microenvironment& M  );
 void add_PhysiCell_to_open_xml_pugi( pugi::xml_document& xml_dom , std::string filename_base, double current_simulation_time , Microenvironment& M );
 
-	
-void save_PhysiCell_to_MultiCellDS_xml_pugi( std::string filename_base , Microenvironment& M , double current_simulation_time); 
-	
+
+void save_PhysiCell_to_MultiCellDS_xml_pugi( std::string filename_base , Microenvironment& M , double current_simulation_time);
+
 };
 
 #endif

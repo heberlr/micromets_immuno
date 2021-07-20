@@ -1,6 +1,6 @@
 /*
 #############################################################################
-# If you use BioFVM in your project, please cite BioFVM and the version     #
+# If you use BioFVM in your project, please cite BioFVM and the version    #
 # number, such as below:                                                    #
 #                                                                           #
 # We solved the diffusion equations using BioFVM (Version 1.1.7) [1]        #
@@ -66,21 +66,21 @@ void RUNTIME_TOC(void);
 double stopwatch_value(void);
 double runtime_stopwatch_value(void);
 
-// This returns the total number of seconds in successive TIC() / TOC() calls 
+// This returns the total number of seconds in successive TIC() / TOC() calls
 // Useful if you use TOC to "pause" your timer (e.g., to exclude file i/o from benchmark times)
 double total_stopwatch_time( void );
 
 void display_stopwatch_value( std::ostream& os , double dIn );
 std::string format_stopwatch_value( double dIn);
 
-void seed_random( unsigned int ); 
-void seed_random( void ); 
+void seed_random( unsigned int );
+void seed_random( void );
 double uniform_random( void );
 
 double compute_mean( std::vector<double>& values );
-double compute_variance( std::vector<double>& values, double mean ); 
-double compute_variance( std::vector<double>& values ); 
-	
+double compute_variance( std::vector<double>& values, double mean );
+double compute_variance( std::vector<double>& values );
+
 };
- 
-#endif 
+
+#endif

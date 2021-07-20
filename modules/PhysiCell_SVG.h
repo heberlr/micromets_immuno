@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -83,7 +83,7 @@ bool Write_SVG_circle( std::ostream& os, double center_x, double center_y, doubl
 bool Write_SVG_rect( std::ostream& os , double UL_corner_x, double UL_corner_y, double width, double height,
                      double stroke_size, std::string stroke_color , std::string fill_color );
 
-bool Write_SVG_line( std::ostream& os , double start_x, double start_y, double end_x , double end_y, double thickness, 
-                    std::string stroke_color );  
+bool Write_SVG_line( std::ostream& os , double start_x, double start_y, double end_x , double end_y, double thickness,
+                    std::string stroke_color );
 
 #endif

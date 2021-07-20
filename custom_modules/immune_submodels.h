@@ -12,7 +12,7 @@ using namespace PhysiCell;
 #define __immune_submodels__
 
 /*
-void immune_submodel_setup( void );
+void immune_submodel_setup( void ); 
 void immune_submodel_model( Cell* pCell, Phenotype& phenotype, double dt );
 */
 

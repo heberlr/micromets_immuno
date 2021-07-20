@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -77,47 +77,47 @@
 #include "../BioFVM/BioFVM_utilities.h"
 
 namespace PhysiCell{
-	
+
 struct PhysiCell_SVG_options_struct {
-	bool plot_nuclei = true; 
+	bool plot_nuclei = true;
 
 	std::string simulation_time_units = "min";
 	std::string mu = "&#956;";
 	std::string simulation_space_units = "&#956;m";
-	
-	std::string label_time_units = "days"; 
-	
-	double font_size = 200; 
+
+	std::string label_time_units = "days";
+
+	double font_size = 200;
 	std::string font_color = "black";
 	std::string font = "Arial";
 
-	double length_bar = 100; 
-}; 
+	double length_bar = 100;
+};
 
 extern PhysiCell_SVG_options_struct PhysiCell_SVG_options;
 
-// done 
+// done
 std::vector<double> transmission( std::vector<double>& incoming_light, std::vector<double>& absorb_color, double thickness , double stain );
 
-// these give (in order) the cytoplasm color, cytoplasm outline color, nuclear color, nuclear outline color, 
-// each string is either rgb(R,G,B) or none 
+// these give (in order) the cytoplasm color, cytoplasm outline color, nuclear color, nuclear outline color,
+// each string is either rgb(R,G,B) or none
 
-std::vector<std::string> simple_cell_coloring( Cell* pCell ); // done 
-std::vector<std::string> false_cell_coloring_Ki67( Cell* pCell ); // done 
-std::vector<std::string> false_cell_coloring_live_dead( Cell* pCell ); // done 
+std::vector<std::string> simple_cell_coloring( Cell* pCell ); // done
+std::vector<std::string> false_cell_coloring_Ki67( Cell* pCell ); // done
+std::vector<std::string> false_cell_coloring_live_dead( Cell* pCell ); // done
 
-std::vector<std::string> false_cell_coloring_cycling_quiescent( Cell* pCell ); // done 
+std::vector<std::string> false_cell_coloring_cycling_quiescent( Cell* pCell ); // done
 
-std::vector<std::string> false_cell_coloring_cytometry( Cell* pCell ); 
+std::vector<std::string> false_cell_coloring_cytometry( Cell* pCell );
 
-std::vector<std::string> hematoxylin_and_eosin_cell_coloring( Cell* pCell ); // done 
-std::vector<std::string> hematoxylin_and_eosin_stroma_coloring( double& ECM_fraction , double& blood_vessel_fraction); // planned 
+std::vector<std::string> hematoxylin_and_eosin_cell_coloring( Cell* pCell ); // done
+std::vector<std::string> hematoxylin_and_eosin_stroma_coloring( double& ECM_fraction , double& blood_vessel_fraction); // planned
 
-std::string formatted_minutes_to_DDHHMM( double minutes ); 
+std::string formatted_minutes_to_DDHHMM( double minutes );
 
 void SVG_plot( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) ); // done
 
-void SVG_plot_with_stroma( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) , 
+void SVG_plot_with_stroma( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) ,
 	int ECM_index, std::vector<std::string> (*ECM_coloring_function)(double) ); // planned
 
 };

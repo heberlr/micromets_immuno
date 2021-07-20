@@ -29,7 +29,7 @@ endif
 
 CC := g++
 
-# Check for environment definitions of compiler
+# Check for environment definitions of compiler 
 # e.g., on CC = g++-7 on OSX
 ifdef PHYSICELL_CPP
 	CC := $(PHYSICELL_CPP)

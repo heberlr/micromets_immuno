@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -83,23 +83,23 @@ long SeedRandom( void );
 
 double UniformRandom( void );
 double NormalRandom( double mean, double standard_deviation );
-std::vector<double> UniformOnUnitSphere( void ); 
-std::vector<double> UniformOnUnitCircle( void ); 
+std::vector<double> UniformOnUnitSphere( void );
+std::vector<double> UniformOnUnitCircle( void );
 
-std::vector<double> LegacyRandomOnUnitSphere( void ); 
+std::vector<double> LegacyRandomOnUnitSphere( void );
 
 
 double dist_squared(std::vector<double> p1, std::vector<double> p2);
 double dist(std::vector<double> p1, std::vector<double> p2);
 
-std::string get_PhysiCell_version( void ); 
-void get_PhysiCell_version( std::string& pString ); 
+std::string get_PhysiCell_version( void );
+void get_PhysiCell_version( std::string& pString );
 
-void display_citations( std::ostream& os ); 
-void display_citations( void ); 
-void add_software_citation( std::string name , std::string version, std::string DOI, std::string URL ); 
+void display_citations( std::ostream& os );
+void display_citations( void );
+void add_software_citation( std::string name , std::string version, std::string DOI, std::string URL );
 
-int choose_event( std::vector<double>& probabilities ); 
+int choose_event( std::vector<double>& probabilities );
 
 };
 

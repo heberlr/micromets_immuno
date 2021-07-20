@@ -3,7 +3,7 @@
 #
 # Usage:
 #  python anim_svg.py <show_nucleus start_index axes_min axes_max>
-#    i.e., the arguments <...> are optional and have defaults.
+#    i.e., the arguments <...> are optional and have defaults
 # 
 # Keyboard arrows: right/left arrows will single step forward/backward; up/down will increment/decrement step size
 #

@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -68,74 +68,74 @@
 #ifndef __PhysiCell_standard_models_h__
 #define __PhysiCell_standard_models_h__
 
-#include "./PhysiCell_constants.h" 
-#include "./PhysiCell_phenotype.h" 
+#include "./PhysiCell_constants.h"
+#include "./PhysiCell_phenotype.h"
 
 namespace PhysiCell
 {
 
-// standard cycle models: 
+// standard cycle models:
 
-extern Cycle_Model Ki67_advanced, Ki67_basic, live, flow_cytometry_cycle_model, flow_cytometry_separated_cycle_model, cycling_quiescent; 
-extern Cycle_Model apoptosis, necrosis; 
-extern Death_Parameters apoptosis_parameters, necrosis_parameters; 
+extern Cycle_Model Ki67_advanced, Ki67_basic, live, flow_cytometry_cycle_model, flow_cytometry_separated_cycle_model, cycling_quiescent;
+extern Cycle_Model apoptosis, necrosis;
+extern Death_Parameters apoptosis_parameters, necrosis_parameters;
 
 
-extern bool PhysiCell_standard_models_initialized; 
-extern bool PhysiCell_standard_death_models_initialized; 
-extern bool PhysiCell_standard_cycle_models_initialized; 
+extern bool PhysiCell_standard_models_initialized;
+extern bool PhysiCell_standard_death_models_initialized;
+extern bool PhysiCell_standard_cycle_models_initialized;
 
-// standard entry function for the cycle models 
+// standard entry function for the cycle models
 
-void standard_Ki67_positive_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
-void standard_Ki67_negative_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
-void standard_live_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void standard_Ki67_positive_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
+void standard_Ki67_negative_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
+void standard_live_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
 
-void G1_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); 
-void G0_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); 
-void S_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void G1_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt );
+void G0_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt );
+void S_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
 
-void standard_apoptosis_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
-void standard_necrosis_entry_function( Cell* pCell, Phenotype& phenotype, double dt );  // done 
-void standard_lysis_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void standard_apoptosis_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
+void standard_necrosis_entry_function( Cell* pCell, Phenotype& phenotype, double dt );  // done
+void standard_lysis_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
 
-bool standard_necrosis_arrest_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+bool standard_necrosis_arrest_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
 
-// standard volume functions 
+// standard volume functions
 
-void standard_volume_update_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
-void basic_volume_model( Cell* pCell, Phenotype& phenotype, double dt ); 
+void standard_volume_update_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
+void basic_volume_model( Cell* pCell, Phenotype& phenotype, double dt );
 
-// standard mechanics functions 
+// standard mechanics functions
 
-void standard_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt); // done 
+void standard_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt); // done
 void standard_add_basement_membrane_interactions( Cell* pCell, Phenotype phenotype, double dt );
 
-// other standard functions 
+// other standard functions
 
-void empty_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void empty_function( Cell* pCell, Phenotype& phenotype, double dt ); // done
 void up_orientation( Cell* pCell, Phenotype& phenotype, double dt ); // done
 
-// standard o2-based phenotype changes 
+// standard o2-based phenotype changes
 
-void update_cell_and_death_parameters_O2_based( Cell* pCell, Phenotype& phenotype, double dt ); 
+void update_cell_and_death_parameters_O2_based( Cell* pCell, Phenotype& phenotype, double dt );
 
-// create standard models 
+// create standard models
 
-bool create_standard_cell_cycle_models( void ); // done 
-bool create_standard_cell_death_models( void ); // done 
-bool create_standard_cycle_and_death_models( void ); // done 
+bool create_standard_cell_cycle_models( void ); // done
+bool create_standard_cell_death_models( void ); // done
+bool create_standard_cycle_and_death_models( void ); // done
 
-void initialize_default_cell_definition( void ); // done 
+void initialize_default_cell_definition( void ); // done
 
 
-void chemotaxis_function( Cell* pCell, Phenotype& phenotype , double dt ); 
+void chemotaxis_function( Cell* pCell, Phenotype& phenotype , double dt );
 
 void standard_elastic_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2 , double dt );
 void evaluate_interactions( Cell* pCell, Phenotype& phenotype, double dt );
 
 
-	
+
 };
 
-#endif 
+#endif

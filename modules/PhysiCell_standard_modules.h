@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -77,6 +77,6 @@
 #include "./PhysiCell_various_outputs.h"
 
 #include "./PhysiCell_pugixml.h"
-#include "./PhysiCell_settings.h" 
+#include "./PhysiCell_settings.h"
 
 #endif

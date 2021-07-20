@@ -10,8 +10,7 @@
 		<filename type="string">blah.sbml</filename> 
 		<timestep type="double" units="min">0.01</timestep>
 		
-	
-	
+		
 	</molecular_model>
 
 

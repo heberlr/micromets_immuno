@@ -1,6 +1,6 @@
 /*
 #############################################################################
-# If you use BioFVM in your project, please cite BioFVM and the version     #
+# If you use BioFVM in your project, please cite BioFVM and the version    #
 # number, such as below:                                                    #
 #                                                                           #
 # We solved the diffusion equations using BioFVM (Version 1.1.7) [1]        #
@@ -53,16 +53,16 @@
 
 namespace BioFVM{
 
-class Basic_Agent; 
+class Basic_Agent;
 class Microenvironment;
 
 class Agent_Container
 {
- private:	
+ private:
 
  public:
 	std::vector<std::vector<Basic_Agent*> > agent_grid;
-	Agent_Container();	
+	Agent_Container();
 	void register_agent( Basic_Agent* agent );
 	void initialize( int num_voxels );
 	void remove_agent(Basic_Agent* agent );

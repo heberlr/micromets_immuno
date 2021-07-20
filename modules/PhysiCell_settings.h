@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -80,14 +80,14 @@
 #include "./PhysiCell_pugixml.h"
 #include "../BioFVM/BioFVM.h"
 
-#include "../core/PhysiCell_constants.h" 
+#include "../core/PhysiCell_constants.h"
 #include "../core/PhysiCell_utilities.h"
 
-using namespace BioFVM; 
+using namespace BioFVM;
 
 namespace PhysiCell{
- 	
-extern pugi::xml_node physicell_config_root; 
+
+extern pugi::xml_node physicell_config_root;
 
 bool load_PhysiCell_config_file( std::string filename );
 
@@ -95,121 +95,120 @@ class PhysiCell_Settings
 {
  private:
  public:
-	// overall 
-	double max_time = 60*24*45;   
+	// overall
+	double max_time = 60*24*45;
 
 	// units
-	std::string time_units = "min"; 
-	std::string space_units = "micron"; 
- 
-	// parallel options 
-	int omp_num_threads = 2; 
-	
-	// save options
-	std::string folder = "."; 
+	std::string time_units = "min";
+	std::string space_units = "micron";
 
-	double full_save_interval = 60;  
-	bool enable_full_saves = true; 
-	bool enable_legacy_saves = false; 
-	
-	double SVG_save_interval = 60; 
-	bool enable_SVG_saves = true; 
-	
+	// parallel options
+	int omp_num_threads = 2;
+
+	// save options
+	std::string folder = ".";
+
+	double full_save_interval = 60;
+	bool enable_full_saves = true;
+	bool enable_legacy_saves = false;
+
+	double SVG_save_interval = 60;
+	bool enable_SVG_saves = true;
+
 	PhysiCell_Settings();
-	
-	void read_from_pugixml( void ); 
+
+	void read_from_pugixml( void );
 };
 
 class PhysiCell_Globals
 {
  private:
  public:
-	double current_time = 0.0; 
-	double next_full_save_time = 0.0; 
-	double next_SVG_save_time = 0.0; 
-	int full_output_index = 0; 
-	int SVG_output_index = 0; 
+	double current_time = 0.0;
+	double next_full_save_time = 0.0;
+	double next_SVG_save_time = 0.0;
+	int full_output_index = 0;
+	int SVG_output_index = 0;
 };
 
-template <class T> 
+template <class T>
 class Parameter
 {
  private:
 	template <class Y>
-	friend std::ostream& operator<<(std::ostream& os, const Parameter<Y>& param); 
+	friend std::ostream& operator<<(std::ostream& os, const Parameter<Y>& param);
 
- public: 
-	std::string name; 
-	std::string units; 
-	T value; 
-	
+ public:
+	std::string name;
+	std::string units;
+	T value;
+
 	Parameter();
-	Parameter( std::string my_name ); 
-	
-	void operator=( T& rhs ); 
-	void operator=( T rhs ); 
-	void operator=( Parameter& p ); 
+	Parameter( std::string my_name );
+
+	void operator=( T& rhs );
+	void operator=( T rhs );
+	void operator=( Parameter& p );
 };
 
 template <class T>
 class Parameters
 {
  private:
-	std::unordered_map<std::string,int> name_to_index_map; 
-	
+	std::unordered_map<std::string,int> name_to_index_map;
+
 	template <class Y>
-	friend std::ostream& operator<<( std::ostream& os , const Parameters<Y>& params ); 
+	friend std::ostream& operator<<( std::ostream& os , const Parameters<Y>& params );
 
- public: 
-	Parameters(); 
- 
-	std::vector< Parameter<T> > parameters; 
-	
-	void add_parameter( std::string my_name ); 
-	void add_parameter( std::string my_name , T my_value ); 
-//	void add_parameter( std::string my_name , T my_value ); 
-	void add_parameter( std::string my_name , T my_value , std::string my_units ); 
-//	void add_parameter( std::string my_name , T my_value , std::string my_units ); 
-	
+ public:
+	Parameters();
+
+	std::vector< Parameter<T> > parameters;
+
+	void add_parameter( std::string my_name );
+	void add_parameter( std::string my_name , T my_value );
+//	void add_parameter( std::string my_name , T my_value );
+	void add_parameter( std::string my_name , T my_value , std::string my_units );
+//	void add_parameter( std::string my_name , T my_value , std::string my_units );
+
 	void add_parameter( Parameter<T> param );
-	
-	int find_index( std::string search_name ); 
-	
-	// these access the values 
-	T& operator()( int i );
-	T& operator()( std::string str ); 
 
-	// these access the full, raw parameters 
+	int find_index( std::string search_name );
+
+	// these access the values
+	T& operator()( int i );
+	T& operator()( std::string str );
+
+	// these access the full, raw parameters
 	Parameter<T>& operator[]( int i );
-	Parameter<T>& operator[]( std::string str ); 
-	
-	int size( void ) const; 
+	Parameter<T>& operator[]( std::string str );
+
+	int size( void ) const;
 };
 
 class User_Parameters
 {
  private:
-	friend std::ostream& operator<<( std::ostream& os , const User_Parameters up ); 
- 
+	friend std::ostream& operator<<( std::ostream& os , const User_Parameters up );
+
  public:
-	Parameters<bool> bools; 
-	Parameters<int> ints; 
-	Parameters<double> doubles; 
-	Parameters<std::string> strings; 
-	
+	Parameters<bool> bools;
+	Parameters<int> ints;
+	Parameters<double> doubles;
+	Parameters<std::string> strings;
+
 	void read_from_pugixml( pugi::xml_node parent_node );
-}; 
+};
 
-extern PhysiCell_Globals PhysiCell_globals; 
+extern PhysiCell_Globals PhysiCell_globals;
 
-extern PhysiCell_Settings PhysiCell_settings; 
+extern PhysiCell_Settings PhysiCell_settings;
 
-extern User_Parameters parameters; 
+extern User_Parameters parameters;
 
 bool setup_microenvironment_from_XML( pugi::xml_node root_node );
 bool setup_microenvironment_from_XML( void );
 
 }
 
-#endif 
-
+#endif

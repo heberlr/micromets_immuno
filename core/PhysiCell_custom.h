@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -76,63 +76,63 @@
 
 namespace PhysiCell
 {
-	
+
 class Variable
 {
  private:
-	friend std::ostream& operator<<(std::ostream& os, const Variable& v); // done 
+	friend std::ostream& operator<<(std::ostream& os, const Variable& v); // done
  public:
-	std::string name; 
-	double value; 
-	std::string units; 
-	
-	Variable(); 
+	std::string name;
+	double value;
+	std::string units;
+
+	Variable();
 };
 
 class Vector_Variable
 {
  private:
-	friend std::ostream& operator<<(std::ostream& os, const Vector_Variable& v); // done 
-	
+	friend std::ostream& operator<<(std::ostream& os, const Vector_Variable& v); // done
+
  public:
-	std::string name; 
-	std::vector<double> value; 
-	std::string units; 
-	
-	Vector_Variable(); 
+	std::string name;
+	std::vector<double> value;
+	std::string units;
+
+	Vector_Variable();
 };
 
 class Custom_Cell_Data
 {
  private:
-	std::unordered_map<std::string,int> name_to_index_map; 
-//	std::unordered_map<std::string,int> vector_name_to_index_map; 
-	
-	friend std::ostream& operator<<(std::ostream& os, const Custom_Cell_Data& ccd); // done 
+	std::unordered_map<std::string,int> name_to_index_map;
+//	std::unordered_map<std::string,int> vector_name_to_index_map;
+
+	friend std::ostream& operator<<(std::ostream& os, const Custom_Cell_Data& ccd); // done
  public:
-	std::vector<Variable> variables; 
-	std::vector<Vector_Variable> vector_variables; 
-	
-	int add_variable( Variable& v ); // done 
-	int add_variable( std::string name , std::string units , double value ); // done 
-	int add_variable( std::string name , double value ); // done 
+	std::vector<Variable> variables;
+	std::vector<Vector_Variable> vector_variables;
 
-	int add_vector_variable( Vector_Variable& v ); // done 
-	int add_vector_variable( std::string name , std::string units , std::vector<double>& value ); // done 
-	int add_vector_variable( std::string name , std::vector<double>& value ); // done 
+	int add_variable( Variable& v ); // done
+	int add_variable( std::string name , std::string units , double value ); // done
+	int add_variable( std::string name , double value ); // done
 
-	int find_variable_index( std::string name ); // done 
-	int find_vector_variable_index( std::string name ); // done 
+	int add_vector_variable( Vector_Variable& v ); // done
+	int add_vector_variable( std::string name , std::string units , std::vector<double>& value ); // done
+	int add_vector_variable( std::string name , std::vector<double>& value ); // done
 
-	// these access the scalar variables 
+	int find_variable_index( std::string name ); // done
+	int find_vector_variable_index( std::string name ); // done
+
+	// these access the scalar variables
 	double& operator[]( int i ); // done
-	double& operator[]( std::string name ); // done 
-	
-	
-	Custom_Cell_Data(); // done 
-	Custom_Cell_Data( const Custom_Cell_Data& ccd ); 
+	double& operator[]( std::string name ); // done
+
+
+	Custom_Cell_Data(); // done
+	Custom_Cell_Data( const Custom_Cell_Data& ccd );
 };
 
-}; 
+};
 
-#endif 
+#endif

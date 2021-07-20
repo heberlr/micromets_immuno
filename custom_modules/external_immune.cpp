@@ -16,7 +16,7 @@ void external_immune_model_setup( void )
 	// set version
 	external_immune_info.name = "external immune";
 	external_immune_info.version = external_immune_version;
-	// set functions
+	// set functions 
 	external_immune_info.main_function = external_immune_model;
 	external_immune_info.phenotype_function = NULL;
 	external_immune_info.mechanics_function = NULL;

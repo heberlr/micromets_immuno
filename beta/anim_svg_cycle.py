@@ -3,7 +3,7 @@
 #
 # Usage:
 #  python anim_svg_cycle.py <show_nucleus start_index axes_min axes_max>
-#    i.e., the arguments <...> are optional and have defaults.
+#    i.e., the arguments <...> are optional and have defaults
 # 
 # Dependencies include matplotlib and numpy. We recommend installing the Anaconda Python3 distribution.
 #

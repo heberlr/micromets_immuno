@@ -11,7 +11,7 @@ class pyMCDS:
     This class contains a dictionary of dictionaries that contains all of the
     output from a single time step of a PhysiCell Model. This class assumes that
     all output files are stored in the same directory. Data is loaded by reading
-    the .xml file for a particular timestep.
+    the .xml file for a particular timestep
 
     Parameters
     ----------

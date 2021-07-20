@@ -91,7 +91,7 @@ for fname in glob.glob('snapshot*.svg'):
 #      print('  --- cx,cy=',circle.attrib['cx'],circle.attrib['cy'])
       xval = float(circle.attrib['cx'])
 
-      # should we test for bogus x,y locations??
+      #should we test for bogus x,y locations??
       if (math.fabs(xval) > 10000.):
         print("xval=",xval)
         break

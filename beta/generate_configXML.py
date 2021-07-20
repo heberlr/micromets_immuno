@@ -12,7 +12,7 @@ print(len(sys.argv))
 if (len(sys.argv) < 2):
   usage_str = "Usage: %s <params.txt>" % (sys.argv[0])
   print(usage_str)
-  print("e.g.:  python generate_configXML.py params_run.txt")
+  print("e.g.: python generate_configXML.py params_run.txt")
   exit(1)
 else:
    params_file = sys.argv[1]

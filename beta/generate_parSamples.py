@@ -25,7 +25,7 @@ variation = 1.0
 min = np.asarray(default_value) - variation*np.asarray(default_value)
 max = np.asarray(default_value) + variation*np.asarray(default_value)
 
-#Transform unit hypercube in real values
+# Transform unit hypercube in real values
 for j in range(0, len(parameters)):
     samples[j,:] = min[j] + samples[j,:]*(max[j]-min[j])
 

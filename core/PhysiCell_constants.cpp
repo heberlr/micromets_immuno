@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
-# number, such as below:                                                      #
+# number, such as below:                                                     #
 #                                                                             #
 # We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
@@ -65,13 +65,13 @@
 ###############################################################################
 */
 
-#include "PhysiCell_constants.h" 
+#include "PhysiCell_constants.h"
 
 namespace PhysiCell{
 
 std::string time_units = "min";
 std::string space_units = "micron";
-double diffusion_dt = 0.01; 
+double diffusion_dt = 0.01;
 double mechanics_dt = 0.1;
 double phenotype_dt = 6.0;
 
