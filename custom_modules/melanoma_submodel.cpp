@@ -16,50 +16,7 @@ void melanoma_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& 
 
 double strain_based_proliferation( Cell* pCell )
 {
-	// std::vector<Cell*> neighbors = pCell->cells_in_my_container();//find cells in a neighbourhood of melanoma cells
-	// static int lung_cell_type = get_cell_definition( "lung cell" ).type;
-	// static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
-	// int n = 0;
-	// int CountNeighbors = 0;
-	// Cell* pTestCell;
-	// double radius_Cell = pCell->phenotype.geometry.radius;
-	// while( n < neighbors.size() )
-	// {
-	// 	pTestCell = neighbors[n];
-	// 	if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false ){
-	// 		double cell_cell_distance = sqrt((pTestCell->position[0]-pCell->position[0])*(pTestCell->position[0]-pCell->position[0])+(pTestCell->position[1]-pCell->position[1])*(pTestCell->position[1]-pCell->position[1]));
-	// 		double radius_test_cell = pTestCell->phenotype.geometry.radius;
-	// 		if( cell_cell_distance <= parameters.doubles("epsilon_distance")*(radius_Cell+radius_test_cell) ){
-	// 			CountNeighbors++;
-	// 		}
-	// 	}
-	// 	n++;
-	// }
-	//
-	//
-	// static double Xmin = microenvironment.mesh.bounding_box[0];
-	// static double Ymin = microenvironment.mesh.bounding_box[1];
-	// static double Xmax = microenvironment.mesh.bounding_box[3];
-	// static double Ymax = microenvironment.mesh.bounding_box[4];
-	//
-	// if ( abs(pCell->position[0]-Xmin) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
-	// if ( abs(pCell->position[0]-Xmax) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
-	// if ( abs(pCell->position[1]-Ymin) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
-	// if ( abs(pCell->position[1]-Ymax) < parameters.doubles("epsilon_distance")*radius_Cell ) return 0.0;
-	//
-	// if ( CountNeighbors < 6 ) return 1.0;
-	// else return 0.0;
-
-	// static int strain_index = parameters.doubles("max_simple_pressure_TumorProl");//pCell->custom_data.find_variable_index( "mechanical_strain" );
-	// static double  max_strain = parameters.doubles("max_mechanical_strain_TumorProl");
-	//
-	// if( pCell->custom_data[strain_index] < max_strain )
-	// {
-	// 	return pow( (max_strain - pCell->custom_data[strain_index])/max_strain, 1.0 );
-	// }
-	// return 0.0;
-
-	static double  max_pressure = parameters.doubles("max_simple_pressure_TumorProl");
+	static double  max_pressure = 10.0; //<max_simple_pressure_TumorProl description="maximum tolerated pressure of melanoma cell (proliferation)" type="double" units="micron">10.0</max_simple_pressure_TumorProl>
 	if( pCell->state.simple_pressure < max_pressure )
 	{
 		return pow( (max_pressure - pCell->state.simple_pressure)/max_pressure, 1.0 );
@@ -102,20 +59,7 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// proliferation rate based on mechanical aspect
 	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
 	int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
-	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = parameters.doubles("prolif_rate_CancerCell")*mechanics_factor;
-
-	// pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] = 1.0;
-	// if( pCell->custom_data["melanoma_cell_chemokine_secretion_activated"] > 0.1 && phenotype.death.dead == false )
-	// {
-	// 	double rate = 1.0; //AV; // P;
-	// 	rate /= pCell->custom_data["max_apoptosis_half_max"]; // Review this parameter, no make sense in melnoma dynamic
-	// 	if( rate > 1.0 )
-	// 	{ rate = 1.0; }
-	// 	rate *= pCell->custom_data[ "melanoma_cell_chemokine_secretion_rate" ];
-	//
-	// 	phenotype.secretion.secretion_rates[chemokine_index] = rate;
-	// 	phenotype.secretion.saturation_densities[chemokine_index] = 1.0;
-	// }
+	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = mechanics_factor*pCell->parameters.pReference_live_phenotype->cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index);
 
 	// if I am dead, don't bother executing this function again
 	if( phenotype.death.dead == true )
@@ -169,13 +113,6 @@ void melanoma_submodel_setup( void )
 
 	// set up any submodels you need
 
-	// receptor trafficking
-	//receptor_dynamics_model_setup(); // done
-	// pathogen replication
-	//internal_pathogen_model_setup();
-	// single-cell response
-	// internal_pathogen_response_model_setup();
-
 	// set up epithelial cells
 	// set version info
 	melanoma_submodel_info.name = "melanoma model";
@@ -198,10 +135,6 @@ void melanoma_submodel_setup( void )
 	pCD->functions.custom_cell_rule = melanoma_submodel_info.mechanics_function;
 	pCD->functions.contact_function = melanoma_contact_function;
 
-	// Death rate for melanoma cells
-	static int apoptosis_index = pCD->phenotype.death.find_death_model_index( "Apoptosis" );
-	pCD->phenotype.death.rates[apoptosis_index] = parameters.doubles( "death_rate_CancerCell" );
-
 	return;
 }
 
@@ -212,10 +145,6 @@ void TCell_induced_apoptosis( Cell* pCell, Phenotype& phenotype, double dt )
 
 	if( pCell->custom_data["TCell_contact_time"] > pCell->custom_data["TCell_contact_death_threshold"] )
 	{
-		// make sure to get rid of all adhesions!
-		// detach all attached cells
-		// remove_all_adhesions( pCell );
-
 		#pragma omp critical
 		{
 			std::cout << "\t\t\t\t" << pCell << " (of type " << pCell->type_name <<  ") died from T cell contact" << std::endl;

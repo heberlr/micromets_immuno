@@ -110,7 +110,8 @@ void create_cell_types( void )
 	//cell_defaults.custom_data.add_variable( "max_mechanical_strain_TumorProl", "micron" , 10.0); // 0.75
 	cell_defaults.custom_data.add_variable( "simple_pressure", "micron" , 0.0 );
 	//aditional custom data -- PhysiCell don't allow boolean vector in cell, only double (always before initialize_cell_definitions_from_pugixml)
-	std::vector<double> neoantigen_signature(parameters.ints("boolean_vector_size"),0.0);
+	static int boolean_vector_size = 1; // <boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">1</boolean_vector_size>
+	std::vector<double> neoantigen_signature(boolean_vector_size,0.0);
 	cell_defaults.custom_data.add_vector_variable( "neoantigen_signature" , "dimensionless" , neoantigen_signature );
 	// Initialize neoantigens_library
 	AntigenLib.add_first_antigen(neoantigen_signature);
@@ -684,9 +685,11 @@ Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_s
 
 void mutation (Cell* pCell){
 	static int neoantigen_signature_index = pCell->custom_data.find_vector_variable_index( "neoantigen_signature" );
-	std::poisson_distribution<int> Poisson_dist( parameters.doubles( "rate_neoantigen_variability" ));
+	static double rate_neoantigen_variability = 0.0; //	<rate_neoantigen_variability description="rate of element alteration for neoantigen signature (poisson dist)" type="double" units="dimensionless">0.0</rate_neoantigen_variability>
+	std::poisson_distribution<int> Poisson_dist( rate_neoantigen_variability );
 	int NumberElements = Poisson_dist(generator); // Number of elements to be changed
-	std::uniform_int_distribution<int> unif_discrete_dist(0,parameters.ints("boolean_vector_size")-1);
+	std::uniform_int_distribution<int> unif_discrete_dist(0,pCell->custom_data.vector_variables[neoantigen_signature_index].value.size()-1);
+
 	//std::cout << "-------------------------------------------------------" << std::endl;
 	for (int i=0; i < NumberElements; i++)
 	{
@@ -698,29 +701,6 @@ void mutation (Cell* pCell){
 		}else
 		{
 			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 0.0;
-		}
-	}
-	int clonal_scores = 0, subclonal_scores = 0, shared_scores = 0;
-	int limit_clonal_region = parameters.doubles( "percentage_clonal_neoantigen" )*parameters.ints("boolean_vector_size");
-	int limit_subclonal_region = parameters.ints("boolean_vector_size") - parameters.doubles( "percentage_subclonal_neoantigen" )*parameters.ints("boolean_vector_size");
-
-	for (int i=0; i < limit_clonal_region; i++)
-		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) clonal_scores++;
-	for (int i=limit_clonal_region; i < limit_subclonal_region; i++)
-		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) shared_scores++;
-	for (int i=limit_subclonal_region; i < parameters.ints("boolean_vector_size"); i++)
-		if (pCell->custom_data.vector_variables[neoantigen_signature_index].value[i] == 1.0) subclonal_scores++;
-	//std::cout << "Scores -- Clonal: " << clonal_scores << " Subclonal: " << subclonal_scores << " Shared: " << shared_scores << std::endl;
-	// Classify the cell according the maximum score
-	static int neoantigen_type_index = pCell->custom_data.find_variable_index( "neoantigen_type");
-	if ( clonal_scores >= subclonal_scores && clonal_scores >= shared_scores ) {
-		pCell->custom_data[neoantigen_type_index] = 0; // clonal neoantigen
-	}else{
-		if ( subclonal_scores > clonal_scores && subclonal_scores > shared_scores ) {
-			pCell->custom_data[neoantigen_type_index] = 2; // subclonal neoantigen
-		}
-		else{
-			pCell->custom_data[neoantigen_type_index] = 1; // shared neoantigen
 		}
 	}
 	//std::cout << "Neoantigen type: " << pCell->custom_data[neoantigen_type_index] << std::endl;

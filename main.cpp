@@ -72,6 +72,7 @@
 #include <cmath>
 #include <omp.h>
 #include <fstream>
+#include <string>
 #include <algorithm>    // std::rotate
 
 #include "./core/PhysiCell.h"
@@ -105,25 +106,22 @@ int main( int argc, char* argv[] )
 	// load and parse settings file(s)
 
 	bool XML_status = false;
-	XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" );
-	if( !XML_status ) { exit(-1); }
-	int rank;
+	char copy_command [1024];
 	if( argc > 1 )
 	{
-		rank = atoi(argv[1]);
-		parameters.doubles( "prolif_rate_CancerCell" ) = atof(argv[2]);
-		parameters.doubles( "death_rate_CancerCell" ) = atof(argv[3]);
-		parameters.doubles( "max_simple_pressure_TumorProl" ) = atof(argv[4]);
-		parameters.doubles( "DC_leave_prob" ) = atof(argv[5]);
-		parameters.doubles( "T_Cell_Recruitment" ) = atof(argv[6]);
-		parameters.doubles( "percentage_tissue_vascularized" ) = atof(argv[7]);
+		XML_status = load_PhysiCell_config_file( argv[1] );
+		sprintf( copy_command , "cp %s %s" , argv[1] , PhysiCell_settings.folder.c_str() );
 	}
-	std::ofstream QOI_file;
-	char FileNameQOI[1024];
-	sprintf( FileNameQOI , "%s/Cells.dat" , PhysiCell_settings.folder.c_str() );
-	QOI_file.open (FileNameQOI);
-	QOI_file << "# Parameters -- prolif_rate_CancerCell: " << parameters.doubles( "prolif_rate_CancerCell" ) << ""<< "  death_rate_CancerCell: " << parameters.doubles( "death_rate_CancerCell" ) << "  max_simple_pressure_TumorProl: " << parameters.doubles( "max_simple_pressure_TumorProl" ) << "  DC_leave_prob: " << parameters.doubles( "DC_leave_prob" ) << "  T_Cell_Recruitment: " << parameters.doubles( "T_Cell_Recruitment" )<< "  percentage_tissue_vascularized: " << parameters.doubles( "percentage_tissue_vascularized" )<< std::endl;
-	QOI_file << "# Columns -- Time, lung_cell, melanoma_cell, CD8_Tcell, Macrophage, Dendritic, CD4, Dead_lung, Dead_melanoma, Dead_immune\n";
+	else
+	{
+		XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" );
+		sprintf( copy_command , "cp ./config/PhysiCell_settings.xml %s" , PhysiCell_settings.folder.c_str() );
+	}
+	if( !XML_status )
+	{ exit(-1); }
+
+	// copy config file to output directry
+	system( copy_command );
 
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
@@ -200,7 +198,6 @@ int main( int argc, char* argv[] )
 	if( PhysiCell_settings.enable_full_saves == true )
 	{
 		sprintf( filename , "%s/dm_tc.dat" , PhysiCell_settings.folder.c_str() );
-		// dm_tc_file.open ("dm_tc.dat");
 		dm_tc_file.open (filename);
 	}
 
@@ -227,11 +224,12 @@ int main( int argc, char* argv[] )
 					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
 				}
 
-				//write output
-				print_cell_count(QOI_file); // write number of cells file
-
 				PhysiCell_globals.full_output_index++;
-				PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
+				if ( parameters.bools("custom_save_time") ){
+					if ( abs(fmod(PhysiCell_globals.current_time, parameters.doubles("global_dt_save_time")) - parameters.doubles("local_dt_save_time")) < 0.01 * diffusion_dt ) PhysiCell_globals.next_full_save_time += (parameters.doubles("global_dt_save_time") - 2*parameters.doubles("local_dt_save_time"));
+					else PhysiCell_globals.next_full_save_time += parameters.doubles("local_dt_save_time");
+				}
+				else PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
 			}
 
 			// save SVG plot if it's time
@@ -243,7 +241,11 @@ int main( int argc, char* argv[] )
 					SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 
  					PhysiCell_globals.SVG_output_index++;
-					PhysiCell_globals.next_SVG_save_time  += PhysiCell_settings.SVG_save_interval;
+					if ( parameters.bools("custom_save_time") ){
+						if ( abs(fmod(PhysiCell_globals.current_time, parameters.doubles("global_dt_save_time")) - parameters.doubles("local_dt_save_time")) < 0.01 * diffusion_dt ) PhysiCell_globals.next_SVG_save_time += (parameters.doubles("global_dt_save_time") - 2*parameters.doubles("local_dt_save_time"));
+						else PhysiCell_globals.next_SVG_save_time += parameters.doubles("local_dt_save_time");
+					}
+					else PhysiCell_globals.next_SVG_save_time += PhysiCell_settings.SVG_save_interval;
 				}
 			}
 
@@ -293,9 +295,6 @@ int main( int argc, char* argv[] )
 		std::cout << e.what(); // information from length_error printed
 	}
 
-	// Close QOI files
-	QOI_file.close();
-
 	if( PhysiCell_settings.enable_full_saves == true )
 	{
 		dm_tc_file.close();
@@ -312,7 +311,7 @@ int main( int argc, char* argv[] )
 	}
 
 	// timer
-	std::cout << std::endl << "Rank: " << rank << "Total simulation runtime: " << std::endl;
+	std::cout << std::endl << "Total simulation runtime: " << std::endl;
 	BioFVM::display_stopwatch_value( std::cout , BioFVM::runtime_stopwatch_value() );
 
 

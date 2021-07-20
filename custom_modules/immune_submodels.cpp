@@ -533,7 +533,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 				return;
 			}
 			else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_melanoma_cell"]== 1 && /*pTestCell->custom_data[nP]>1 &&*/
-			UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose infected cells that contain at least 1 pathogen protein
+			UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose live melanoma cells
 			{
 				{
 					// (Adrianne) obtain volume of cell to be ingested
@@ -922,7 +922,9 @@ double attachment_probability = pAttacker->custom_data["cell_attachment_rate"] *
 // neoantigen recognition for CD8 T cell attacking
 if ( pAttacker->type == CD8_Tcell_type){
 	int HammingDistance = Hamming_Distance(pAttacker->custom_data.vector_variables[neoantigen_signature_index].value, pTarget->custom_data.vector_variables[neoantigen_signature_index].value);
-	attachment_probability *= (1.0/(1.0 + pow(HammingDistance/parameters.doubles( "half_hamming_distance" ), parameters.doubles( "hill_coefficient_recognition" )) ) );
+	double half_hamming_distance = 1.0; //<half_hamming_distance description="Hamming distance with a half probability of recognition (greater than 0)" type="double" units="dimensionless">1.0</half_hamming_distance>
+	double hill_coefficient_recognition = 1.0; //<hill_coefficient_recognition description="Hill coefficient for recognition function" type="double" units="dimensionless">1.0</hill_coefficient_recognition>
+	attachment_probability *= (1.0/(1.0 + pow(HammingDistance/half_hamming_distance, hill_coefficient_recognition) ) );
 }
 // don't need to cap it at 1.00: if prob > 100%,
 // then this statement always evaluates as true,

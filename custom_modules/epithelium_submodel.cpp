@@ -17,7 +17,7 @@ void epithelium_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype
 bool strain_based_apoptosis( Cell* pCell )
 {
 	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
-	static double  max_strain = parameters.doubles("max_mechanical_strain");
+	static double  max_strain = 0.75; //<max_mechanical_strain description="maximum tolerated deformation of lung cell (death)" type="double" units="micron">0.75</max_mechanical_strain>
 	if( pCell->custom_data[strain_index] <= max_strain ) return false;
 
 	std::vector<Cell*> neighbors = pCell->cells_in_my_container();//find cells in a neighbourhood of melanoma cells

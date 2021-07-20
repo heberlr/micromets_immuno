@@ -186,7 +186,6 @@
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
@@ -316,7 +315,6 @@
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
@@ -348,7 +346,7 @@
 			<phenotype>
 				<cycle code="6" name="flow_cytometry_separated_cycle_model">
 					<phase_transition_rates units="1/min">
-						<rate end_index="1" fixed_duration="false" start_index="0">0</rate>
+						<rate end_index="1" fixed_duration="false" start_index="0">0.002</rate>
 						<rate end_index="2" fixed_duration="true" start_index="1">0.00208333</rate>
 						<rate end_index="3" fixed_duration="true" start_index="2">0.00416667</rate>
 						<rate end_index="0" fixed_duration="true" start_index="3">0.0166667</rate>
@@ -357,7 +355,7 @@
 
 				<death>
 					<model code="100" name="apoptosis">
-						<death_rate units="1/min">0</death_rate>
+						<death_rate units="1/min">0.00001</death_rate>
 						<phase_transition_rates units="1/min">
 							<rate end_index="1" fixed_duration="true" start_index="0">0.00193798</rate>
 						</phase_transition_rates>
@@ -446,7 +444,6 @@
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
@@ -573,7 +570,6 @@
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0.2</cell_attachment_rate>
@@ -699,7 +695,6 @@
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
@@ -828,7 +823,6 @@
 				<division_generation description="generation of cell" type="int" units="none">0</division_generation>
 				<last_cycle_entry_time description="last cycle entry time" type="double" units="none">0</last_cycle_entry_time>
 				<debris_secretion_rate description="rate that dead cells release debris" type="double" units="1/min">1</debris_secretion_rate>
-				<neoantigen_type description="type of neoantigen (clonal=0, shared=1, and subclonal=2)" type="int" units="none">0</neoantigen_type>
 
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">100.0</cell_attachment_rate>
@@ -907,20 +901,7 @@
 	</cell_definitions>
 
 	<user_parameters>
-
 		<random_seed type="int" units="dimensionless">0</random_seed>
-		<rate_neoantigen_variability description="rate of element alteration for neoantigen signature (poisson dist)" type="double" units="dimensionless">0.0</rate_neoantigen_variability>
-		<boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">1</boolean_vector_size>
-		<percentage_clonal_neoantigen description="percentage clonal neoantigen" type="double" units="dimensionless">0.15</percentage_clonal_neoantigen>
-		<percentage_subclonal_neoantigen description="percentage subclonal neoantigen" type="double" units="dimensionless">0.38</percentage_subclonal_neoantigen>
-
-		<half_hamming_distance description="Hamming distance with a half probability of recognition (greater than 0)" type="double" units="dimensionless">1.0</half_hamming_distance>
-		<hill_coefficient_recognition description="Hill coefficient for recognition function" type="double" units="dimensionless">1.0</hill_coefficient_recognition>
-
-		<max_mechanical_strain description="maximum tolerated deformation of lung cell (death)" type="double" units="micron">0.75</max_mechanical_strain>
-		<max_simple_pressure_TumorProl description="maximum tolerated pressure of melanoma cell (proliferation)" type="double" units="micron">10.0</max_simple_pressure_TumorProl>
-		<prolif_rate_CancerCell description="proliferation rate of melanoma cell" type="double" units="dimensionless">0.002</prolif_rate_CancerCell>
-		<death_rate_CancerCell description="death rate of melanoma cell" type="double" units="dimensionless">1e-5</death_rate_CancerCell>
 
 		<div_immune description="--Immune activation parameters--" type="divider" />
 		<immune_dt description="how often we check to introduce immune cells" type="double" units="min">10</immune_dt>
@@ -953,8 +934,8 @@
 		<cell_confluence_lung_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_lung_cells>
 		<number_of_melanoma_cells description="initial number of melanoma cells in tissue" type="int" units="none">10</number_of_melanoma_cells>
 		<number_of_CD8_Tcells description="initial number of CD8 T cells in tissue" type="int" units="none">0</number_of_CD8_Tcells>
-		<number_of_macrophages description="initial number of macrophages" type="int" units="none">0</number_of_macrophages>
-		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">0</number_of_DCs>
+		<number_of_macrophages description="initial number of macrophages" type="int" units="none">5</number_of_macrophages>
+		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">5</number_of_DCs>
 		<number_of_CD4_Tcells type="int" units="none" description="initial number of CD4 Tcells in tissue">0</number_of_CD4_Tcells>
 
 		<DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
@@ -985,7 +966,9 @@
 		<hyperactivated_macrophage_color description="color of hyperactivated macrophage" type="string">rgb(168,221,181)</hyperactivated_macrophage_color>
 		<DC_color description="DC color" type="string">rgb(129,15,124)</DC_color>
 		<activated_DC_color description="DC color" type="string">deeppink</activated_DC_color>
-
+		<custom_save_time description="save time with local and global dt" type="bool">false</custom_save_time>
+		<local_dt_save_time description="local dt to save data and svg" type="double" units="min">60.0</local_dt_save_time>
+		<global_dt_save_time description="global dt to save data and svg" type="double" units="min">1440.0</global_dt_save_time>
 	</user_parameters>
 
 </PhysiCell_settings>

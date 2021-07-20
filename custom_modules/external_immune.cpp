@@ -26,7 +26,6 @@ void external_immune_model_setup( void )
 	//external_immune_info.parameters.doubles.push_back( "DM" );
 	//external_immune_info.parameters.doubles.push_back( "TC" );
 
-	// submodel_registry.register_model( internal_pathogen_dynamics_info );
 	external_immune_info.register_model();
 
 	return;
@@ -36,7 +35,6 @@ void external_immune_model( double dt )
 {
 	AntigenLib.update_collection(PhysiCell_globals.current_time, 720.0); // update collection of antigens (720 mim, time to include neoantigen on library)
 	// bookkeeping -- find microenvironment variables we need
-
 	extern double DM;
 	extern double TC;
 	extern double TH1;
@@ -61,7 +59,6 @@ void external_immune_model( double dt )
 	static double CD8_Tcell_recruitment_rate = parameters.doubles( "T_Cell_Recruitment" );
 
 	double lypmh_scale = GridCOUNT / 5e5;
-	//double lypmh_scale = 0.02; // old version
 
 	// actual model goes here
 
@@ -83,7 +80,7 @@ void external_immune_model( double dt )
 
 	for(j = 0; j < 4; j++){
 		f[j][0] = {-dDm*x[j][0]}; //define function
-		f[j][1] = {dR_TC-dC*x[j][1]+pT1*((1000000-x[j][1])/(1000000))*x[j][0]*x[j][1]/(x[j][0]+pT2)-dT1*x[j][0]*x[j][1]/(x[j][0]+dT2)};// /* TEST */ + (1e6 - x[j][1])/1e6};
+		f[j][1] = {dR_TC-dC*x[j][1]+pT1*((1000000-x[j][1])/(1000000))*x[j][0]*x[j][1]/(x[j][0]+pT2)-dT1*x[j][0]*x[j][1]/(x[j][0]+dT2)};
 		f[j][2] = {(sTh1*x[j][2])/((1+x[j][3])*(1+x[j][3]))+(pTh1*x[j][0]*x[j][2]*x[j][2])/((1+x[j][3])*(1+x[j][3]))-(dTh1*x[j][0]*x[j][2]*x[j][2]*x[j][2])/(500+x[j][3])-mTh*x[j][2]}; //define function
 		f[j][3] = {(sTh2*x[j][3])/(1+x[j][3])+(pTh2*(ro+x[j][2])*x[j][0]*x[j][3]*x[j][3])/((1+x[j][3])*(1+x[j][2]+x[j][3]))-mTh*x[j][3]}; //define function
 		f[j][4] = {CD8_Tcell_recruitment_rate*x[j][1]}; //define function
@@ -106,8 +103,6 @@ void external_immune_model( double dt )
 		}
 	}
 
-	//std::cout << dt*(f[0][0]/6+f[1][0]/3+f[2][0]/3+f[3][0]/6) << std::endl;
-
 	DM=(x[0][0]+dt*(f[0][0]/6+f[1][0]/3+f[2][0]/3+f[3][0]/6))*lypmh_scale;
 	TC=x[0][1]+dt*(f[0][1]/6+f[1][1]/3+f[2][1]/3+f[3][1]/6);
 	TH1=x[0][2]+dt*(f[0][2]/6+f[1][2]/3+f[2][2]/3+f[3][2]/6); //detirmine n+1
@@ -119,7 +114,7 @@ void external_immune_model( double dt )
 	return;
 }
 
-// Constructor from neoantigens_library
+// Methods from neoantigens_library
 void AntigenLibrary::add_first_antigen(const std::vector<double> &antigen_signature){
 	antigen FirstAntigen;
 	FirstAntigen.ID = 0;
@@ -128,7 +123,6 @@ void AntigenLibrary::add_first_antigen(const std::vector<double> &antigen_signat
 	FirstAntigen.signature = antigen_signature;
 	Collection.push_back(FirstAntigen);
 }
-// Methods from neoantigens_library
 
 bool AntigenLibrary::check_library(const std::vector<double> &antigen_signature)
 {
@@ -180,8 +174,6 @@ void AntigenLibrary::update_collection(const double current_time, const double i
 		TempCollection[ IndexesToRemove[i] ] = TempCollection[TempCollection.size()-1]; // last element replace this element on vector
 		TempCollection.pop_back(); // remove the last element from vecotr
 	}
-
-
 	return;
 }
 
@@ -206,7 +198,7 @@ void AntigenLibrary::print()
 		std::cout << "]" << std::endl;
 	}
 
-	std::cout << "-------------- Waiting Neoantigen Collection ----------------" << std::endl;
+	std::cout << "-------------- Temporary Neoantigen Collection ----------------" << std::endl;
 	for( int i=0; i < TempCollection.size() ;i++ )
 	{
 		std::cout << "Antigen ID: " << TempCollection[i].ID << " Time: " << TempCollection[i].time << " Weight: " << TempCollection[i].probability_weight << " Signature: [ ";
