@@ -374,7 +374,7 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 		if( pCell->phenotype.volume.total> pCell->custom_data["threshold_macrophage_volume"] )// macrophage exhausted
 		{ color = parameters.strings("exhausted_macrophage_color"); }
-		else if( pCell->custom_data["ability_to_phagocytose_infected_cell"] == 1)// macrophage has been activated to kill infected cells by T cell
+		else if( pCell->custom_data["ability_to_phagocytose_melanoma_cell"] == 1)// macrophage has been activated to kill melanoma cells by T cell
 		{ color = parameters.strings("hyperactivated_macrophage_color"); }
 
 		output[0] = color;

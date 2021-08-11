@@ -163,7 +163,7 @@ def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     Dcell_size = 5;
     Ecell_size = 12;
     RadiusSize = 400.0
-    
+
     cx = mcds.data['discrete_cells']['position_x'];
     cy = mcds.data['discrete_cells']['position_y'];
     cycle = mcds.data['discrete_cells']['cycle_model']
@@ -178,11 +178,11 @@ def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
 
     melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
     lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
-  
+
 
     QOIs.lung[n] = len(lung)
     QOIs.melanoma[n] = len(melanoma)
-    
+
     plt.close()
     figure, axes = plt.subplots(nrows=1, ncols=1,figsize=(8,8))
     ax = plt.subplot(111)
@@ -190,7 +190,7 @@ def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     #sc = ax.scatter(cx[lung],cy[lung],c=strain[lung], vmin=strain.min(), vmax=strain.max(), s=5, cmap="jet",zorder=2)
     ax.set_aspect('equal', adjustable='box')
     plt.colorbar(sc, label="strain ($\mu m$)")
-    
+
     figure, axes = plt.subplots(nrows=1, ncols=1,figsize=(8,8))
     ax = plt.subplot(111)
     sc = ax.scatter(cx[melanoma],cy[melanoma],c=pressure[melanoma], vmin=pressure.min(), vmax=pressure.max(), s=5, cmap="jet",zorder=1)
@@ -201,7 +201,7 @@ def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     plt.xlim(-RadiusSize, RadiusSize)
     plt.ylim(-RadiusSize, RadiusSize)
     #plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    
+
     if (SavePNG):
       figure.savefig(filenameOut)
       #plt.savefig(filenameOut)
@@ -209,7 +209,7 @@ def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
       plt.show()
     plt.clf()
 
-    
+
 def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     Lcell_size = 10;
     Dcell_size = 5;
@@ -611,6 +611,6 @@ if __name__ == '__main__':
 
     #Read_files(initial_index,last_index,folder,SavePNG)
     #Read_files(initial_index,last_index,folder,SavePNG,func=plotAll_hist)
-    Read_files(initial_index,last_index,folder,SavePNG,func=plotStrain)
+    #Read_files(initial_index,last_index,folder,SavePNG,func=plotStrain)
     #Neoantigens_plot(initial_index,last_index,folder)
     #Replicates_plot(initial_index,last_index,folder,5)
