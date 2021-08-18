@@ -195,7 +195,7 @@ int main( int argc, char* argv[] )
 	}
 
 	std::ofstream dm_tc_file;
-	if( PhysiCell_settings.enable_full_saves == true )
+	if( PhysiCell_settings.enable_SVG_saves == true )
 	{
 		sprintf( filename , "%s/dm_tc.dat" , PhysiCell_settings.folder.c_str() );
 		dm_tc_file.open (filename);
@@ -244,6 +244,8 @@ int main( int argc, char* argv[] )
 						sprintf( filename , "%s/output%08u.bmp" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
 						GenerateBitmap(filename);
 					}
+
+					dm_tc_file << PhysiCell_globals.current_time << " " << DM << " " << TC << " " << TH1 << " " << TH2 << " " << TCt << " " << Tht << std::endl; //write globals data
 
  					PhysiCell_globals.SVG_output_index++;
 					if ( parameters.bools("custom_save_time") ){

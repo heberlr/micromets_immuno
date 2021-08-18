@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # Generate samples from Latin Hypercube
     generate_parSamples(parameters, default_value, variation, Samples_number,Replicas_number,constrain, file)
     # Create .xml and folder to each simulation
-    generate_configXML(file)
+    #generate_configXML(file)
     # Plot samples
     # plot_samples(file, parameters[1], parameters[2], default_value[1], default_value[2])
     # plot_samples(file, parameters[4], parameters[5], default_value[4], default_value[5])
