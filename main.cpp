@@ -304,7 +304,6 @@ int main( int argc, char* argv[] )
 
 	if( PhysiCell_settings.enable_full_saves == true )
 	{
-		dm_tc_file.close();
 		// save a final simulation snapshot
 		sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() );
 		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
@@ -312,6 +311,7 @@ int main( int argc, char* argv[] )
 
 	if( PhysiCell_settings.enable_SVG_saves == true && !parameters.bools("bitmap_save") )
 	{
+		dm_tc_file.close();
 		sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
 		//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 		SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
