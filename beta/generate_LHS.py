@@ -115,16 +115,16 @@ if __name__ == '__main__':
     default_value = np.array([4e-9, 0.1, 0.3, 2e-9, 0.1, 0.3, 3.3e-9, 1.4e-6, 1.1e-4, 3.5e-4])
     variation = 1.0
     constrain = ([1,2],[4,5]) # parameters[1] < parameters[2] and parameters[4] < parameters[5]
-    file = "ParameterSamples1.txt"
+    file = "ParameterSamples.txt"
     Samples_number = 10000
     Replicas_number = 10
     # Generate samples from Latin Hypercube
     generate_parSamples(parameters, default_value, variation, Samples_number,Replicas_number,constrain, file)
     # Create .xml and folder to each simulation
-    ##generate_configXML(file)
+    generate_configXML(file)
     # Plot samples
-    plot_samples(file, parameters[1], parameters[2], default_value[1], default_value[2])
-    plot_samples(file, parameters[4], parameters[5], default_value[4], default_value[5])
-    plot_samples(file, parameters[0], parameters[3], default_value[0], default_value[3])
-    plot_samples(file, parameters[6], parameters[7], default_value[6], default_value[7])
-    plot_samples(file, parameters[8], parameters[9], default_value[8], default_value[9])
+    # plot_samples(file, parameters[1], parameters[2], default_value[1], default_value[2])
+    # plot_samples(file, parameters[4], parameters[5], default_value[4], default_value[5])
+    # plot_samples(file, parameters[0], parameters[3], default_value[0], default_value[3])
+    # plot_samples(file, parameters[6], parameters[7], default_value[6], default_value[7])
+    # plot_samples(file, parameters[8], parameters[9], default_value[8], default_value[9])

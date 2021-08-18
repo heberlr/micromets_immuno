@@ -272,7 +272,7 @@ int main( int argc, char* argv[] )
 			/*
 			  Custom add-ons could potentially go here.
 			*/
-			check_lung_cell_out_of_domain(); // change to vector instead of loop all cell (check the neeed for it)
+			//check_lung_cell_out_of_domain(); // change to vector instead of loop all cell (check the neeed for it)
 			process_tagged_cells_on_edge();
 
 			immune_cell_recruitment( diffusion_dt );

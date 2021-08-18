@@ -36,7 +36,7 @@
 
 		<full_data>
 			<interval units="min">60</interval>
-			<enable>true</enable>
+			<enable>false</enable>
 		</full_data>
 
 		<SVG>
@@ -966,10 +966,10 @@
 		<hyperactivated_macrophage_color description="color of hyperactivated macrophage" type="string">rgb(168,221,181)</hyperactivated_macrophage_color>
 		<DC_color description="DC color" type="string">rgb(129,15,124)</DC_color>
 		<activated_DC_color description="DC color" type="string">deeppink</activated_DC_color>
-		<custom_save_time description="save time with local and global dt" type="bool">false</custom_save_time>
+		<custom_save_time description="save time with local and global dt" type="bool">true</custom_save_time>
 		<local_dt_save_time description="local dt to save data and svg" type="double" units="min">60.0</local_dt_save_time>
 		<global_dt_save_time description="global dt to save data and svg" type="double" units="min">1440.0</global_dt_save_time>
-		<bitmap_save description="save bitmap instead of svg files" type="bool">false</bitmap_save>
+		<bitmap_save description="save bitmap instead of svg files" type="bool">true</bitmap_save>
 	</user_parameters>
 
 </PhysiCell_settings>

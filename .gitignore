@@ -3,3 +3,4 @@
 *.pyc
 /output_*
 config/tmp.xml
+*.bmp

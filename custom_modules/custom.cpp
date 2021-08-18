@@ -965,14 +965,14 @@ void GenerateBitmap(const char* filename)
       Image(i,j)->Red = Rvalue;
       Image(i,j)->Green = Gvalue;
       Image(i,j)->Blue = Bvalue;
-      std::cout << "Pixels - (" << i << ", " << j << ") - binary: [ ";
-      for (unsigned int k = 0; k < PixelsBinary[i][j].binaryVector.size(); k++)
-        std::cout << PixelsBinary[i][j].binaryVector[k] << " ";
-      std::cout << " ] - R: " << Rvalue << " G: " << Gvalue << " B: " << Bvalue << std::endl;
+      // std::cout << "Pixels - (" << i << ", " << j << ") - binary: [ ";
+      // for (unsigned int k = 0; k < PixelsBinary[i][j].binaryVector.size(); k++)
+      //   std::cout << PixelsBinary[i][j].binaryVector[k] << " ";
+      // std::cout << " ] - R: " << Rvalue << " G: " << Gvalue << " B: " << Bvalue << std::endl;
     }
 
-		// Write bitmap file
-		Image.WriteToFile( filename );
+	// Write bitmap file
+	Image.WriteToFile( filename );
 
 
 }
