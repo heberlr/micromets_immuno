@@ -29,7 +29,7 @@ endif
 
 CC := g++
 
-# Check for environment definitions of compiler 
+# Check for environment definitions of compiler
 # e.g., on CC = g++-7 on OSX
 ifdef PHYSICELL_CPP
 	CC := $(PHYSICELL_CPP)
@@ -71,7 +71,7 @@ PhysiCell_module_OBJECTS := PhysiCell_SVG.o PhysiCell_pathology.o PhysiCell_Mult
 PhysiCell_pugixml.o PhysiCell_settings.o
 
 # put your custom objects here (they should be in the custom_modules directory)
-PhysiCell_custom_module_OBJECTS := custom.o DC_history.o external_immune.o submodel_data_structures.o immune_submodels.o epithelium_submodel.o melanoma_submodel.o
+PhysiCell_custom_module_OBJECTS := custom.o EasyBMP.o DC_history.o external_immune.o submodel_data_structures.o immune_submodels.o epithelium_submodel.o melanoma_submodel.o
 
 pugixml_OBJECTS := pugixml.o
 
@@ -191,7 +191,10 @@ melanoma_submodel.o: ./custom_modules/melanoma_submodel.cpp
 	$(COMPILE_COMMAND) -c ./custom_modules/melanoma_submodel.cpp
 
 DC_history.o: ./custom_modules/DC_history.cpp
-		$(COMPILE_COMMAND) -c ./custom_modules/DC_history.cpp
+	$(COMPILE_COMMAND) -c ./custom_modules/DC_history.cpp
+
+EasyBMP.o: ./custom_modules/EasyBMP.cpp ./custom_modules/EasyBMP*.h
+	$(COMPILE_COMMAND) -c ./custom_modules/EasyBMP.cpp
 
 # cleanup
 # next 2 targets for nanoHUB

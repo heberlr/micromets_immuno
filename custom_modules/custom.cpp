@@ -801,3 +801,178 @@ void print_cell_count( std::ofstream& file )
 	}
 	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << " " << NumberofCells[8] << std::endl;
 }
+
+#include "EasyBMP.h"
+
+class binaryVec {
+  public:
+    std::vector<bool> binaryVector;
+    binaryVec(): binaryVector(24,false){}
+};
+
+void Binary2Color(const std::vector<bool> &BinaryVector, int &Rvalue, int &Gvalue, int &Bvalue)
+{
+  // -------- Red channel -------------
+  // 0 - live lung cell;              1 - dead lung cell;
+  // 2 - dead melanoma cell;          3 - dead DC
+  // 4 - dead macrophage;             5 - dead CD4 T cell;
+  // 6 - dead CD8 T cell;             7 - live melanoma cell;
+  // -------- Green channel -------------
+  // 8 - inactivated DC;              9 - inactivated macrophage;
+  // 10 - exhausted macrophage;       11 - hyperactivated macrophage;
+  // 12 - live CD4 T cell;            13 - activated DC;
+  // 14 - activated macrophage;       15 - live CD8 T cell;
+  // -------- Blue channel -------------
+  // 16 - debris >= 0.00 and < 0.25;  17 - debris >= 0.25 and < 0.50;
+  // 18 - debris >= 0.50 and < 0.75;  19 - debris >= 0.75;
+  // 20 - TNF >= 0.00 and < 0.25;     21 - TNF >= 0.25 and < 0.50;
+  // 22 - TNF >= 0.50 and < 0.75;     23 - TNF >= 0.75;
+  Rvalue = 0; Gvalue = 0; Bvalue = 0;
+  // Red channel
+  for (unsigned int i = 0; i < 8; i++){
+      Rvalue += BinaryVector[i]*pow(2,i);
+  }
+  // Green channel
+  for (unsigned int i = 8; i < 16; i++){
+      Gvalue += BinaryVector[i]*pow(2,(i-8));
+  }
+  // Blue channel
+  for (unsigned int i = 16; i < 24; i++){
+      Bvalue += BinaryVector[i]*pow(2,(i-16));
+  }
+}
+
+void SetBinaryVector(const std::vector<double> &Pos, const int type, std::vector<std::vector<binaryVec>> &PixelsBinary, BMP &Image )
+{
+	const double x_min = microenvironment.mesh.bounding_box[0];
+	const double x_max = microenvironment.mesh.bounding_box[3];
+	const double y_min = microenvironment.mesh.bounding_box[1];
+	const double y_max = microenvironment.mesh.bounding_box[4];
+
+  const double deltaX = (x_max - x_min)/Image.TellWidth();
+  const double deltaY = (y_max - y_min)/Image.TellHeight();
+  // Check cells inside of pixels - type is the binary position
+  for(unsigned int i = 0; i < Image.TellWidth(); i++){
+    for (unsigned int j = 0; j < Image.TellHeight(); j++){
+        if ( Pos[0] >= x_min + deltaX*i && Pos[0] < x_min + deltaX*(i+1) &&
+        Pos[1] <= y_max - deltaY*j && Pos[1] > y_max - deltaY*(j+1) )
+        {
+          PixelsBinary[i][j].binaryVector[type] = true;
+          //cout <<"(" << Pos[0] << ", " << Pos[1] << ") - (" << i << ", " << j <<") - "<< type << endl;
+          return;
+        }
+
+    }
+  }
+}
+
+void SetBinaryVectorSubs(const std::vector<double> &Pos, const double debris,const double TNF, std::vector<std::vector<binaryVec>> &PixelsBinary, BMP &Image )
+{
+  const double x_min = microenvironment.mesh.bounding_box[0];
+	const double x_max = microenvironment.mesh.bounding_box[3];
+	const double y_min = microenvironment.mesh.bounding_box[1];
+	const double y_max = microenvironment.mesh.bounding_box[4];
+
+  const double deltaX = (x_max - x_min)/Image.TellWidth();
+  const double deltaY = (y_max - y_min)/Image.TellHeight();
+  // Check center of voxels inside of pixels
+  for(unsigned int i = 0; i < Image.TellWidth(); i++){
+    for (unsigned int j = 0; j < Image.TellHeight(); j++){
+        if ( Pos[0] >= x_min + deltaX*i && Pos[0] < x_min + deltaX*(i+1) &&
+        Pos[1] <= y_max - deltaY*j && Pos[1] > y_max - deltaY*(j+1) )
+        {
+          if (debris >= 0.00 &&  debris < 0.25) PixelsBinary[i][j].binaryVector[16] = true;
+          if (debris >= 0.25 &&  debris < 0.50) PixelsBinary[i][j].binaryVector[17] = true;
+          if (debris >= 0.50 &&  debris < 0.75) PixelsBinary[i][j].binaryVector[18] = true;
+          if (debris >= 0.75 ) PixelsBinary[i][j].binaryVector[19] = true;
+          if (TNF >= 0.00 &&  TNF < 0.25) PixelsBinary[i][j].binaryVector[20] = true;
+          if (TNF >= 0.25 &&  TNF < 0.50) PixelsBinary[i][j].binaryVector[21] = true;
+          if (TNF >= 0.50 &&  TNF < 0.75) PixelsBinary[i][j].binaryVector[22] = true;
+          if (TNF >= 0.75 ) PixelsBinary[i][j].binaryVector[23] = true;
+
+          //cout <<"(" << Pos[0] << ", " << Pos[1] << ") - (" << i << ", " << j <<") - "<< type << endl;
+          return;
+        }
+
+    }
+  }
+}
+
+void GenerateBitmap(const char* filename)
+{
+	BMP Image;
+  // Set size to width x height
+  Image.SetSize(5,5);
+  // Set its color depth to 24-bits
+  Image.SetBitDepth(24);
+  std::vector<std::vector<binaryVec>> PixelsBinary(Image.TellHeight(), std::vector<binaryVec>(Image.TellWidth()));
+
+	static int lung_type = get_cell_definition( "lung cell" ).type;
+	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int CD8_type = get_cell_definition( "CD8 Tcell" ).type;
+	static int CD4_type = get_cell_definition( "CD4 Tcell" ).type;
+	static int macrophage_type = get_cell_definition( "macrophage" ).type;
+	static int DC_type = get_cell_definition( "DC" ).type;
+	for (int i=0; i < (*all_cells).size(); i++)
+	{
+		if( (*all_cells)[i]->type == lung_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == false ) SetBinaryVector((*all_cells)[i]->position,0,PixelsBinary,Image); //bit 0 - live lung cell
+			else SetBinaryVector((*all_cells)[i]->position,1,PixelsBinary,Image); //bit 1 - dead lung cell
+		}
+		else if ( (*all_cells)[i]->type == melanoma_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,2,PixelsBinary,Image); //bit 2 - dead melanoma cell
+			else SetBinaryVector((*all_cells)[i]->position,7,PixelsBinary,Image); //bit 7 - live melanoma cell
+		}
+		else if ( (*all_cells)[i]->type == DC_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,3,PixelsBinary,Image); //bit 3 - dead DC
+			else if ( (*all_cells)[i]->custom_data["activated_immune_cell" ] > 0.5 ){
+				SetBinaryVector((*all_cells)[i]->position,13,PixelsBinary,Image); //bit 13 - activated DC
+			}else SetBinaryVector((*all_cells)[i]->position,8,PixelsBinary,Image); //bit 8 - inactivated DC
+		}
+		else if ( (*all_cells)[i]->type == macrophage_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,4,PixelsBinary,Image); //bit 4 - dead macrophage
+			else if ( (*all_cells)[i]->custom_data["ability_to_phagocytose_melanoma_cell"] == 1 ){
+				SetBinaryVector((*all_cells)[i]->position,11,PixelsBinary,Image); //bit 11 - hyperactivated macrophage
+			}else if ( (*all_cells)[i]->phenotype.volume.total> (*all_cells)[i]->custom_data["threshold_macrophage_volume"] ){
+				SetBinaryVector((*all_cells)[i]->position,10,PixelsBinary,Image); //bit 10 - exhausted macrophage
+			}else if ( (*all_cells)[i]->custom_data["activated_immune_cell" ] > 0.5 ){
+				SetBinaryVector((*all_cells)[i]->position,14,PixelsBinary,Image); //bit 14 - activated macrophage
+			}else SetBinaryVector((*all_cells)[i]->position,9,PixelsBinary,Image); //bit 9 - inactivated macrophage
+		}
+		else if( (*all_cells)[i]->type == CD4_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,5,PixelsBinary,Image); //bit 5 - dead CD4 T cell
+			else SetBinaryVector((*all_cells)[i]->position,12,PixelsBinary,Image); //bit 12 - live CD4 T cell
+		}
+		else if( (*all_cells)[i]->type == CD8_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,6,PixelsBinary,Image); //bit 6 - dead CD8 T cell
+			else SetBinaryVector((*all_cells)[i]->position,15,PixelsBinary,Image); //bit 15 - live CD8 T cell
+		}
+	}
+
+	// Substrate in blue channel
+	static int TNF_index = microenvironment.find_density_index( "TNF");
+	static int debris_index = microenvironment.find_density_index( "debris");
+	for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		SetBinaryVectorSubs(microenvironment.mesh.voxels[n].center,microenvironment.nearest_density_vector(n)[debris_index],microenvironment.nearest_density_vector(n)[TNF_index],PixelsBinary,Image);
+		//std::cout << microenvironment.mesh.voxels[n].center <<" "<< microenvironment.nearest_density_vector(n)[debris_index] <<" "<< microenvironment.nearest_density_vector(n)[TNF_index] << std::endl;
+	}
+
+	// Write bitmap file
+	int Rvalue, Gvalue, Bvalue;
+  for(unsigned int i = 0; i < Image.TellWidth(); i++)
+    for (unsigned int j = 0; j < Image.TellHeight(); j++){
+      Binary2Color(PixelsBinary[i][j].binaryVector,Rvalue,Gvalue,Bvalue);
+      Image(i,j)->Red = Rvalue;
+      Image(i,j)->Green = Gvalue;
+      Image(i,j)->Blue = Bvalue;
+      std::cout << "Pixels - (" << i << ", " << j << ") - binary: [ ";
+      for (unsigned int k = 0; k < PixelsBinary[i][j].binaryVector.size(); k++)
+        std::cout << PixelsBinary[i][j].binaryVector[k] << " ";
+      std::cout << " ] - R: " << Rvalue << " G: " << Gvalue << " B: " << Bvalue << std::endl;
+    }
+
+		// Write bitmap file
+		Image.WriteToFile( filename );
+
+
+}

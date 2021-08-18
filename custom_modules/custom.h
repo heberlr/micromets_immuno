@@ -74,6 +74,7 @@
 #include "./epithelium_submodel.h"
 #include "./melanoma_submodel.h"
 #include "./DC_history.h"
+#include "./EasyBMP.h"
 
 using namespace BioFVM;
 using namespace PhysiCell;
@@ -100,3 +101,4 @@ void move_exported_to_pathogen_field( void );
 
 void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) );
 void print_cell_count( std::ofstream& file );
+void GenerateBitmap(const char* filename);

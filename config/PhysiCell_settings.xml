@@ -969,6 +969,7 @@
 		<custom_save_time description="save time with local and global dt" type="bool">false</custom_save_time>
 		<local_dt_save_time description="local dt to save data and svg" type="double" units="min">60.0</local_dt_save_time>
 		<global_dt_save_time description="global dt to save data and svg" type="double" units="min">1440.0</global_dt_save_time>
+		<bitmap_save description="save bitmap instead of svg files" type="bool">false</bitmap_save>
 	</user_parameters>
 
 </PhysiCell_settings>

@@ -46,6 +46,7 @@ def generate_parSamples(parameters, default_value, variation, Samples_number,Rep
             for id_par in range(0, len(parameters)):
                 file.write(parameters[id_par]+" "+str(samples[sample_id,id_par])+"\n")
             file.write("custom_save_time true\n")
+            file.write("bitmap_save true\n")
             file.write("#"+"\n")
     file.close()
 
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     Samples_number = 10000
     Replicas_number = 10
     # Generate samples from Latin Hypercube
-    ##generate_parSamples(parameters, default_value, variation, Samples_number,Replicas_number,constrain, file)
+    generate_parSamples(parameters, default_value, variation, Samples_number,Replicas_number,constrain, file)
     # Create .xml and folder to each simulation
     ##generate_configXML(file)
     # Plot samples
