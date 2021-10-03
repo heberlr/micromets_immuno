@@ -72,6 +72,7 @@ std::vector<std::vector <double>> valid_position;
 std::default_random_engine generator{123456789};
 
 extern AntigenLibrary AntigenLib;
+extern LymphNode lympNode;
 
 void create_cell_types( void )
 {
@@ -224,28 +225,30 @@ void setup_tissue( void )
 		}
 	}
 	int Max_number_of_cell = valid_position.size();
-	extern double GridCOUNT;
-  GridCOUNT = Max_number_of_cell;
+	// extern double GridCOUNT;
+  	lympNode.GridCOUNT = Max_number_of_cell;
 	// place immune cells
 	initial_immune_cell_placement();
 
 	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
 	// Melanoma cells
-	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
+	if ( parameters.doubles("time_add_melanoma_cell") == 0.0 )
+	{
+		for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
 
-		// Sample neoantigens
-		//....
-		pC = create_cell( get_cell_definition("melanoma cell" ) );
-		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
-		int index_sample = distribution_index(generator);
-		pC->assign_position( valid_position[index_sample] );
-		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
-		valid_position.erase (valid_position.begin()+index_sample);
-		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
+			// Sample neoantigens
+			//....
+			pC = create_cell( get_cell_definition("melanoma cell" ) );
+			std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
+			int index_sample = distribution_index(generator);
+			pC->assign_position( valid_position[index_sample] );
+			pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
+			valid_position.erase (valid_position.begin()+index_sample);
+			//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
+		}
 	}
-
 	// Ephitelium cells
-  for ( int i=0; i < parameters.doubles("cell_confluence_lung_cells")*Max_number_of_cell;i++){
+  	for ( int i=0; i < parameters.doubles("cell_confluence_lung_cells")*Max_number_of_cell;i++){
 		pC = create_cell( get_cell_definition("lung cell" ) );
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
@@ -431,13 +434,13 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 		std::ofstream os( filename , std::ios::out );
 		if( os.fail() )
 		{
-			std::cout << std::endl << "Error: Failed to open " << filename << " for SVG writing." << std::endl << std::endl;
+				std::cout << std::endl << "Error: Failed to open " << filename << " for SVG writing." << std::endl << std::endl;
 
-			std::cout << std::endl << "Error: We're not writing data like we expect. " << std::endl
-			<< "Check to make sure your save directory exists. " << std::endl << std::endl
-			<< "I'm going to exit with a crash code of -1 now until " << std::endl
-			<< "you fix your directory. Sorry!" << std::endl << std::endl;
-			exit(-1);
+				std::cout << std::endl << "Error: We're not writing data like we expect. " << std::endl
+				<< "Check to make sure your save directory exists. " << std::endl << std::endl
+				<< "I'm going to exit with a crash code of -1 now until " << std::endl
+				<< "you fix your directory. Sorry!" << std::endl << std::endl;
+				exit(-1);
 		}
 
 		Write_SVG_start( os, plot_width , plot_height + top_margin );
@@ -485,202 +488,121 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 		double half_voxel_size = voxel_size / 2.0;
 		double normalizer = 78.539816339744831 / (voxel_size*voxel_size*voxel_size);
 
-		// color in the background ECM
-		/*
-		if( ECM.TellRows() > 0 )
+		os << "  </g>" << std::endl;
+
+		static Cell_Definition* pEpithelial = find_cell_definition( "lung cell" );
+		static Cell_Definition* pMelanoma = find_cell_definition( "melanoma cell" );
+
+		// plot intersecting epithelial and melanoma cells
+		os << "  <g id=\"cells\">" << std::endl;
+		for( int i=0 ; i < total_cell_count ; i++ )
 		{
-		// find the k corresponding to z_slice
+				Cell* pC = (*all_cells)[i]; // global_cell_list[i];
 
+				static std::vector<std::string> Colors;
+				if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
+				&& (pC->type == pEpithelial->type || pC->type == pMelanoma->type) )
+				{
+						double r = pC->phenotype.geometry.radius ;
+						double rn = pC->phenotype.geometry.nuclear_radius ;
+						double z = fabs( (pC->position)[2] - z_slice) ;
 
+						Colors = cell_coloring_function( pC );
 
-		Vector position;
-		*position(2) = z_slice;
+						os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
 
+						// figure out how much of the cell intersects with z = 0
 
-		// 25*pi* 5 microns^2 * length (in source) / voxelsize^3
+						double plot_radius = sqrt( r*r - z*z );
 
-		for( int j=0; j < ratio*ECM.TellCols() ; j++ )
+						Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
+						plot_radius , 0.5, Colors[1], Colors[0] , epithelial_opacity );
+						os << "   </g>" << std::endl;
+				}
+		}
+
+		//plot intersecting non=epithelial and non-melanoma cells
+		for( int i=0 ; i < total_cell_count ; i++ )
 		{
-		// *position(1) = *Y_environment(j);
-		*position(1) = *Y_environment(0) - dy_stroma/2.0 + j*voxel_size + half_voxel_size;
+				Cell* pC = (*all_cells)[i]; // global_cell_list[i];
 
-		for( int i=0; i < ratio*ECM.TellRows() ; i++ )
+				static std::vector<std::string> Colors;
+				if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
+				&& pC->type != pEpithelial->type && pC->type != pMelanoma->type)
+				{
+						double r = pC->phenotype.geometry.radius ;
+						double rn = pC->phenotype.geometry.nuclear_radius ;
+						double z = fabs( (pC->position)[2] - z_slice) ;
+
+						Colors = cell_coloring_function( pC );
+
+						os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
+
+						// figure out how much of the cell intersects with z = 0
+
+						double plot_radius = sqrt( r*r - z*z );
+
+						Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
+						plot_radius , 0.5, Colors[1], Colors[0] , non_epithelial_opacity );
+						os << "   </g>" << std::endl;
+				}
+		}
+
+		os << "  </g>" << std::endl;
+
+		// end of the <g ID="tissue">
+		os << " </g>" << std::endl;
+
+		// draw a scale bar
+
+		double bar_margin = 0.025 * plot_height;
+		double bar_height = 0.01 * plot_height;
+		double bar_width = PhysiCell_SVG_options.length_bar;
+		double bar_stroke_width = 0.001 * plot_height;
+
+		std::string bar_units = PhysiCell_SVG_options.simulation_space_units;
+		// convert from micron to mm
+		double temp = bar_width;
+
+		if( temp > 999 && std::strstr( bar_units.c_str() , PhysiCell_SVG_options.mu.c_str() )   )
 		{
-		// *position(0) = *X_environment(i);
-		*position(0) = *X_environment(0) - dx_stroma/2.0 + i*voxel_size + half_voxel_size;
-
-		double E = evaluate_Matrix3( ECM, X_environment , Y_environment, Z_environment , position );
-		double BV = normalizer * evaluate_Matrix3( OxygenSourceHD, X_environment , Y_environment, Z_environment , position );
-		if( isnan( BV ) )
-		{ BV = 0.0; }
-
-		vector<string> Colors;
-		Colors = hematoxylin_and_eosin_stroma_coloring( E , BV );
-		Write_SVG_rect( os , *position(0)-half_voxel_size-X_lower , *position(1)-half_voxel_size+top_margin-Y_lower,
-		voxel_size , voxel_size , 1 , Colors[0], Colors[0] );
-
-	}
-}
-
-}
-*/
-os << "  </g>" << std::endl;
-
-static Cell_Definition* pEpithelial = find_cell_definition( "lung cell" );
-static Cell_Definition* pMelanoma = find_cell_definition( "melanoma cell" );
-
-// plot intersecting epithelial and melanoma cells
-os << "  <g id=\"cells\">" << std::endl;
-for( int i=0 ; i < total_cell_count ; i++ )
-{
-	Cell* pC = (*all_cells)[i]; // global_cell_list[i];
-
-	static std::vector<std::string> Colors;
-	if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-	&& (pC->type == pEpithelial->type || pC->type == pMelanoma->type) )
-	{
-		double r = pC->phenotype.geometry.radius ;
-		double rn = pC->phenotype.geometry.nuclear_radius ;
-		double z = fabs( (pC->position)[2] - z_slice) ;
-
-		Colors = cell_coloring_function( pC );
-
-		os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
-
-		// figure out how much of the cell intersects with z = 0
-
-		double plot_radius = sqrt( r*r - z*z );
-
-		Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius , 0.5, Colors[1], Colors[0] , epithelial_opacity );
-		/*
-		// plot the nucleus if it, too intersects z = 0;
-		if( fabs(z) < rn && PhysiCell_SVG_options.plot_nuclei == true )
+				temp /= 1000;
+				bar_units = "mm";
+		}
+		// convert from mm to cm
+		if( temp > 9 && std::strcmp( bar_units.c_str() , "mm" ) == 0 )
 		{
-		plot_radius = sqrt( rn*rn - z*z );
-		Write_SVG_circle( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius, 0.5, Colors[3],Colors[2]);
-	}
-	*/
-	os << "   </g>" << std::endl;
-}
+				temp /= 10;
+				bar_units = "cm";
+		}
 
-}
+		szString = new char [1024];
+		sprintf( szString , "%u %s" , (int) round( temp ) , bar_units.c_str() );
 
-//plot intersecting non=epithelial and non-melanoma cells
-for( int i=0 ; i < total_cell_count ; i++ )
-{
-	Cell* pC = (*all_cells)[i]; // global_cell_list[i];
+		Write_SVG_rect( os , plot_width - bar_margin - bar_width  , plot_height + top_margin - bar_margin - bar_height ,
+		bar_width , bar_height , 0.002 * plot_height , "rgb(255,255,255)", "rgb(0,0,0)" );
+		Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_size ,
+		plot_height + top_margin - bar_margin - bar_height - 0.25*font_size ,
+		font_size , PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
 
-	static std::vector<std::string> Colors;
-	if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-	&& pC->type != pEpithelial->type && pC->type != pMelanoma->type)
-	{
-		double r = pC->phenotype.geometry.radius ;
-		double rn = pC->phenotype.geometry.nuclear_radius ;
-		double z = fabs( (pC->position)[2] - z_slice) ;
+		delete [] szString;
 
-		Colors = cell_coloring_function( pC );
+		// plot runtime
+		szString = new char [1024];
+		RUNTIME_TOC();
+		std::string formatted_stopwatch_value = format_stopwatch_value( runtime_stopwatch_value() );
+		Write_SVG_text( os, formatted_stopwatch_value.c_str() , bar_margin , top_margin + plot_height - bar_margin , 0.75 * font_size ,
+		PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
+		delete [] szString;
 
-		os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
+		// draw a box around the plot window
+		Write_SVG_rect( os , 0 , top_margin, plot_width, plot_height , 0.002 * plot_height , "rgb(0,0,0)", "none" );
 
-		// figure out how much of the cell intersects with z = 0
+		// close the svg tag, close the file
+		Write_SVG_end( os );
+		os.close();
 
-		double plot_radius = sqrt( r*r - z*z );
-
-		Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius , 0.5, Colors[1], Colors[0] , non_epithelial_opacity );
-		/*
-		// plot the nucleus if it, too intersects z = 0;
-		if( fabs(z) < rn && PhysiCell_SVG_options.plot_nuclei == true )
-		{
-		plot_radius = sqrt( rn*rn - z*z );
-		Write_SVG_circle( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius, 0.5, Colors[3],Colors[2]);
-	}
-	*/
-	os << "   </g>" << std::endl;
-}
-
-}
-
-os << "  </g>" << std::endl;
-
-// plot intersecting BM points
-/*
-for( int i=0 ; i < BasementMembraneNodes.size() ; i++ )
-{
-// vector<string> Colors = false_cell_coloring( pC );
-BasementMembraneNode* pBMN = BasementMembraneNodes[i];
-double thickness =0.1;
-
-if( fabs( *(pBMN->Position)(2) - z_slice ) < thickness/2.0 )
-{
-string bm_color ( "rgb(0,0,0)" );
-double r = thickness/2.0;
-double z = fabs( *(pBMN->Position)(2) - z_slice) ;
-
-os << " <g id=\"BMN" << pBMN->ID << "\">" << std::endl;
-Write_SVG_circle( os,*(pBMN->Position)(0)-X_lower, *(pBMN->Position)(1)+top_margin-Y_lower, 10*thickness/2.0 , 0.5 , bm_color , bm_color );
-os << " </g>" << std::endl;
-}
-// pC = pC->pNextCell;
-}
-*/
-
-// end of the <g ID="tissue">
-os << " </g>" << std::endl;
-
-// draw a scale bar
-
-double bar_margin = 0.025 * plot_height;
-double bar_height = 0.01 * plot_height;
-double bar_width = PhysiCell_SVG_options.length_bar;
-double bar_stroke_width = 0.001 * plot_height;
-
-std::string bar_units = PhysiCell_SVG_options.simulation_space_units;
-// convert from micron to mm
-double temp = bar_width;
-
-if( temp > 999 && std::strstr( bar_units.c_str() , PhysiCell_SVG_options.mu.c_str() )   )
-{
-	temp /= 1000;
-	bar_units = "mm";
-}
-// convert from mm to cm
-if( temp > 9 && std::strcmp( bar_units.c_str() , "mm" ) == 0 )
-{
-	temp /= 10;
-	bar_units = "cm";
-}
-
-szString = new char [1024];
-sprintf( szString , "%u %s" , (int) round( temp ) , bar_units.c_str() );
-
-Write_SVG_rect( os , plot_width - bar_margin - bar_width  , plot_height + top_margin - bar_margin - bar_height ,
-bar_width , bar_height , 0.002 * plot_height , "rgb(255,255,255)", "rgb(0,0,0)" );
-Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_size ,
-	plot_height + top_margin - bar_margin - bar_height - 0.25*font_size ,
-	font_size , PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
-
-	delete [] szString;
-
-	// plot runtime
-	szString = new char [1024];
-	RUNTIME_TOC();
-	std::string formatted_stopwatch_value = format_stopwatch_value( runtime_stopwatch_value() );
-	Write_SVG_text( os, formatted_stopwatch_value.c_str() , bar_margin , top_margin + plot_height - bar_margin , 0.75 * font_size ,
-	PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
-	delete [] szString;
-
-	// draw a box around the plot window
-	Write_SVG_rect( os , 0 , top_margin, plot_width, plot_height , 0.002 * plot_height , "rgb(0,0,0)", "none" );
-
-	// close the svg tag, close the file
-	Write_SVG_end( os );
-	os.close();
-
-	return;
+		return;
 }
 
 void mutation (Cell* pCell){
@@ -755,6 +677,27 @@ void check_lung_cell_out_of_domain( void )
 	}
 }
 
+
+void include_tumor_cells(void)
+{
+	if (  PhysiCell_globals.current_time == 0 || fabs( PhysiCell_globals.current_time - parameters.doubles("time_add_melanoma_cell")  ) >= 0.01 * diffusion_dt )
+		return;
+	Cell* pC;
+	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
+	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
+
+		// Sample neoantigens
+		//....
+		pC = create_cell( get_cell_definition("melanoma cell" ) );
+		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
+		int index_sample = distribution_index(generator);
+		pC->assign_position( valid_position[index_sample] );
+		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
+		valid_position.erase (valid_position.begin()+index_sample);
+		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
+	}
+}
 void print_cell_count( std::ofstream& file )
 {
 	static int lung_cell_type = get_cell_definition( "lung cell" ).type;
@@ -902,7 +845,7 @@ void GenerateBitmap(const char* filename)
 {
 	BMP Image;
   // Set size to width x height
-  Image.SetSize(5,5);
+  Image.SetSize(parameters.ints("bitmap_width"),parameters.ints("bitmap_height"));
   // Set its color depth to 24-bits
   Image.SetBitDepth(24);
   std::vector<std::vector<binaryVec>> PixelsBinary(Image.TellHeight(), std::vector<binaryVec>(Image.TellWidth()));

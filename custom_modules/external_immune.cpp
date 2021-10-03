@@ -10,13 +10,14 @@ Submodel_Information external_immune_info;
 extern std::default_random_engine generator;
 
 extern AntigenLibrary AntigenLib;
+extern LymphNode lympNode;
 
 void external_immune_model_setup( void )
 {
 	// set version
 	external_immune_info.name = "external immune";
 	external_immune_info.version = external_immune_version;
-	// set functions 
+	// set functions
 	external_immune_info.main_function = external_immune_model;
 	external_immune_info.phenotype_function = NULL;
 	external_immune_info.mechanics_function = NULL;
@@ -34,14 +35,6 @@ void external_immune_model_setup( void )
 void external_immune_model( double dt )
 {
 	AntigenLib.update_collection(PhysiCell_globals.current_time, 720.0); // update collection of antigens (720 mim, time to include neoantigen on library)
-	// bookkeeping -- find microenvironment variables we need
-	extern double DM;
-	extern double TC;
-	extern double TH1;
-	extern double TH2;
-	extern double TCt;
-	extern double Tht;
-	extern double GridCOUNT;
 	static double dC = parameters.doubles( "TC_death_rate" );
 	static double pT1 = parameters.doubles( "max_activation_TC" );
 	static double pT2 = parameters.doubles( "half_max_activation_TC" );
@@ -58,7 +51,7 @@ void external_immune_model( double dt )
 	static double ro = parameters.doubles( "Th1_Th2_conversion_weight" );
 	static double CD8_Tcell_recruitment_rate = parameters.doubles( "T_Cell_Recruitment" );
 
-	double lypmh_scale = GridCOUNT / 5e5;
+	double lypmh_scale = lympNode.GridCOUNT / 5e5;
 
 	// actual model goes here
 
@@ -71,12 +64,12 @@ void external_immune_model( double dt )
 
 	extern std::vector<int>history;
 
-	x[0][0] = (DM+history.back())/lypmh_scale;
-	x[0][1] = TC; //initial values
-	x[0][2] = TH1; //initial values
-	x[0][3] = TH2; //initial values
-	x[0][4] = TCt/lypmh_scale;
-	x[0][5] = Tht/lypmh_scale;
+	x[0][0] = (lympNode.DM+history.back())/lypmh_scale;
+	x[0][1] = lympNode.TC; //initial values
+	x[0][2] = lympNode.TH1; //initial values
+	x[0][3] = lympNode.TH2; //initial values
+	x[0][4] = lympNode.TCt/lypmh_scale;
+	x[0][5] = lympNode.Tht/lypmh_scale;
 
 	for(j = 0; j < 4; j++){
 		f[j][0] = {-dDm*x[j][0]}; //define function
@@ -103,12 +96,12 @@ void external_immune_model( double dt )
 		}
 	}
 
-	DM=(x[0][0]+dt*(f[0][0]/6+f[1][0]/3+f[2][0]/3+f[3][0]/6))*lypmh_scale;
-	TC=x[0][1]+dt*(f[0][1]/6+f[1][1]/3+f[2][1]/3+f[3][1]/6);
-	TH1=x[0][2]+dt*(f[0][2]/6+f[1][2]/3+f[2][2]/3+f[3][2]/6); //detirmine n+1
-	TH2=x[0][3]+dt*(f[0][3]/6+f[1][3]/3+f[2][3]/3+f[3][3]/6); //detirmine n+1
-	TCt=(x[0][4]+dt*(f[0][4]/6+f[1][4]/3+f[2][4]/3+f[3][4]/6))*lypmh_scale;
-	Tht=(x[0][5]+dt*(f[0][5]/6+f[1][5]/3+f[2][5]/3+f[3][5]/6))*lypmh_scale;
+	lympNode.DM=(x[0][0]+dt*(f[0][0]/6+f[1][0]/3+f[2][0]/3+f[3][0]/6))*lypmh_scale;
+	lympNode.TC=x[0][1]+dt*(f[0][1]/6+f[1][1]/3+f[2][1]/3+f[3][1]/6);
+	lympNode.TH1=x[0][2]+dt*(f[0][2]/6+f[1][2]/3+f[2][2]/3+f[3][2]/6); //detirmine n+1
+	lympNode.TH2=x[0][3]+dt*(f[0][3]/6+f[1][3]/3+f[2][3]/3+f[3][3]/6); //detirmine n+1
+	lympNode.TCt=(x[0][4]+dt*(f[0][4]/6+f[1][4]/3+f[2][4]/3+f[3][4]/6))*lypmh_scale;
+	lympNode.Tht=(x[0][5]+dt*(f[0][5]/6+f[1][5]/3+f[2][5]/3+f[3][5]/6))*lypmh_scale;
 
 
 	return;

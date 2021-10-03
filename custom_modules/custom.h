@@ -101,4 +101,5 @@ void move_exported_to_pathogen_field( void );
 
 void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) );
 void print_cell_count( std::ofstream& file );
+void include_tumor_cells(void);
 void GenerateBitmap(const char* filename);

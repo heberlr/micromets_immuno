@@ -7,6 +7,8 @@ std::string DC_history_version = "0.5.0";
 
 Submodel_Information DC_history_info;
 
+extern LymphNode lympNode;
+
 void DC_history_model_setup( void )
 {
 		// set version
@@ -14,7 +16,7 @@ void DC_history_model_setup( void )
 	DC_history_info.version = DC_history_version;
 		// set functions
 	DC_history_info.main_function = DC_history_main_model;
-	DC_history_info.phenotype_function = NULL; // pushed into the "main" model   
+	DC_history_info.phenotype_function = NULL; // pushed into the "main" model
 	DC_history_info.mechanics_function = NULL;
 		// what microenvironment variables do you need
 
@@ -34,7 +36,7 @@ void DC_history_model( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// bookkeeping -- find custom data we need
 	static double DCprob = parameters.doubles( "DC_leave_prob" );
-	extern double DCAMOUNT; //declare existance of counter
+	// extern double DCAMOUNT; //declare existance of counter
 	// do nothing if dead
 	if( phenotype.death.dead == true )
 	{ return; }
@@ -50,7 +52,7 @@ void DC_history_model( Cell* pCell, Phenotype& phenotype, double dt )
 		std::cout<<"DC leaves tissue"<<std::endl;
 		pCell->lyse_cell();
 		#pragma omp critical
-		{ DCAMOUNT++; } // add one
+		{ lympNode.DCAMOUNT++; } // add one
 		return;
 
 	}
@@ -60,9 +62,9 @@ void DC_history_model( Cell* pCell, Phenotype& phenotype, double dt )
 
 void DC_history_main_model( double dt )
 {
-	extern double DCAMOUNT;
+	// extern double DCAMOUNT;
 	extern std::vector<int>history;
-	DCAMOUNT=0;
+	lympNode.DCAMOUNT=0;
 
 	#pragma omp parallel for
 	for( int n=0; n < (*all_cells).size() ; n++ )
@@ -72,7 +74,7 @@ void DC_history_main_model( double dt )
 		{ DC_history_model( pC, pC->phenotype , dt ); }
 	}
 	std::rotate(history.rbegin(),history.rbegin()+1,history.rend());
-	history.front() = DCAMOUNT;
+	history.front() = lympNode.DCAMOUNT;
 
 	/* std::copy(history.begin(), history.end(), std::ostream_iterator<int>(std::cout, " "));
 	std::cout << std::endl;
