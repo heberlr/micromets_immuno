@@ -35,13 +35,15 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// T-cell based death
 	TCell_induced_apoptosis(pCell, phenotype, dt );
 
-	// if I am dead, remove all adhesions 
+	// if I am dead, remove all adhesions
 	if( phenotype.death.dead == true )
 	{
 		// detach all attached cells
 		// remove_all_adhesions( pCell );
-
+		//std::cout << pCell->ID << ": " << pCell->phenotype.cycle.current_phase().name << std::endl;
+		//pCell->phenotype.cycle.data.transition_rate( 0, 1 ) = 0.0; // Never remove it from simulation
 		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
+		//system("pause");
 	}
 	// update mechanical strain
 	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
