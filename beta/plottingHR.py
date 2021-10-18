@@ -21,7 +21,7 @@ class NumberOfCells:
         self.times = np.zeros( last_index+1 );
         self.lung = np.zeros( last_index+1 );
         self.melanoma = np.zeros( last_index+1 );
-        self.skin_dead = np.zeros( last_index+1 );
+        self.dead = np.zeros( last_index+1 );
         self.macrophage = np.zeros( last_index+1 )
         self.dendritic = np.zeros( last_index+1 );
         self.CD8 = np.zeros( last_index+1 );
@@ -31,7 +31,7 @@ class NumberOfCells:
         Sum.times = self.times
         Sum.lung = self.lung + other.lung
         Sum.melanoma = self.melanoma + other.melanoma
-        Sum.skin_dead = self.skin_dead + other.skin_dead
+        Sum.dead = self.dead + other.dead
         Sum.macrophage = self.macrophage + other.macrophage
         Sum.dendritic = self.dendritic + other.dendritic
         Sum.CD8 = self.CD8 + other.CD8
@@ -42,7 +42,7 @@ class NumberOfCells:
         Sum.times = self.times
         Sum.lung = self.lung - other.lung
         Sum.melanoma = self.melanoma - other.melanoma
-        Sum.skin_dead = self.skin_dead - other.skin_dead
+        Sum.dead = self.dead - other.dead
         Sum.macrophage = self.macrophage - other.macrophage
         Sum.dendritic = self.dendritic - other.dendritic
         Sum.CD8 = self.CD8 - other.CD8
@@ -58,7 +58,7 @@ class NumberOfCells:
             return NotImplemented
         self.lung = self.lung / other
         self.melanoma = self.melanoma / other
-        self.skin_dead = self.skin_dead / other
+        self.dead = self.dead / other
         self.macrophage = self.macrophage / other
         self.dendritic = self.dendritic / other
         self.CD8 = self.CD8 / other
@@ -69,7 +69,7 @@ class NumberOfCells:
             return NotImplemented
         self.lung = self.lung ** other
         self.melanoma = self.melanoma ** other
-        self.skin_dead = self.skin_dead ** other
+        self.dead = self.dead ** other
         self.macrophage = self.macrophage ** other
         self.dendritic = self.dendritic ** other
         self.CD8 = self.CD8 ** other
@@ -78,7 +78,7 @@ class NumberOfCells:
     def __abs__(self):
         self.lung = abs(self.lung)
         self.melanoma = abs(self.melanoma)
-        self.skin_dead = abs(self.skin_dead)
+        self.dead = abs(self.dead)
         self.macrophage = abs(self.macrophage)
         self.dendritic = abs(self.dendritic)
         self.CD8 = abs(self.CD8)
@@ -140,11 +140,10 @@ def Read_QOIs(mcds,n,QOIs):
     cycle = mcds.data['discrete_cells']['cycle_model']
     cell_type = mcds.data['discrete_cells']['cell_type']
     cell_type = cell_type.astype(int)
-    Neo = mcds.data['discrete_cells']['neoantigens_intracellular']
 
-    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
-    lung = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) | (cell_type==2) ).flatten()
+    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
+    lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    dead = np.argwhere( (cycle >= 100) & ((cell_type==1) | (cell_type==2)) ).flatten()
     macrophage = np.argwhere( cell_type==4 ).flatten()
     dendritic = np.argwhere( cell_type==6 ).flatten()
     CD8 = np.argwhere( cell_type==3 ).flatten()
@@ -152,7 +151,7 @@ def Read_QOIs(mcds,n,QOIs):
 
     QOIs.lung[n] = len(lung)
     QOIs.melanoma[n] = len(melanoma)
-    QOIs.skin_dead[n] = len(skin_dead)
+    QOIs.dead[n] = len(dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.dendritic[n] = len(dendritic)
     QOIs.CD8[n] = len(CD8)
@@ -225,141 +224,67 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     cell_type = mcds.data['discrete_cells']['cell_type']
     cell_type = cell_type.astype(int)
 
-    Neo = mcds.data['discrete_cells']['neoantigens_intracellular']
-    PDL1 = mcds.data['discrete_cells']['PDL1_expression']
-
-
-    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
-    lung = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
-    dead = np.argwhere( (cycle >= 100) & (cell_type==1) | (cell_type==2) ).flatten()
+    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
+    lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    dead = np.argwhere( (cycle >= 100) & ((cell_type==1) | (cell_type==2)) ).flatten()
     macrophage = np.argwhere( cell_type==4 ).flatten()
-    dendritic = np.argwhere( cell_type==6 ).flatten()
+    dendritic = np.argwhere( cell_type==5 ).flatten()
     CD8 = np.argwhere( cell_type==3 ).flatten()
-    CD4 = np.argwhere( cell_type==7 ).flatten()
+    CD4 = np.argwhere( cell_type==6 ).flatten()
 
     QOIs.lung[n] = len(lung)
     QOIs.melanoma[n] = len(melanoma)
-    QOIs.skin_dead[n] = len(skin_dead)
+    QOIs.dead[n] = len(dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.dendritic[n] = len(dendritic)
     QOIs.CD8[n] = len(CD8)
     QOIs.CD4[n] = len(CD4)
 
 
-    figure.suptitle( '#NC:'+str("%04i"%(QOIs.lung[n]))+'  #MC:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.skin_dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
-    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+    figure.suptitle( '#Lung:'+str("%04i"%(QOIs.lung[n]))+'  #Cancer:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #CD4:'+str("%04i"%(QOIs.CD4[n]))+ '  #Dead:'+str("%04i"%(QOIs.dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
+    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
 
-    plt.subplot(221)
+    ax = plt.subplot(121)
     plt.scatter( cx[lung],cy[lung],c='blue',s=Lcell_size,label='NC');
     plt.scatter( cx[melanoma],cy[melanoma],c='yellow',s=Lcell_size,label='MC');
-    plt.scatter( cx[skin_dead],cy[skin_dead],c='black',s=Dcell_size,label='D', alpha=0.25);
+    plt.scatter( cx[dead],cy[dead],c='black',s=Dcell_size,label='D', alpha=0.25);
     plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
     plt.scatter( cx[dendritic],cy[dendritic],c='brown',s=Ecell_size,label='DC' );
     plt.scatter( cx[CD8],cy[CD8],c='red',s=Ecell_size,label='CD8' );
-    # plt.scatter( cx[CD4],cy[CD4],c='orange',s=Ecell_size,label='CD4' );
+    plt.scatter( cx[CD4],cy[CD4],c='orange',s=Ecell_size,label='CD4' );
     plt.xlim(-RadiusSize, RadiusSize)
     plt.ylim(-RadiusSize, RadiusSize)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=3)
+    ax.set_aspect('equal')
     plt.subplots_adjust(left=0.08,right=0.93,bottom=0.06,top=0.89,wspace=0.36,hspace=0.26)
 
-    plt.subplot(333)
-    Neo = mcds.get_concentrations( 'neoantigens' );
+    plt.subplot(222)
+    TNF = mcds.get_concentrations( 'TNF' );
     X1,Y1 = mcds.get_2D_mesh();
-    if (Neo.max() > 0):
-      v1 = np.linspace(0, Neo.max(), 10, endpoint=True)
-      # v1 = np.linspace(0, 1.0, 10, endpoint=True)
-      plt.contourf(X1,Y1,Neo[:,:,0],levels=v1,cmap='binary');
-      # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar(ticks=v1)
-      cbar.formatter.set_powerlimits((0, 0))
-      cbar.update_ticks()
-    else:
-      plt.contourf(X1,Y1,Neo[:,:,0],cmap='binary');
-      # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar()
+
+    # v1 = np.linspace(0, TNF.max(), 10, endpoint=True)
+    v1 = np.linspace(0, 1.0, 10, endpoint=True)
+    plt.contourf(X1,Y1,TNF[:,:,0],levels=v1,cmap='binary');
+    # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar(ticks=v1)
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
     plt.xlim(-RadiusSize, RadiusSize)
     plt.ylim(-RadiusSize, RadiusSize)
-    plt.title("Neoantigens")
+    plt.title("TNF")
 
-    plt.subplot(336)
-    chemokine = mcds.get_concentrations( 'chemokine' );
-    X1,Y1 = mcds.get_2D_mesh();
-    if (chemokine.max() > 0):
-      v1 = np.linspace(0, chemokine.max(), 10, endpoint=True)
-      # v1 = np.linspace(0, 1.0, 10, endpoint=True)
-      plt.contourf(X1,Y1,chemokine[:,:,0],levels=v1,cmap='binary');
-      # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar(ticks=v1)
-      cbar.formatter.set_powerlimits((0, 0))
-      cbar.update_ticks()
-    else:
-      plt.contourf(X1,Y1,chemokine[:,:,0],cmap='binary');
-      # plt.colorbar(format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar()
-    plt.xlim(-RadiusSize, RadiusSize)
-    plt.ylim(-RadiusSize, RadiusSize)
-    plt.title("Chemokine")
-
-
-    plt.subplot(337)
-
-    PIC = mcds.get_concentrations( 'pro-inflammatory cytokine' );
-    if (PIC.max() > 0):
-      v1 = np.linspace(0, PIC.max(), 10, endpoint=True)
-      # v1 = np.linspace(0, 1.0, 10, endpoint=True)
-      plt.contourf(X1,Y1,PIC[:,:,0],v1,cmap='binary');
-      # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar(ticks=v1)
-      cbar.formatter.set_powerlimits((0, 0))
-      cbar.update_ticks()
-    else:
-      plt.contourf(X1,Y1,PIC[:,:,0],cmap='binary');
-      # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar()
-    plt.xlim(-RadiusSize, RadiusSize)
-    plt.ylim(-RadiusSize, RadiusSize)
-    plt.title("Pro-inf cytokine")
-
-    plt.subplot(338)
-
+    plt.subplot(224)
     debris = mcds.get_concentrations( 'debris' );
-    if (debris.max() > 0):
-      #v1 = np.linspace(0, 1.0, 10, endpoint=True)
-      v1 = np.linspace(0, debris.max(), 10, endpoint=True)
-      plt.contourf(X1,Y1,debris[:,:,0],v1,cmap='binary');
-      # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar(ticks=v1)
-      cbar.formatter.set_powerlimits((0, 0))
-      cbar.update_ticks()
-    else:
-      plt.contourf(X1,Y1,debris[:,:,0],cmap='binary');
-      # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar()
+    v1 = np.linspace(0, 1.0, 10, endpoint=True)
+    #v1 = np.linspace(0, debris.max(), 10, endpoint=True)
+    plt.contourf(X1,Y1,debris[:,:,0],v1,cmap='binary');
+    # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
+    cbar = plt.colorbar(ticks=v1)
+    cbar.formatter.set_powerlimits((0, 0))
+    cbar.update_ticks()
     plt.xlim(-RadiusSize, RadiusSize)
     plt.ylim(-RadiusSize, RadiusSize)
     plt.title("Debris")
-
-
-    plt.subplot(339)
-
-    AIC = mcds.get_concentrations( 'anti-inflammatory cytokine' );
-    if (AIC.max() > 0):
-      v1 = np.linspace(0, AIC.max(), 10, endpoint=True)
-      # v1 = np.linspace(0, 1.0, 10, endpoint=True)
-      plt.contourf(X1,Y1,AIC[:,:,0],v1,cmap='binary');
-      # cbar = plt.colorbar(ticks=v1,format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar(ticks=v1)
-      cbar.formatter.set_powerlimits((0, 0))
-      cbar.update_ticks()
-    else:
-      plt.contourf(X1,Y1,AIC[:,:,0],cmap='binary');
-      # cbar = plt.colorbar(format=FormatScalarFormatter("%.2f"))
-      cbar = plt.colorbar()
-      cbar.formatter.set_powerlimits((0, 0))
-      cbar.update_ticks()
-    plt.xlim(-RadiusSize, RadiusSize)
-    plt.ylim(-RadiusSize, RadiusSize)
-    plt.title("Anti-inf cytokine")
 
     if (SavePNG):
       figure.savefig(filenameOut)
@@ -385,13 +310,9 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     cell_type = mcds.data['discrete_cells']['cell_type']
     cell_type = cell_type.astype(int)
 
-    NeoCell = mcds.data['discrete_cells']['neoantigens_intracellular']
-    PDL1 = mcds.data['discrete_cells']['PDL1_expression']
-
-
-    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
-    lung = np.argwhere( (cell_type==2) & (cycle < 100) & (cell_type==1) ).flatten()
-    skin_dead = np.argwhere( (cycle >= 100) & (cell_type==1) | (cell_type==2) ).flatten()
+    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
+    lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    dead = np.argwhere( (cycle >= 100) & ((cell_type==1) | (cell_type==2)) ).flatten()
     macrophage = np.argwhere( cell_type==4 ).flatten()
     dendritic = np.argwhere( cell_type==6 ).flatten()
     CD8 = np.argwhere( cell_type==3 ).flatten()
@@ -399,20 +320,20 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
 
     QOIs.lung[n] = len(lung)
     QOIs.melanoma[n] = len(melanoma)
-    QOIs.skin_dead[n] = len(skin_dead)
+    QOIs.dead[n] = len(dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.dendritic[n] = len(dendritic)
     QOIs.CD8[n] = len(CD8)
     QOIs.CD4[n] = len(CD4)
 
 
-    figure.suptitle( '#NC:'+str("%04i"%(QOIs.lung[n]))+'  #MC:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.skin_dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
-    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(skin_dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+    figure.suptitle( '#NC:'+str("%04i"%(QOIs.lung[n]))+'  #MC:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
+    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
 
     ax = plt.subplot2grid((4,4), (0,0), colspan=3, rowspan=3)
     plt.scatter( cx[lung],cy[lung],c='blue',s=Lcell_size,label='NC');
     plt.scatter( cx[melanoma],cy[melanoma],c='yellow',s=Lcell_size,label='MC');
-    plt.scatter( cx[skin_dead],cy[skin_dead],c='black',s=Dcell_size,label='D', alpha=0.25);
+    plt.scatter( cx[dead],cy[dead],c='black',s=Dcell_size,label='D', alpha=0.25);
     plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
     plt.scatter( cx[dendritic],cy[dendritic],c='brown',s=Ecell_size,label='DC' );
     plt.scatter( cx[CD8],cy[CD8],c='red',s=Ecell_size,label='CD8' );
@@ -554,8 +475,8 @@ def plotCurves(QOIs,STD):
     # plt.fill_between(QOIs.times/1440.0, QOIs.lung - STD.lung, QOIs.lung + STD.lung, alpha=0.2, color='blue')
     plt.plot(QOIs.times/1440.0,QOIs.melanoma, color='gold',label='melanoma')
     plt.fill_between(QOIs.times/1440.0, QOIs.melanoma - STD.melanoma, QOIs.melanoma + STD.melanoma, alpha=0.2, color='gold')
-    plt.plot(QOIs.times/1440.0,QOIs.skin_dead, color='black',label='dead')
-    plt.fill_between(QOIs.times/1440.0, QOIs.skin_dead - STD.skin_dead, QOIs.skin_dead + STD.skin_dead, alpha=0.2, color='black')
+    plt.plot(QOIs.times/1440.0,QOIs.dead, color='black',label='dead')
+    plt.fill_between(QOIs.times/1440.0, QOIs.dead - STD.dead, QOIs.dead + STD.dead, alpha=0.2, color='black')
     plt.plot(QOIs.times/1440.0,QOIs.macrophage, color='green',label='macrophage')
     plt.fill_between(QOIs.times/1440.0, QOIs.macrophage - STD.macrophage, QOIs.macrophage + STD.macrophage, alpha=0.2, color='green')
     plt.plot(QOIs.times/1440.0,QOIs.dendritic, color='brown',label='dendritic')
@@ -592,7 +513,7 @@ def plotExternalImmune():
 
 def Read_files(initial_index,last_index,folder,SavePNG,func=plotAll):
     QOIs = NumberOfCells(last_index-initial_index+1)
-    figure, axes = plt.subplots(nrows=4, ncols=4,figsize=(10,8))
+    figure, axes = plt.subplots(nrows=2, ncols=2,figsize=(10,8))
     for n in range( initial_index,last_index+1 ):
         filenameOut=folder+'/output'+"%08i"%n+'.png'
         filename= "output%08i"%n+'.xml'
@@ -609,7 +530,7 @@ if __name__ == '__main__':
     SavePNG = int(sys.argv[3])
     folder = sys.argv[4]
 
-    #Read_files(initial_index,last_index,folder,SavePNG)
+    Read_files(initial_index,last_index,folder,SavePNG)
     #Read_files(initial_index,last_index,folder,SavePNG,func=plotAll_hist)
     #Read_files(initial_index,last_index,folder,SavePNG,func=plotStrain)
     #Neoantigens_plot(initial_index,last_index,folder)
