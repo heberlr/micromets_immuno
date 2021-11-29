@@ -74,6 +74,8 @@ std::default_random_engine generator{123456789};
 extern AntigenLibrary AntigenLib;
 extern LymphNode lympNode;
 
+extern std::vector<int> vascularized_voxel_indices;
+
 void create_cell_types( void )
 {
 	// set the random seed
@@ -677,7 +679,6 @@ void check_lung_cell_out_of_domain( void )
 	}
 }
 
-
 void include_tumor_cells(void)
 {
 	if (  PhysiCell_globals.current_time == 0 || fabs( PhysiCell_globals.current_time - parameters.doubles("time_add_melanoma_cell")  ) >= 0.01 * diffusion_dt )
@@ -686,18 +687,79 @@ void include_tumor_cells(void)
 	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
 	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
 	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
-
-		// Sample neoantigens
-		//....
 		pC = create_cell( get_cell_definition("melanoma cell" ) );
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
 		pC->assign_position( valid_position[index_sample] );
 		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
 		valid_position.erase (valid_position.begin()+index_sample);
-		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
 	}
 }
+
+void vaccine(void)
+{
+	if (  fabs(PhysiCell_globals.current_time - (parameters.doubles("time_vaccine") + parameters.ints("count_vaccine")*parameters.doubles("vaccine_interval"))) >= 0.01 * diffusion_dt )
+		return;
+	parameters.ints("count_vaccine")++;
+	std::cout<< "Take shot: " << PhysiCell_globals.current_time << " min - dose: " << parameters.ints("number_of_cells_vaccine") << " cells\n";
+	//system("pause");
+	double Xmin = microenvironment.mesh.bounding_box[0];
+	double Ymin = microenvironment.mesh.bounding_box[1];
+	double Xmax = microenvironment.mesh.bounding_box[3];
+	double Ymax = microenvironment.mesh.bounding_box[4];
+	double Xrange = Xmax - Xmin;
+	double Yrange = Ymax - Ymin;
+	Cell* pC;
+	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
+	//static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	for ( int i=0; i < parameters.ints("number_of_cells_vaccine") ;i++){
+		std::vector<double> position = {0,0,0};
+		position[0] = Xmin + UniformRandom()*Xrange;
+		position[1] = Ymin + UniformRandom()*Yrange;
+		pC = create_cell( get_cell_definition("melanoma cell" ) );
+		pC->assign_position( position );
+		//pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
+		static int apoptosis_index = 	pC->phenotype.death.find_death_model_index( "Apoptosis" );
+		static int debris_index = microenvironment.find_density_index( "debris" );
+		pC->start_death( apoptosis_index );
+		pC->phenotype.volume.total = 478;
+		pC->phenotype.volume.nuclear = 47.8;
+		pC->phenotype.geometry.update( pC, pC->phenotype, 0.0 );
+		pC->phenotype.cycle.data.transition_rate( 0, 1 ) = 0.0;
+		pC->phenotype.secretion.secretion_rates[debris_index] = pC->custom_data["debris_secretion_rate"];
+		pC->functions.volume_update_function = NULL;
+		pC->functions.update_phenotype = NULL;
+	}
+}
+
+void include_TNF(void)
+{
+	static int TNF_index = microenvironment.find_density_index( "TNF");
+	//Inject vaccine
+	if (  fabs( PhysiCell_globals.current_time - parameters.doubles("time_vaccine")  ) < 0.01 * diffusion_dt ){
+		for ( int i=0; i < vascularized_voxel_indices.size();i++){
+			microenvironment.update_dirichlet_node( vascularized_voxel_indices[i],TNF_index,parameters.doubles("TNF_vaccine"));
+		}
+		// for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		// 	microenvironment.update_dirichlet_node( n,0,parameters.doubles("TNF_vaccine"));
+		// }
+		std::cout << "Vaccine injected: " << parameters.doubles("TNF_vaccine") <<" at " << PhysiCell_globals.current_time << " minutes " << std::endl;
+		return;
+	}
+	if (  fabs( PhysiCell_globals.current_time - (parameters.doubles("time_vaccine") + parameters.doubles("duration_vaccine")) ) < 0.01 * diffusion_dt ){
+		for ( int i=0; i < vascularized_voxel_indices.size();i++){
+			microenvironment.remove_dirichlet_node(vascularized_voxel_indices[i]);
+		}
+		// for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		// 	microenvironment.remove_dirichlet_node(n);
+		// }
+		std::cout << "Remove sources from vaccine at " << PhysiCell_globals.current_time << " minutes" << std::endl;
+		//system("pause");
+		return;
+	}
+	return;
+}
+
 void print_cell_count( std::ofstream& file )
 {
 	static int lung_cell_type = get_cell_definition( "lung cell" ).type;

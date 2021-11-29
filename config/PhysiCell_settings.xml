@@ -36,7 +36,7 @@
 
 		<full_data>
 			<interval units="min">60</interval>
-			<enable>false</enable>
+			<enable>true</enable>
 		</full_data>
 
 		<SVG>
@@ -50,7 +50,7 @@
 	</save>
 
 	<microenvironment_setup>
-		<variable ID="3" name="TNF" units="mol/micron^3">
+		<variable ID="0" name="TNF" units="mol/micron^3">
 			<physical_parameter_set>
 				<diffusion_coefficient units="micron^2/min">555.56</diffusion_coefficient>
 				<decay_rate units="1/min">1.02e-2</decay_rate>
@@ -59,7 +59,7 @@
 			<Dirichlet_boundary_condition enabled="false" units="mol/micron^3">0</Dirichlet_boundary_condition>
 		</variable>
 
-		<variable ID="5" name="debris" units="mol/micron^3">
+		<variable ID="1" name="debris" units="mol/micron^3">
 			<physical_parameter_set>
 				<diffusion_coefficient units="micron^2/min">555.56</diffusion_coefficient>
 				<decay_rate units="1/min">1.02e-2</decay_rate>
@@ -939,6 +939,10 @@
 		<number_of_DCs description="initial number of Dendritic Cells" type="int" units="none">5</number_of_DCs>
 		<number_of_CD4_Tcells type="int" units="none" description="initial number of CD4 Tcells in tissue">0</number_of_CD4_Tcells>
 		<initial_DCs_lymphNode description="initial number of DCs on lymph node" type="double" units="none">0</initial_DCs_lymphNode>
+		<time_vaccine description="the time of first vaccine" type="double" units="min">0</time_vaccine>
+		<number_of_cells_vaccine description="number of dead melanoma cells from vaccine" type="int" units="none">0</number_of_cells_vaccine>
+		<vaccine_interval description="interval between vaccines" type="double" units="min">0</vaccine_interval>
+		<count_vaccine description="count number of vaccines" type="int" units="none">0</count_vaccine>
 
 		<DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
 		<DC_induced_CD8_attachment description="DC induced CD8 attachement rate" type="double" units="cells/min/micron^3">0.6</DC_induced_CD8_attachment>
@@ -968,7 +972,7 @@
 		<hyperactivated_macrophage_color description="color of hyperactivated macrophage" type="string">rgb(168,221,181)</hyperactivated_macrophage_color>
 		<DC_color description="DC color" type="string">rgb(129,15,124)</DC_color>
 		<activated_DC_color description="DC color" type="string">deeppink</activated_DC_color>
-		<custom_save_time description="save time with local and global dt" type="bool">true</custom_save_time>
+		<custom_save_time description="save time with local and global dt" type="bool">false</custom_save_time>
 		<local_dt_save_time description="local dt to save data and svg" type="double" units="min">60.0</local_dt_save_time>
 		<global_dt_save_time description="global dt to save data and svg" type="double" units="min">1440.0</global_dt_save_time>
 		<bitmap_save description="save bitmap instead of svg files" type="bool">false</bitmap_save>

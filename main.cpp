@@ -270,6 +270,7 @@ int main( int argc, char* argv[] )
 			cells_to_move_from_edge.clear();
 
 			include_tumor_cells();
+			vaccine();
 
 			// run PhysiCell
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
