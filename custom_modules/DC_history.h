@@ -5,6 +5,7 @@ using namespace BioFVM;
 using namespace PhysiCell;
 
 #include "./submodel_data_structures.h"
+#include "./external_immune.h"
 
 #ifndef __DC_history__
 #define __DC_history__
@@ -13,7 +14,7 @@ extern Submodel_Information DC_history_info;
 
 void DC_history_model_setup( void );
 
-// don't put into individual cell models 
+// don't put into individual cell models
 void DC_history_model( Cell* pCell, Phenotype& phenotype, double dt );
 
 // this needs to be done on faster time scale;

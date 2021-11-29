@@ -72,6 +72,9 @@ std::vector<std::vector <double>> valid_position;
 std::default_random_engine generator{123456789};
 
 extern AntigenLibrary AntigenLib;
+extern LymphNode lympNode;
+
+extern std::vector<int> vascularized_voxel_indices;
 
 void create_cell_types( void )
 {
@@ -224,28 +227,30 @@ void setup_tissue( void )
 		}
 	}
 	int Max_number_of_cell = valid_position.size();
-	extern double GridCOUNT;
-  GridCOUNT = Max_number_of_cell;
+	// extern double GridCOUNT;
+  	lympNode.GridCOUNT = Max_number_of_cell;
 	// place immune cells
 	initial_immune_cell_placement();
 
 	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
 	// Melanoma cells
-	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
+	if ( parameters.doubles("time_add_melanoma_cell") == 0.0 )
+	{
+		for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
 
-		// Sample neoantigens
-		//....
-		pC = create_cell( get_cell_definition("melanoma cell" ) );
-		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
-		int index_sample = distribution_index(generator);
-		pC->assign_position( valid_position[index_sample] );
-		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
-		valid_position.erase (valid_position.begin()+index_sample);
-		//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
+			// Sample neoantigens
+			//....
+			pC = create_cell( get_cell_definition("melanoma cell" ) );
+			std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
+			int index_sample = distribution_index(generator);
+			pC->assign_position( valid_position[index_sample] );
+			pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
+			valid_position.erase (valid_position.begin()+index_sample);
+			//std::cout << "SIZE: " << valid_position.size() << " Index: " << index_sample <<  std::endl;
+		}
 	}
-
 	// Ephitelium cells
-  for ( int i=0; i < parameters.doubles("cell_confluence_lung_cells")*Max_number_of_cell;i++){
+  	for ( int i=0; i < parameters.doubles("cell_confluence_lung_cells")*Max_number_of_cell;i++){
 		pC = create_cell( get_cell_definition("lung cell" ) );
 		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 		int index_sample = distribution_index(generator);
@@ -374,7 +379,7 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 		if( pCell->phenotype.volume.total> pCell->custom_data["threshold_macrophage_volume"] )// macrophage exhausted
 		{ color = parameters.strings("exhausted_macrophage_color"); }
-		else if( pCell->custom_data["ability_to_phagocytose_infected_cell"] == 1)// macrophage has been activated to kill infected cells by T cell
+		else if( pCell->custom_data["ability_to_phagocytose_melanoma_cell"] == 1)// macrophage has been activated to kill melanoma cells by T cell
 		{ color = parameters.strings("hyperactivated_macrophage_color"); }
 
 		output[0] = color;
@@ -431,13 +436,13 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 		std::ofstream os( filename , std::ios::out );
 		if( os.fail() )
 		{
-			std::cout << std::endl << "Error: Failed to open " << filename << " for SVG writing." << std::endl << std::endl;
+				std::cout << std::endl << "Error: Failed to open " << filename << " for SVG writing." << std::endl << std::endl;
 
-			std::cout << std::endl << "Error: We're not writing data like we expect. " << std::endl
-			<< "Check to make sure your save directory exists. " << std::endl << std::endl
-			<< "I'm going to exit with a crash code of -1 now until " << std::endl
-			<< "you fix your directory. Sorry!" << std::endl << std::endl;
-			exit(-1);
+				std::cout << std::endl << "Error: We're not writing data like we expect. " << std::endl
+				<< "Check to make sure your save directory exists. " << std::endl << std::endl
+				<< "I'm going to exit with a crash code of -1 now until " << std::endl
+				<< "you fix your directory. Sorry!" << std::endl << std::endl;
+				exit(-1);
 		}
 
 		Write_SVG_start( os, plot_width , plot_height + top_margin );
@@ -485,202 +490,121 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 		double half_voxel_size = voxel_size / 2.0;
 		double normalizer = 78.539816339744831 / (voxel_size*voxel_size*voxel_size);
 
-		// color in the background ECM
-		/*
-		if( ECM.TellRows() > 0 )
+		os << "  </g>" << std::endl;
+
+		static Cell_Definition* pEpithelial = find_cell_definition( "lung cell" );
+		static Cell_Definition* pMelanoma = find_cell_definition( "melanoma cell" );
+
+		// plot intersecting epithelial and melanoma cells
+		os << "  <g id=\"cells\">" << std::endl;
+		for( int i=0 ; i < total_cell_count ; i++ )
 		{
-		// find the k corresponding to z_slice
+				Cell* pC = (*all_cells)[i]; // global_cell_list[i];
 
+				static std::vector<std::string> Colors;
+				if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
+				&& (pC->type == pEpithelial->type || pC->type == pMelanoma->type) )
+				{
+						double r = pC->phenotype.geometry.radius ;
+						double rn = pC->phenotype.geometry.nuclear_radius ;
+						double z = fabs( (pC->position)[2] - z_slice) ;
 
+						Colors = cell_coloring_function( pC );
 
-		Vector position;
-		*position(2) = z_slice;
+						os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
 
+						// figure out how much of the cell intersects with z = 0
 
-		// 25*pi* 5 microns^2 * length (in source) / voxelsize^3
+						double plot_radius = sqrt( r*r - z*z );
 
-		for( int j=0; j < ratio*ECM.TellCols() ; j++ )
+						Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
+						plot_radius , 0.5, Colors[1], Colors[0] , epithelial_opacity );
+						os << "   </g>" << std::endl;
+				}
+		}
+
+		//plot intersecting non=epithelial and non-melanoma cells
+		for( int i=0 ; i < total_cell_count ; i++ )
 		{
-		// *position(1) = *Y_environment(j);
-		*position(1) = *Y_environment(0) - dy_stroma/2.0 + j*voxel_size + half_voxel_size;
+				Cell* pC = (*all_cells)[i]; // global_cell_list[i];
 
-		for( int i=0; i < ratio*ECM.TellRows() ; i++ )
+				static std::vector<std::string> Colors;
+				if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
+				&& pC->type != pEpithelial->type && pC->type != pMelanoma->type)
+				{
+						double r = pC->phenotype.geometry.radius ;
+						double rn = pC->phenotype.geometry.nuclear_radius ;
+						double z = fabs( (pC->position)[2] - z_slice) ;
+
+						Colors = cell_coloring_function( pC );
+
+						os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
+
+						// figure out how much of the cell intersects with z = 0
+
+						double plot_radius = sqrt( r*r - z*z );
+
+						Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
+						plot_radius , 0.5, Colors[1], Colors[0] , non_epithelial_opacity );
+						os << "   </g>" << std::endl;
+				}
+		}
+
+		os << "  </g>" << std::endl;
+
+		// end of the <g ID="tissue">
+		os << " </g>" << std::endl;
+
+		// draw a scale bar
+
+		double bar_margin = 0.025 * plot_height;
+		double bar_height = 0.01 * plot_height;
+		double bar_width = PhysiCell_SVG_options.length_bar;
+		double bar_stroke_width = 0.001 * plot_height;
+
+		std::string bar_units = PhysiCell_SVG_options.simulation_space_units;
+		// convert from micron to mm
+		double temp = bar_width;
+
+		if( temp > 999 && std::strstr( bar_units.c_str() , PhysiCell_SVG_options.mu.c_str() )   )
 		{
-		// *position(0) = *X_environment(i);
-		*position(0) = *X_environment(0) - dx_stroma/2.0 + i*voxel_size + half_voxel_size;
-
-		double E = evaluate_Matrix3( ECM, X_environment , Y_environment, Z_environment , position );
-		double BV = normalizer * evaluate_Matrix3( OxygenSourceHD, X_environment , Y_environment, Z_environment , position );
-		if( isnan( BV ) )
-		{ BV = 0.0; }
-
-		vector<string> Colors;
-		Colors = hematoxylin_and_eosin_stroma_coloring( E , BV );
-		Write_SVG_rect( os , *position(0)-half_voxel_size-X_lower , *position(1)-half_voxel_size+top_margin-Y_lower,
-		voxel_size , voxel_size , 1 , Colors[0], Colors[0] );
-
-	}
-}
-
-}
-*/
-os << "  </g>" << std::endl;
-
-static Cell_Definition* pEpithelial = find_cell_definition( "lung cell" );
-static Cell_Definition* pMelanoma = find_cell_definition( "melanoma cell" );
-
-// plot intersecting epithelial and melanoma cells
-os << "  <g id=\"cells\">" << std::endl;
-for( int i=0 ; i < total_cell_count ; i++ )
-{
-	Cell* pC = (*all_cells)[i]; // global_cell_list[i];
-
-	static std::vector<std::string> Colors;
-	if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-	&& (pC->type == pEpithelial->type || pC->type == pMelanoma->type) )
-	{
-		double r = pC->phenotype.geometry.radius ;
-		double rn = pC->phenotype.geometry.nuclear_radius ;
-		double z = fabs( (pC->position)[2] - z_slice) ;
-
-		Colors = cell_coloring_function( pC );
-
-		os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
-
-		// figure out how much of the cell intersects with z = 0
-
-		double plot_radius = sqrt( r*r - z*z );
-
-		Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius , 0.5, Colors[1], Colors[0] , epithelial_opacity );
-		/*
-		// plot the nucleus if it, too intersects z = 0;
-		if( fabs(z) < rn && PhysiCell_SVG_options.plot_nuclei == true )
+				temp /= 1000;
+				bar_units = "mm";
+		}
+		// convert from mm to cm
+		if( temp > 9 && std::strcmp( bar_units.c_str() , "mm" ) == 0 )
 		{
-		plot_radius = sqrt( rn*rn - z*z );
-		Write_SVG_circle( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius, 0.5, Colors[3],Colors[2]);
-	}
-	*/
-	os << "   </g>" << std::endl;
-}
+				temp /= 10;
+				bar_units = "cm";
+		}
 
-}
+		szString = new char [1024];
+		sprintf( szString , "%u %s" , (int) round( temp ) , bar_units.c_str() );
 
-//plot intersecting non=epithelial and non-melanoma cells
-for( int i=0 ; i < total_cell_count ; i++ )
-{
-	Cell* pC = (*all_cells)[i]; // global_cell_list[i];
+		Write_SVG_rect( os , plot_width - bar_margin - bar_width  , plot_height + top_margin - bar_margin - bar_height ,
+		bar_width , bar_height , 0.002 * plot_height , "rgb(255,255,255)", "rgb(0,0,0)" );
+		Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_size ,
+		plot_height + top_margin - bar_margin - bar_height - 0.25*font_size ,
+		font_size , PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
 
-	static std::vector<std::string> Colors;
-	if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-	&& pC->type != pEpithelial->type && pC->type != pMelanoma->type)
-	{
-		double r = pC->phenotype.geometry.radius ;
-		double rn = pC->phenotype.geometry.nuclear_radius ;
-		double z = fabs( (pC->position)[2] - z_slice) ;
+		delete [] szString;
 
-		Colors = cell_coloring_function( pC );
+		// plot runtime
+		szString = new char [1024];
+		RUNTIME_TOC();
+		std::string formatted_stopwatch_value = format_stopwatch_value( runtime_stopwatch_value() );
+		Write_SVG_text( os, formatted_stopwatch_value.c_str() , bar_margin , top_margin + plot_height - bar_margin , 0.75 * font_size ,
+		PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
+		delete [] szString;
 
-		os << "   <g id=\"cell" << pC->ID << "\">" << std::endl;
+		// draw a box around the plot window
+		Write_SVG_rect( os , 0 , top_margin, plot_width, plot_height , 0.002 * plot_height , "rgb(0,0,0)", "none" );
 
-		// figure out how much of the cell intersects with z = 0
+		// close the svg tag, close the file
+		Write_SVG_end( os );
+		os.close();
 
-		double plot_radius = sqrt( r*r - z*z );
-
-		Write_SVG_circle_opacity( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius , 0.5, Colors[1], Colors[0] , non_epithelial_opacity );
-		/*
-		// plot the nucleus if it, too intersects z = 0;
-		if( fabs(z) < rn && PhysiCell_SVG_options.plot_nuclei == true )
-		{
-		plot_radius = sqrt( rn*rn - z*z );
-		Write_SVG_circle( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower,
-		plot_radius, 0.5, Colors[3],Colors[2]);
-	}
-	*/
-	os << "   </g>" << std::endl;
-}
-
-}
-
-os << "  </g>" << std::endl;
-
-// plot intersecting BM points
-/*
-for( int i=0 ; i < BasementMembraneNodes.size() ; i++ )
-{
-// vector<string> Colors = false_cell_coloring( pC );
-BasementMembraneNode* pBMN = BasementMembraneNodes[i];
-double thickness =0.1;
-
-if( fabs( *(pBMN->Position)(2) - z_slice ) < thickness/2.0 )
-{
-string bm_color ( "rgb(0,0,0)" );
-double r = thickness/2.0;
-double z = fabs( *(pBMN->Position)(2) - z_slice) ;
-
-os << " <g id=\"BMN" << pBMN->ID << "\">" << std::endl;
-Write_SVG_circle( os,*(pBMN->Position)(0)-X_lower, *(pBMN->Position)(1)+top_margin-Y_lower, 10*thickness/2.0 , 0.5 , bm_color , bm_color );
-os << " </g>" << std::endl;
-}
-// pC = pC->pNextCell;
-}
-*/
-
-// end of the <g ID="tissue">
-os << " </g>" << std::endl;
-
-// draw a scale bar
-
-double bar_margin = 0.025 * plot_height;
-double bar_height = 0.01 * plot_height;
-double bar_width = PhysiCell_SVG_options.length_bar;
-double bar_stroke_width = 0.001 * plot_height;
-
-std::string bar_units = PhysiCell_SVG_options.simulation_space_units;
-// convert from micron to mm
-double temp = bar_width;
-
-if( temp > 999 && std::strstr( bar_units.c_str() , PhysiCell_SVG_options.mu.c_str() )   )
-{
-	temp /= 1000;
-	bar_units = "mm";
-}
-// convert from mm to cm
-if( temp > 9 && std::strcmp( bar_units.c_str() , "mm" ) == 0 )
-{
-	temp /= 10;
-	bar_units = "cm";
-}
-
-szString = new char [1024];
-sprintf( szString , "%u %s" , (int) round( temp ) , bar_units.c_str() );
-
-Write_SVG_rect( os , plot_width - bar_margin - bar_width  , plot_height + top_margin - bar_margin - bar_height ,
-bar_width , bar_height , 0.002 * plot_height , "rgb(255,255,255)", "rgb(0,0,0)" );
-Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_size ,
-	plot_height + top_margin - bar_margin - bar_height - 0.25*font_size ,
-	font_size , PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
-
-	delete [] szString;
-
-	// plot runtime
-	szString = new char [1024];
-	RUNTIME_TOC();
-	std::string formatted_stopwatch_value = format_stopwatch_value( runtime_stopwatch_value() );
-	Write_SVG_text( os, formatted_stopwatch_value.c_str() , bar_margin , top_margin + plot_height - bar_margin , 0.75 * font_size ,
-	PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
-	delete [] szString;
-
-	// draw a box around the plot window
-	Write_SVG_rect( os , 0 , top_margin, plot_width, plot_height , 0.002 * plot_height , "rgb(0,0,0)", "none" );
-
-	// close the svg tag, close the file
-	Write_SVG_end( os );
-	os.close();
-
-	return;
+		return;
 }
 
 void mutation (Cell* pCell){
@@ -755,6 +679,87 @@ void check_lung_cell_out_of_domain( void )
 	}
 }
 
+void include_tumor_cells(void)
+{
+	if (  PhysiCell_globals.current_time == 0 || fabs( PhysiCell_globals.current_time - parameters.doubles("time_add_melanoma_cell")  ) >= 0.01 * diffusion_dt )
+		return;
+	Cell* pC;
+	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
+	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
+		pC = create_cell( get_cell_definition("melanoma cell" ) );
+		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
+		int index_sample = distribution_index(generator);
+		pC->assign_position( valid_position[index_sample] );
+		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
+		valid_position.erase (valid_position.begin()+index_sample);
+	}
+}
+
+void vaccine(void)
+{
+	if (  fabs(PhysiCell_globals.current_time - (parameters.doubles("time_vaccine") + parameters.ints("count_vaccine")*parameters.doubles("vaccine_interval"))) >= 0.01 * diffusion_dt )
+		return;
+	parameters.ints("count_vaccine")++;
+	std::cout<< "Take shot: " << PhysiCell_globals.current_time << " min - dose: " << parameters.ints("number_of_cells_vaccine") << " cells\n";
+	//system("pause");
+	double Xmin = microenvironment.mesh.bounding_box[0];
+	double Ymin = microenvironment.mesh.bounding_box[1];
+	double Xmax = microenvironment.mesh.bounding_box[3];
+	double Ymax = microenvironment.mesh.bounding_box[4];
+	double Xrange = Xmax - Xmin;
+	double Yrange = Ymax - Ymin;
+	Cell* pC;
+	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
+	//static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+	for ( int i=0; i < parameters.ints("number_of_cells_vaccine") ;i++){
+		std::vector<double> position = {0,0,0};
+		position[0] = Xmin + UniformRandom()*Xrange;
+		position[1] = Ymin + UniformRandom()*Yrange;
+		pC = create_cell( get_cell_definition("melanoma cell" ) );
+		pC->assign_position( position );
+		//pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
+		static int apoptosis_index = 	pC->phenotype.death.find_death_model_index( "Apoptosis" );
+		static int debris_index = microenvironment.find_density_index( "debris" );
+		pC->start_death( apoptosis_index );
+		pC->phenotype.volume.total = 478;
+		pC->phenotype.volume.nuclear = 47.8;
+		pC->phenotype.geometry.update( pC, pC->phenotype, 0.0 );
+		pC->phenotype.cycle.data.transition_rate( 0, 1 ) = 0.0;
+		pC->phenotype.secretion.secretion_rates[debris_index] = pC->custom_data["debris_secretion_rate"];
+		pC->functions.volume_update_function = NULL;
+		pC->functions.update_phenotype = NULL;
+	}
+}
+
+void include_TNF(void)
+{
+	static int TNF_index = microenvironment.find_density_index( "TNF");
+	//Inject vaccine
+	if (  fabs( PhysiCell_globals.current_time - parameters.doubles("time_vaccine")  ) < 0.01 * diffusion_dt ){
+		for ( int i=0; i < vascularized_voxel_indices.size();i++){
+			microenvironment.update_dirichlet_node( vascularized_voxel_indices[i],TNF_index,parameters.doubles("TNF_vaccine"));
+		}
+		// for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		// 	microenvironment.update_dirichlet_node( n,0,parameters.doubles("TNF_vaccine"));
+		// }
+		std::cout << "Vaccine injected: " << parameters.doubles("TNF_vaccine") <<" at " << PhysiCell_globals.current_time << " minutes " << std::endl;
+		return;
+	}
+	if (  fabs( PhysiCell_globals.current_time - (parameters.doubles("time_vaccine") + parameters.doubles("duration_vaccine")) ) < 0.01 * diffusion_dt ){
+		for ( int i=0; i < vascularized_voxel_indices.size();i++){
+			microenvironment.remove_dirichlet_node(vascularized_voxel_indices[i]);
+		}
+		// for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		// 	microenvironment.remove_dirichlet_node(n);
+		// }
+		std::cout << "Remove sources from vaccine at " << PhysiCell_globals.current_time << " minutes" << std::endl;
+		//system("pause");
+		return;
+	}
+	return;
+}
+
 void print_cell_count( std::ofstream& file )
 {
 	static int lung_cell_type = get_cell_definition( "lung cell" ).type;
@@ -800,4 +805,179 @@ void print_cell_count( std::ofstream& file )
 		}
 	}
 	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << " " << NumberofCells[8] << std::endl;
+}
+
+#include "EasyBMP.h"
+
+class binaryVec {
+  public:
+    std::vector<bool> binaryVector;
+    binaryVec(): binaryVector(24,false){}
+};
+
+void Binary2Color(const std::vector<bool> &BinaryVector, int &Rvalue, int &Gvalue, int &Bvalue)
+{
+  // -------- Red channel -------------
+  // 0 - live lung cell;              1 - dead lung cell;
+  // 2 - dead melanoma cell;          3 - dead DC
+  // 4 - dead macrophage;             5 - dead CD4 T cell;
+  // 6 - dead CD8 T cell;             7 - live melanoma cell;
+  // -------- Green channel -------------
+  // 8 - inactivated DC;              9 - inactivated macrophage;
+  // 10 - exhausted macrophage;       11 - hyperactivated macrophage;
+  // 12 - live CD4 T cell;            13 - activated DC;
+  // 14 - activated macrophage;       15 - live CD8 T cell;
+  // -------- Blue channel -------------
+  // 16 - debris >= 0.00 and < 0.25;  17 - debris >= 0.25 and < 0.50;
+  // 18 - debris >= 0.50 and < 0.75;  19 - debris >= 0.75;
+  // 20 - TNF >= 0.00 and < 0.25;     21 - TNF >= 0.25 and < 0.50;
+  // 22 - TNF >= 0.50 and < 0.75;     23 - TNF >= 0.75;
+  Rvalue = 0; Gvalue = 0; Bvalue = 0;
+  // Red channel
+  for (unsigned int i = 0; i < 8; i++){
+      Rvalue += BinaryVector[i]*pow(2,i);
+  }
+  // Green channel
+  for (unsigned int i = 8; i < 16; i++){
+      Gvalue += BinaryVector[i]*pow(2,(i-8));
+  }
+  // Blue channel
+  for (unsigned int i = 16; i < 24; i++){
+      Bvalue += BinaryVector[i]*pow(2,(i-16));
+  }
+}
+
+void SetBinaryVector(const std::vector<double> &Pos, const int type, std::vector<std::vector<binaryVec>> &PixelsBinary, BMP &Image )
+{
+	const double x_min = microenvironment.mesh.bounding_box[0];
+	const double x_max = microenvironment.mesh.bounding_box[3];
+	const double y_min = microenvironment.mesh.bounding_box[1];
+	const double y_max = microenvironment.mesh.bounding_box[4];
+
+  const double deltaX = (x_max - x_min)/Image.TellWidth();
+  const double deltaY = (y_max - y_min)/Image.TellHeight();
+  // Check cells inside of pixels - type is the binary position
+  for(unsigned int i = 0; i < Image.TellWidth(); i++){
+    for (unsigned int j = 0; j < Image.TellHeight(); j++){
+        if ( Pos[0] >= x_min + deltaX*i && Pos[0] < x_min + deltaX*(i+1) &&
+        Pos[1] <= y_max - deltaY*j && Pos[1] > y_max - deltaY*(j+1) )
+        {
+          PixelsBinary[i][j].binaryVector[type] = true;
+          //cout <<"(" << Pos[0] << ", " << Pos[1] << ") - (" << i << ", " << j <<") - "<< type << endl;
+          return;
+        }
+
+    }
+  }
+}
+
+void SetBinaryVectorSubs(const std::vector<double> &Pos, const double debris,const double TNF, std::vector<std::vector<binaryVec>> &PixelsBinary, BMP &Image )
+{
+  const double x_min = microenvironment.mesh.bounding_box[0];
+	const double x_max = microenvironment.mesh.bounding_box[3];
+	const double y_min = microenvironment.mesh.bounding_box[1];
+	const double y_max = microenvironment.mesh.bounding_box[4];
+
+  const double deltaX = (x_max - x_min)/Image.TellWidth();
+  const double deltaY = (y_max - y_min)/Image.TellHeight();
+  // Check center of voxels inside of pixels
+  for(unsigned int i = 0; i < Image.TellWidth(); i++){
+    for (unsigned int j = 0; j < Image.TellHeight(); j++){
+        if ( Pos[0] >= x_min + deltaX*i && Pos[0] < x_min + deltaX*(i+1) &&
+        Pos[1] <= y_max - deltaY*j && Pos[1] > y_max - deltaY*(j+1) )
+        {
+          if (debris >= 0.00 &&  debris < 0.25) PixelsBinary[i][j].binaryVector[16] = true;
+          if (debris >= 0.25 &&  debris < 0.50) PixelsBinary[i][j].binaryVector[17] = true;
+          if (debris >= 0.50 &&  debris < 0.75) PixelsBinary[i][j].binaryVector[18] = true;
+          if (debris >= 0.75 ) PixelsBinary[i][j].binaryVector[19] = true;
+          if (TNF >= 0.00 &&  TNF < 0.25) PixelsBinary[i][j].binaryVector[20] = true;
+          if (TNF >= 0.25 &&  TNF < 0.50) PixelsBinary[i][j].binaryVector[21] = true;
+          if (TNF >= 0.50 &&  TNF < 0.75) PixelsBinary[i][j].binaryVector[22] = true;
+          if (TNF >= 0.75 ) PixelsBinary[i][j].binaryVector[23] = true;
+
+          //cout <<"(" << Pos[0] << ", " << Pos[1] << ") - (" << i << ", " << j <<") - "<< type << endl;
+          return;
+        }
+
+    }
+  }
+}
+
+void GenerateBitmap(const char* filename)
+{
+	BMP Image;
+  // Set size to width x height
+  Image.SetSize(parameters.ints("bitmap_width"),parameters.ints("bitmap_height"));
+  // Set its color depth to 24-bits
+  Image.SetBitDepth(24);
+  std::vector<std::vector<binaryVec>> PixelsBinary(Image.TellHeight(), std::vector<binaryVec>(Image.TellWidth()));
+
+	static int lung_type = get_cell_definition( "lung cell" ).type;
+	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int CD8_type = get_cell_definition( "CD8 Tcell" ).type;
+	static int CD4_type = get_cell_definition( "CD4 Tcell" ).type;
+	static int macrophage_type = get_cell_definition( "macrophage" ).type;
+	static int DC_type = get_cell_definition( "DC" ).type;
+	for (int i=0; i < (*all_cells).size(); i++)
+	{
+		if( (*all_cells)[i]->type == lung_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == false ) SetBinaryVector((*all_cells)[i]->position,0,PixelsBinary,Image); //bit 0 - live lung cell
+			else SetBinaryVector((*all_cells)[i]->position,1,PixelsBinary,Image); //bit 1 - dead lung cell
+		}
+		else if ( (*all_cells)[i]->type == melanoma_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,2,PixelsBinary,Image); //bit 2 - dead melanoma cell
+			else SetBinaryVector((*all_cells)[i]->position,7,PixelsBinary,Image); //bit 7 - live melanoma cell
+		}
+		else if ( (*all_cells)[i]->type == DC_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,3,PixelsBinary,Image); //bit 3 - dead DC
+			else if ( (*all_cells)[i]->custom_data["activated_immune_cell" ] > 0.5 ){
+				SetBinaryVector((*all_cells)[i]->position,13,PixelsBinary,Image); //bit 13 - activated DC
+			}else SetBinaryVector((*all_cells)[i]->position,8,PixelsBinary,Image); //bit 8 - inactivated DC
+		}
+		else if ( (*all_cells)[i]->type == macrophage_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,4,PixelsBinary,Image); //bit 4 - dead macrophage
+			else if ( (*all_cells)[i]->custom_data["ability_to_phagocytose_melanoma_cell"] == 1 ){
+				SetBinaryVector((*all_cells)[i]->position,11,PixelsBinary,Image); //bit 11 - hyperactivated macrophage
+			}else if ( (*all_cells)[i]->phenotype.volume.total> (*all_cells)[i]->custom_data["threshold_macrophage_volume"] ){
+				SetBinaryVector((*all_cells)[i]->position,10,PixelsBinary,Image); //bit 10 - exhausted macrophage
+			}else if ( (*all_cells)[i]->custom_data["activated_immune_cell" ] > 0.5 ){
+				SetBinaryVector((*all_cells)[i]->position,14,PixelsBinary,Image); //bit 14 - activated macrophage
+			}else SetBinaryVector((*all_cells)[i]->position,9,PixelsBinary,Image); //bit 9 - inactivated macrophage
+		}
+		else if( (*all_cells)[i]->type == CD4_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,5,PixelsBinary,Image); //bit 5 - dead CD4 T cell
+			else SetBinaryVector((*all_cells)[i]->position,12,PixelsBinary,Image); //bit 12 - live CD4 T cell
+		}
+		else if( (*all_cells)[i]->type == CD8_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,6,PixelsBinary,Image); //bit 6 - dead CD8 T cell
+			else SetBinaryVector((*all_cells)[i]->position,15,PixelsBinary,Image); //bit 15 - live CD8 T cell
+		}
+	}
+
+	// Substrate in blue channel
+	static int TNF_index = microenvironment.find_density_index( "TNF");
+	static int debris_index = microenvironment.find_density_index( "debris");
+	for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		SetBinaryVectorSubs(microenvironment.mesh.voxels[n].center,microenvironment.nearest_density_vector(n)[debris_index],microenvironment.nearest_density_vector(n)[TNF_index],PixelsBinary,Image);
+		//std::cout << microenvironment.mesh.voxels[n].center <<" "<< microenvironment.nearest_density_vector(n)[debris_index] <<" "<< microenvironment.nearest_density_vector(n)[TNF_index] << std::endl;
+	}
+
+	// Write bitmap file
+	int Rvalue, Gvalue, Bvalue;
+  for(unsigned int i = 0; i < Image.TellWidth(); i++)
+    for (unsigned int j = 0; j < Image.TellHeight(); j++){
+      Binary2Color(PixelsBinary[i][j].binaryVector,Rvalue,Gvalue,Bvalue);
+      Image(i,j)->Red = Rvalue;
+      Image(i,j)->Green = Gvalue;
+      Image(i,j)->Blue = Bvalue;
+      // std::cout << "Pixels - (" << i << ", " << j << ") - binary: [ ";
+      // for (unsigned int k = 0; k < PixelsBinary[i][j].binaryVector.size(); k++)
+      //   std::cout << PixelsBinary[i][j].binaryVector[k] << " ";
+      // std::cout << " ] - R: " << Rvalue << " G: " << Gvalue << " B: " << Bvalue << std::endl;
+    }
+
+	// Write bitmap file
+	Image.WriteToFile( filename );
+
+
 }

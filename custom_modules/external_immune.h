@@ -15,6 +15,21 @@ void external_immune_model_setup( void );
 
 void external_immune_model( double dt );
 
+class LymphNode{
+	public:
+		double DCAMOUNT = 0.0;
+		double GridCOUNT = 1.0;
+		double DM;
+		double TC;
+		double TH1;
+		double TH2;
+		double TCt;
+		double Tht;
+		void InitialCondition(double dm,double tc,double th1,double th2,double tct,double tht){
+			DM = dm; TC=tc; TH1=th1; TH2=th2; TCt=tct; Tht=tht;
+		}
+};
+
 class antigen{
 	public:
 		int ID;
