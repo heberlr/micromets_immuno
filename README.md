@@ -11,3 +11,8 @@ To compile and run [PhysiCell](http://physicell.mathcancer.org/) for this model:
 $ make
 $ ./melanoma
 ```
+
+Example of the Autologous vaccine
+```
+$ ./melanoma config/AutologousVac.xml
+```
