@@ -79,34 +79,20 @@
 #include "./modules/PhysiCell_standard_modules.h"
 
 // put custom code modules here!
-
 #include "./custom_modules/custom.h"
 
 using namespace BioFVM;
 using namespace PhysiCell;
 
-AntigenLibrary AntigenLib;
-
 LymphNode lympNode;
 
-// global ICs (external_immune)
-// double DCAMOUNT=0;
-// double DM=0;
-// double TC=10;
-// double TH1=1;
-// double TH2=1;
-// double TCt=0;
-// double Tht=0;
-// double GridCOUNT=1;
-
-std::vector<int> history(144000);
-std::vector<int> historyTc(120);
-std::vector<int> historyTh(120);
+std::vector<int> history(72000); //144000 - full day delay [dt = 0.01 min]
+std::vector<int> historyTc(60);  //120 - half day delay [dt = 6 min]
+std::vector<int> historyTh(60);
 
 int main( int argc, char* argv[] )
 {
 	// load and parse settings file(s)
-
 	bool XML_status = false;
 	char copy_command [1024];
 	if( argc > 1 )
@@ -198,11 +184,13 @@ int main( int argc, char* argv[] )
 		report_file<<"simulated time\tnum cells\tnum division\tnum death\twall time"<<std::endl;
 	}
 
-	std::ofstream dm_tc_file;
+	std::ofstream NumCells_file;
+	std::vector<int> NumberofCells;
 	if( PhysiCell_settings.enable_SVG_saves == true )
 	{
-		sprintf( filename , "%s/dm_tc.dat" , PhysiCell_settings.folder.c_str() );
-		dm_tc_file.open (filename);
+		sprintf( filename , "%s/NumCells.dat" , PhysiCell_settings.folder.c_str() );
+		NumCells_file.open (filename);
+		NumCells_file << "# current time, DC_LN, TC_LN, TH1_LN, TH2_LN, TCT_LN, THT_LN, Live_Lung, Dead_Lung, Dead_Cancer, Dead_DC, Dead_Mac, Dead_CD4, Dead_CD8, Live_Cancer, Inac_DC, Inac_Mac, Exas_Mac, Hyper_Mac, Live_CD4, Act_DC, Act_Mac, Live_CD8" << std::endl;
 	}
 
 	// main loop
@@ -248,7 +236,8 @@ int main( int argc, char* argv[] )
 						sprintf( filename , "%s/output%08u.bmp" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
 						GenerateBitmap(filename);
 					}
-					dm_tc_file << PhysiCell_globals.current_time << " " << lympNode.DM << " " << lympNode.TC << " " << lympNode.TH1 << " " << lympNode.TH2 << " " << lympNode.TCt << " " << lympNode.Tht << std::endl; //write globals data
+					NumberofCells = cell_count();
+					NumCells_file << PhysiCell_globals.current_time << " " << lympNode.DM << " " << lympNode.TC << " " << lympNode.TH1 << " " << lympNode.TH2 << " " << lympNode.TCt << " " << lympNode.Tht << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << " " << NumberofCells[8] << " " << NumberofCells[9] << " " << NumberofCells[10] << " " << NumberofCells[11] << " " << NumberofCells[12] << " " << NumberofCells[13] << " " << NumberofCells[14] << " " << NumberofCells[15] << std::endl; //write globals data
  					PhysiCell_globals.SVG_output_index++;
 					if ( parameters.bools("custom_save_time") ){
 						if ( abs(fmod(PhysiCell_globals.current_time, parameters.doubles("global_dt_save_time")) - parameters.doubles("local_dt_save_time")) < 0.01 * diffusion_dt ) PhysiCell_globals.next_SVG_save_time += (parameters.doubles("global_dt_save_time") - 2*parameters.doubles("local_dt_save_time"));
@@ -267,7 +256,7 @@ int main( int argc, char* argv[] )
 			// history functions
 			DC_history_main_model( diffusion_dt );
 
-			cells_to_move_from_edge.clear();
+			clear_cells_to_move_from_edge();
 
 			include_tumor_cells();
 			vaccine();
@@ -279,7 +268,6 @@ int main( int argc, char* argv[] )
 			/*
 			  Custom add-ons could potentially go here.
 			*/
-			//check_lung_cell_out_of_domain();
 			process_tagged_cells_on_edge();
 
 			immune_cell_recruitment( diffusion_dt );
@@ -316,7 +304,7 @@ int main( int argc, char* argv[] )
 
 	if( PhysiCell_settings.enable_SVG_saves == true  )
 	{
-		dm_tc_file.close();
+		NumCells_file.close();
 
 		if ( !parameters.bools("bitmap_save") ){
 			sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
@@ -331,8 +319,6 @@ int main( int argc, char* argv[] )
 	// timer
 	std::cout << std::endl << "Total simulation runtime: " << std::endl;
 	BioFVM::display_stopwatch_value( std::cout , BioFVM::runtime_stopwatch_value() );
-
-
 
 	extern int recruited_Tcells;
 	extern int recruited_macrophages;

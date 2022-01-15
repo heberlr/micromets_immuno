@@ -21,7 +21,7 @@ Submodel_Information::Submodel_Information( void )
 
 void Submodel_Information::register_model( void )
 {
-	// make sure the cell defaults "know" about each custom variable  
+	// make sure the cell defaults "know" about each custom variable
 	// Make sure it's there, or add if it's not.
 
 	for( int n = 0 ; n < cell_variables.size() ; n++ )
@@ -43,8 +43,6 @@ void Submodel_Information::register_model( void )
 
 	}
 
-
-
 	// make sure that hte microenvironment has all the necessary variables
 	for( int n = 0 ; n < microenvironment_variables.size() ; n++ )
 	{
@@ -62,9 +60,6 @@ void Submodel_Information::register_model( void )
 			exit(-1);
 		}
 	}
-
-	// add the model to the registry of submodels
-
 	submodel_registry.register_model( *this );
 }
 
@@ -122,8 +117,6 @@ void Submodel_Registry::register_model( Submodel_Information& model )
 		if( found == false )
 		{
 			submodels.push_back( &model );
-//			add_software_citation();
-// void add_software_citation( std::string name , std::string version, std::string DOI , std::string URL )
 		}
 	}
 

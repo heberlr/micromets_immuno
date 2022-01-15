@@ -70,10 +70,9 @@
 std::vector<std::vector <double>> valid_position;
 // generator sample from distribution
 std::default_random_engine generator{123456789};
-
-extern AntigenLibrary AntigenLib;
+// Cells that will receive a nudge to come back to the domain
+std::vector<Cell*> cells_to_move_from_edge;
 extern LymphNode lympNode;
-
 extern std::vector<int> vascularized_voxel_indices;
 
 void create_cell_types( void )
@@ -100,24 +99,15 @@ void create_cell_types( void )
 	/*
 	This parses the cell definitions in the XML config file.
 	*/
+	// Variables of plastoelastic mechanics
 	std::vector<double> myvec(3,0.0);
 	cell_defaults.custom_data.add_vector_variable( "ECM_attachment_point", "micron", myvec );
 	cell_defaults.custom_data.add_vector_variable( "mechanical_strain_displacement" , "micron", myvec );
-
 	// assume elastic movement on the order of 10 min at maximum 10 micron elongation
 	cell_defaults.custom_data.add_variable( "spring_constant", "1/min" , 0.05 );  // 0.05    // (1.0/10.0) * (1.0/10.0)
 	// assume plastic movement on the order of 1 day at maximum 10 micron elongation
 	cell_defaults.custom_data.add_variable( "mechanical_relaxation_rate", "1/min" , 0.0005 );  // 0.0005  // (1.0/10.0) * (1.0/(24.0*60.0)
 	cell_defaults.custom_data.add_variable( "mechanical_strain", "micron" , 0.0 );
-	//cell_defaults.custom_data.add_variable( "max_mechanical_strain", "micron" , 0.75); // 0.75
-	//cell_defaults.custom_data.add_variable( "max_mechanical_strain_TumorProl", "micron" , 10.0); // 0.75
-	cell_defaults.custom_data.add_variable( "simple_pressure", "micron" , 0.0 );
-	//aditional custom data -- PhysiCell don't allow boolean vector in cell, only double (always before initialize_cell_definitions_from_pugixml)
-	static int boolean_vector_size = 1; // <boolean_vector_size description="size of boolean vector to neoantigen signature" type="int" units="dimensionless">1</boolean_vector_size>
-	std::vector<double> neoantigen_signature(boolean_vector_size,0.0);
-	cell_defaults.custom_data.add_vector_variable( "neoantigen_signature" , "dimensionless" , neoantigen_signature );
-	// Initialize neoantigens_library
-	AntigenLib.add_first_antigen(neoantigen_signature);
 
 	initialize_cell_definitions_from_pugixml();
 
@@ -129,9 +119,6 @@ void create_cell_types( void )
 
 	// register the submodels
 	// (which ensures that the cells have all the internal variables they need)
-
-	Cell_Definition* pCD = find_cell_definition( "lung cell" );
-
 	immune_submodels_setup();
 	epithelium_submodel_setup();
 	melanoma_submodel_setup();
@@ -141,7 +128,6 @@ void create_cell_types( void )
 	/*
 	This builds the map of cell definitions and summarizes the setup.
 	*/
-
 	build_cell_definitions_maps();
 	display_cell_definitions( std::cout );
 
@@ -189,7 +175,7 @@ void setup_tissue( void )
 
 	double triangle_stagger = sqrt(3.0) * spacing * 0.5;
 
-	// find hte cell nearest to the center
+	// find the cell nearest to the center
 	double nearest_distance_squared = 9e99;
 	Cell* pNearestCell = NULL;
 
@@ -200,8 +186,6 @@ void setup_tissue( void )
 	{
 		while( x < x_max )
 		{
-			// pC = create_cell( get_cell_definition("lung cell" ) );
-			// pC->assign_position( x,y, 0.0 );
 			temp_position[0] = x; temp_position[1] = y; temp_position[2] = 0.0;
 			valid_position.push_back(temp_position);
 
@@ -228,7 +212,7 @@ void setup_tissue( void )
 	}
 	int Max_number_of_cell = valid_position.size();
 	// extern double GridCOUNT;
-  	lympNode.GridCOUNT = Max_number_of_cell;
+  lympNode.GridCOUNT = Max_number_of_cell;
 	// place immune cells
 	initial_immune_cell_placement();
 
@@ -237,9 +221,6 @@ void setup_tissue( void )
 	if ( parameters.doubles("time_add_melanoma_cell") == 0.0 )
 	{
 		for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
-
-			// Sample neoantigens
-			//....
 			pC = create_cell( get_cell_definition("melanoma cell" ) );
 			std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
 			int index_sample = distribution_index(generator);
@@ -270,11 +251,10 @@ std::vector<std::string> epithelium_coloring_function( Cell* pCell )
 	static int color_index =
 	cell_defaults.custom_data.find_variable_index( parameters.strings["color_variable"].value );
 
-	// color by assembled pathogen
-
+	// color by assembled generation
 	if( pCell->phenotype.death.dead == false )
 	{
-		// find fraction of max pathogen load
+		// find fraction of max generation load
 		double v = pCell->custom_data[ color_index ] ;
 
 		double interpolation = 0;
@@ -340,14 +320,12 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 	if( pCell->phenotype.death.dead == false && pCell->type == lung_epithelial_type )
 	{
-		// color by pathogen
 		output = epithelium_coloring_function(pCell);
 		return output;
 	}
 
 	if( pCell->phenotype.death.dead == false && pCell->type == melanoma_type )
 	{
-		// color by pathogen
 		output[0] = parameters.strings("melanoma_color");
 		output[2] = output[0];
 		output[3] = output[0];
@@ -404,17 +382,14 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 	return output;
 }
 
-bool Write_SVG_circle_opacity( std::ostream& os, double center_x, double center_y, double radius, double stroke_size,
-	std::string stroke_color , std::string fill_color , double opacity )
-	{
-		os << "  <circle cx=\"" << center_x << "\" cy=\"" << center_y << "\" r=\"" << radius << "\" stroke-width=\"" << stroke_size
-		<< "\" stroke=\"" << stroke_color << "\" fill=\"" << fill_color
-		<< "\" fill-opacity=\"" << opacity << "\"/>" << std::endl;
-		return true;
-	}
+bool Write_SVG_circle_opacity( std::ostream& os, double center_x, double center_y, double radius, double stroke_size,	std::string stroke_color , std::string fill_color , double opacity )
+{
+	os << "  <circle cx=\"" << center_x << "\" cy=\"" << center_y << "\" r=\"" << radius << "\" stroke-width=\"" << stroke_size
+	<< "\" stroke=\"" << stroke_color << "\" fill=\"" << fill_color
+	<< "\" fill-opacity=\"" << opacity << "\"/>" << std::endl;
+	return true;
+}
 
-
-//
 void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) )
 {
 		static double X_lower = M.mesh.bounding_box[0];
@@ -607,30 +582,6 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 		return;
 }
 
-void mutation (Cell* pCell){
-	static int neoantigen_signature_index = pCell->custom_data.find_vector_variable_index( "neoantigen_signature" );
-	static double rate_neoantigen_variability = 0.0; //	<rate_neoantigen_variability description="rate of element alteration for neoantigen signature (poisson dist)" type="double" units="dimensionless">0.0</rate_neoantigen_variability>
-	std::poisson_distribution<int> Poisson_dist( rate_neoantigen_variability );
-	int NumberElements = Poisson_dist(generator); // Number of elements to be changed
-	std::uniform_int_distribution<int> unif_discrete_dist(0,pCell->custom_data.vector_variables[neoantigen_signature_index].value.size()-1);
-
-	//std::cout << "-------------------------------------------------------" << std::endl;
-	for (int i=0; i < NumberElements; i++)
-	{
-  	int index_sample = unif_discrete_dist(generator);
-		//std::cout << "Number of samples: " << NumberElements << "  Index: " << index_sample << " size: " << pCell->custom_data.vector_variables[neoantigen_signature_index].value.size()  << std::endl;
-		if ( pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] == 0.0)
-		{
-			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 1.0;
-		}else
-		{
-			pCell->custom_data.vector_variables[neoantigen_signature_index].value[index_sample] = 0.0;
-		}
-	}
-	//std::cout << "Neoantigen type: " << pCell->custom_data[neoantigen_type_index] << std::endl;
-	//std::cout << "-------------------------------------------------------" << std::endl;
-}
-
 void divide_custom_data()
 {
 	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
@@ -641,24 +592,18 @@ void divide_custom_data()
 	{
 		Cell* pCell;
 		pCell = (*all_cells)[i];
-		static int last_cycle_index = pCell->custom_data.find_variable_index( "last_cycle_entry_time");
-		static int generation_index = pCell->custom_data.find_variable_index( "division_generation" );
 
-		// if cell is dead, skip it
-		if( pCell->phenotype.death.dead == true )
+		// if cell is dead or is not melanoma cell, skip it
+		if( pCell->phenotype.death.dead == true || pCell->type != melanoma_type)
 	    { continue; }
 
-		// if cell is not nelanoma cell, skip it
-		if ( pCell->type != melanoma_type ) continue;
-
+		static int last_cycle_index = pCell->custom_data.find_variable_index( "last_cycle_entry_time");
+		static int generation_index = pCell->custom_data.find_variable_index( "division_generation" );
 		if( pCell->phenotype.cycle.data.elapsed_time_in_phase < tolerance &&
-			fabs( PhysiCell_globals.current_time - pCell->custom_data[ last_cycle_index ] ) >= phenotype_dt ) // 6.0
+			fabs( PhysiCell_globals.current_time - pCell->custom_data[ last_cycle_index ] ) >= phenotype_dt )
 		{
 			// add generation by 1
 			pCell->custom_data[ generation_index ] += 1;
-			// #pragma omp critical
-      mutation (pCell);
-
 			pCell->custom_data[ last_cycle_index ] = PhysiCell_globals.current_time;
 		}
 	}
@@ -666,17 +611,88 @@ void divide_custom_data()
 	return;
 }
 
-void check_lung_cell_out_of_domain( void )
+std::vector<double> set_nudge_from_edge( Cell* pC , double tolerance ) // return {push_x,push_y,push_z} of direction to nudge cell
 {
-	static int lung_cell_type = get_cell_definition( "lung cell" ).type;
-	for (int i=0; i < (*all_cells).size(); i++)
+	static double Xmin = microenvironment.mesh.bounding_box[0];
+	static double Ymin = microenvironment.mesh.bounding_box[1];
+	static double Zmin = microenvironment.mesh.bounding_box[2];
+
+	static double Xmax = microenvironment.mesh.bounding_box[3];
+	static double Ymax = microenvironment.mesh.bounding_box[4];
+	static double Zmax = microenvironment.mesh.bounding_box[5];
+
+	static bool two_dimensions = default_microenvironment_options.simulate_2D;
+
+	static bool setup_done = false;
+	if( default_microenvironment_options.simulate_2D == true && setup_done == false )
 	{
-		if( !(*all_cells)[i]->get_container()->underlying_mesh.is_position_valid((*all_cells)[i]->position[0],(*all_cells)[i]->position[1],(*all_cells)[i]->position[2]) &&
-	   	(*all_cells)[i]->type == lung_cell_type)
-		{
-	      delete_cell( i );
-		}
+		Zmin = 0.0;
+		Zmax = 0.0;
+		setup_done = true;
 	}
+
+	std::vector<double> nudge = {0,0,0};
+
+	if( pC->position[0] < Xmin + tolerance )
+	{ nudge[0] += 1; }
+	if( pC->position[0] > Xmax - tolerance )
+	{ nudge[0] -= 1; }
+
+	if( pC->position[1] < Ymin + tolerance )
+	{ nudge[1] += 1;  }
+	if( pC->position[1] > Ymax - tolerance )
+	{ nudge[1] -= 1;  }
+
+	if( two_dimensions )
+	{ normalize(nudge); return nudge; }
+
+	if( pC->position[2] < Zmin + tolerance )
+	{ nudge[2] += 1; }
+	if( pC->position[2] > Zmax - tolerance )
+	{ nudge[2] -= 1; }
+
+	normalize(nudge);
+	return nudge;
+}
+
+void nudge_out_of_bounds_cell( Cell* pC , double tolerance )
+{
+	std::vector<double> nudge = set_nudge_from_edge(pC,tolerance);
+
+	// remove attachments
+	pC->remove_all_attached_cells();
+
+	// set velocity away rom edge
+	pC->velocity = nudge;
+
+	// set new position
+	nudge *= tolerance;
+	pC->position += nudge;
+
+	// update in the data structure
+	pC->update_voxel_in_container();
+
+	// allow that cell to move and be movable
+	pC->is_out_of_domain = false;
+	pC->is_active = true;
+	pC->is_movable= true;
+
+	return;
+}
+
+void process_tagged_cells_on_edge( void )
+{
+	for( int n=0 ; n < cells_to_move_from_edge.size(); n++ )
+	{
+		Cell* pC = cells_to_move_from_edge[n];
+		nudge_out_of_bounds_cell( pC , 10.0 );
+	}
+	return;
+}
+
+void clear_cells_to_move_from_edge( void )
+{
+	cells_to_move_from_edge.clear();
 }
 
 void include_tumor_cells(void)
@@ -702,7 +718,7 @@ void vaccine(void)
 		return;
 	parameters.ints("count_vaccine")++;
 	std::cout<< "Take shot: " << PhysiCell_globals.current_time << " min - dose: " << parameters.ints("number_of_cells_vaccine") << " cells\n";
-	//system("pause");
+
 	double Xmin = microenvironment.mesh.bounding_box[0];
 	double Ymin = microenvironment.mesh.bounding_box[1];
 	double Xmax = microenvironment.mesh.bounding_box[3];
@@ -711,7 +727,7 @@ void vaccine(void)
 	double Yrange = Ymax - Ymin;
 	Cell* pC;
 	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
-	//static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
+
 	for ( int i=0; i < parameters.ints("number_of_cells_vaccine") ;i++){
 		std::vector<double> position = {0,0,0};
 		position[0] = Xmin + UniformRandom()*Xrange;
@@ -732,35 +748,7 @@ void vaccine(void)
 	}
 }
 
-void include_TNF(void)
-{
-	static int TNF_index = microenvironment.find_density_index( "TNF");
-	//Inject vaccine
-	if (  fabs( PhysiCell_globals.current_time - parameters.doubles("time_vaccine")  ) < 0.01 * diffusion_dt ){
-		for ( int i=0; i < vascularized_voxel_indices.size();i++){
-			microenvironment.update_dirichlet_node( vascularized_voxel_indices[i],TNF_index,parameters.doubles("TNF_vaccine"));
-		}
-		// for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
-		// 	microenvironment.update_dirichlet_node( n,0,parameters.doubles("TNF_vaccine"));
-		// }
-		std::cout << "Vaccine injected: " << parameters.doubles("TNF_vaccine") <<" at " << PhysiCell_globals.current_time << " minutes " << std::endl;
-		return;
-	}
-	if (  fabs( PhysiCell_globals.current_time - (parameters.doubles("time_vaccine") + parameters.doubles("duration_vaccine")) ) < 0.01 * diffusion_dt ){
-		for ( int i=0; i < vascularized_voxel_indices.size();i++){
-			microenvironment.remove_dirichlet_node(vascularized_voxel_indices[i]);
-		}
-		// for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
-		// 	microenvironment.remove_dirichlet_node(n);
-		// }
-		std::cout << "Remove sources from vaccine at " << PhysiCell_globals.current_time << " minutes" << std::endl;
-		//system("pause");
-		return;
-	}
-	return;
-}
-
-void print_cell_count( std::ofstream& file )
+std::vector<int> cell_count( void )
 {
 	static int lung_cell_type = get_cell_definition( "lung cell" ).type;
 	static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
@@ -769,15 +757,17 @@ void print_cell_count( std::ofstream& file )
 	static int macrophage_type = get_cell_definition( "macrophage" ).type;
 	static int DC_type = get_cell_definition( "DC" ).type;
 
-	std::vector<int> NumberofCells;
-  NumberofCells = {0,0,0,0,0,0,0,0,0};
+	std::vector<int> NumberofCells(16,0);
 	for (int i=0; i < (*all_cells).size(); i++)
 	{
 		if( (*all_cells)[i]->phenotype.death.dead == true )
 		{
-			if( (*all_cells)[i]->type == lung_cell_type ) NumberofCells[6]++; // Dead melanoma cells
-			else if( (*all_cells)[i]->type == melanoma_cell_type ) NumberofCells[7]++; // Dead lung cells
-			else NumberofCells[8]++; // Dead immune cells
+			if( (*all_cells)[i]->type == lung_cell_type ) NumberofCells[1]++; // Dead lung
+			else if( (*all_cells)[i]->type == melanoma_cell_type ) NumberofCells[2]++; // Dead melanoma
+			else if( (*all_cells)[i]->type == DC_type ) NumberofCells[3]++; // Dead DC
+			else if( (*all_cells)[i]->type == macrophage_type ) NumberofCells[4]++; // Dead macrophage
+			else if( (*all_cells)[i]->type == CD4_type ) NumberofCells[5]++; // Dead CD4
+			else if( (*all_cells)[i]->type == CD8_type ) NumberofCells[6]++; // Dead CD8
 		}
 		else if( (*all_cells)[i]->type == lung_cell_type )
 		{
@@ -785,35 +775,38 @@ void print_cell_count( std::ofstream& file )
 		}
 		else if ( (*all_cells)[i]->type == melanoma_cell_type )
 		{
-			NumberofCells[1]++;
+			NumberofCells[7]++;
 		}
 		else if ( (*all_cells)[i]->type == CD8_type )
 		{
-			NumberofCells[2]++;
+			NumberofCells[15]++;
 		}
 		else if ( (*all_cells)[i]->type == macrophage_type )
 		{
-			NumberofCells[3]++;
+			if ( (*all_cells)[i]->custom_data["ability_to_phagocytose_melanoma_cell"] == 1 )
+			{	NumberofCells[11]++; } //hyperactivated macrophage
+			else
+			{
+				if ( (*all_cells)[i]->phenotype.volume.total> (*all_cells)[i]->custom_data["threshold_macrophage_volume"] ){ NumberofCells[10]++; } //exhausted macrophage
+				else
+				{
+					if ( (*all_cells)[i]->custom_data["activated_immune_cell" ] > 0.5 ){ NumberofCells[14]++; } //activated macrophage
+					else NumberofCells[9]++; //inactivated macrophage
+				}
+			}
 		}
 		else if ( (*all_cells)[i]->type == DC_type )
 		{
-			NumberofCells[4]++;
+			if ( (*all_cells)[i]->custom_data["activated_immune_cell" ] > 0.5 ){ NumberofCells[13]++; } //activated DC
+			else NumberofCells[8]++; //inactivated DC
 		}
 		else if ( (*all_cells)[i]->type == CD4_type )
 		{
-			NumberofCells[5]++;
+			NumberofCells[12]++;
 		}
 	}
-	file << PhysiCell_globals.current_time << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << " " << NumberofCells[8] << std::endl;
+	return NumberofCells;
 }
-
-#include "EasyBMP.h"
-
-class binaryVec {
-  public:
-    std::vector<bool> binaryVector;
-    binaryVec(): binaryVector(24,false){}
-};
 
 void Binary2Color(const std::vector<bool> &BinaryVector, int &Rvalue, int &Gvalue, int &Bvalue)
 {

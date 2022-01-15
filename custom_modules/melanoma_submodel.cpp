@@ -6,6 +6,9 @@ std::string melanoma_submodel_version = "0.1.0";
 
 Submodel_Information melanoma_submodel_info;
 
+// Cells that will receive a nudge to come back to the domain
+extern std::vector<Cell*> cells_to_move_from_edge;
+
 void melanoma_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2, double dt )
 {
 	// elastic adhesions
@@ -16,7 +19,7 @@ void melanoma_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& 
 
 double strain_based_proliferation( Cell* pCell )
 {
-	static double  max_pressure = 10.0; //<max_simple_pressure_TumorProl description="maximum tolerated pressure of melanoma cell (proliferation)" type="double" units="micron">10.0</max_simple_pressure_TumorProl>
+	static double  max_pressure = 10.0; // maximum tolerated pressure of melanoma cell (proliferation) [10.0 microns]
 	if( pCell->state.simple_pressure < max_pressure )
 	{
 		return pow( (max_pressure - pCell->state.simple_pressure)/max_pressure, 1.0 );
@@ -27,7 +30,6 @@ double strain_based_proliferation( Cell* pCell )
 void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
-	static int TNF_index = microenvironment.find_density_index( "TNF" );
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
 
 	phenotype.motility.is_motile = false;
@@ -40,23 +42,11 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		// detach all attached cells
 		// remove_all_adhesions( pCell );
-		//std::cout << pCell->ID << ": " << pCell->phenotype.cycle.current_phase().name << std::endl;
-		//pCell->phenotype.cycle.data.transition_rate( 0, 1 ) = 0.0; // Never remove it from simulation
 		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
-		//system("pause");
 	}
-	// update mechanical strain
-	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
-	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
-	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
-	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value = pCell->custom_data.vector_variables[ECM_attachment_point_index].value;
-	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value -= pCell->position;
-	pCell->custom_data[strain_index] = norm( pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
 
-	//proliferation, mechanics, and chemokine secretion activated
 	// Mechanical contribution to proliferation
 	double mechanics_factor = strain_based_proliferation( pCell );
-	//if (mechanics_factor == 0) pCell->phenotype.death.rates[apoptosis_index] = 9e9;
 
 	// proliferation rate based on mechanical aspect
 	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
@@ -75,6 +65,7 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 void melanoma_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
+
 	// if I'm dead, don't bother
 	if( phenotype.death.dead == true )
 	{
@@ -89,22 +80,13 @@ void melanoma_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
 		return;
 	}
-	static int simple_pressure_index = pCell->custom_data.find_variable_index( "simple_pressure" );
-	pCell->custom_data[simple_pressure_index]	= pCell->state.simple_pressure;
-	//plastoelastic mechanics
-	static int spring_constant_index = pCell->custom_data.find_variable_index( "spring_constant" );
-	static int relaxation_constant_index = pCell->custom_data.find_variable_index( "mechanical_relaxation_rate" );
-	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
-	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
 
-	pCell->custom_data[relaxation_constant_index] = 10e-3;
-
-	// first, update the cell's velocity based upon the elastic model
-	axpy( &( pCell->velocity ) , pCell->custom_data[spring_constant_index] , pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
-
-	// now, plastic mechanical relaxation
-	static double plastic_temp_constant = -dt * pCell->custom_data[relaxation_constant_index];
-	axpy( &(pCell->custom_data.vector_variables[ECM_attachment_point_index].value) , plastic_temp_constant , pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
+	// bounds check
+	if( check_for_out_of_bounds( pCell , 10.0 ) )
+	{
+		#pragma omp critical
+		{ cells_to_move_from_edge.push_back( pCell ); }
+	}
 
 	return;
 }
@@ -125,7 +107,7 @@ void melanoma_submodel_setup( void )
 	melanoma_submodel_info.mechanics_function = melanoma_mechanics;
 
 	// what microenvironment variables do you expect?
-	melanoma_submodel_info.microenvironment_variables.push_back( "TNF" );
+	melanoma_submodel_info.microenvironment_variables.push_back( "debris" );
 
 	// what custom data do I need?
 	//melanoma_submodel_info.cell_variables.push_back( "something" );

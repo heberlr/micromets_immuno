@@ -11,16 +11,16 @@ extern LymphNode lympNode;
 
 void DC_history_model_setup( void )
 {
-		// set version
+	// set version
 	DC_history_info.name = "DC history";
 	DC_history_info.version = DC_history_version;
-		// set functions
+	// set functions
 	DC_history_info.main_function = DC_history_main_model;
 	DC_history_info.phenotype_function = NULL; // pushed into the "main" model
 	DC_history_info.mechanics_function = NULL;
-		// what microenvironment variables do you need
+	// what microenvironment variables do you need
 
-		// what cell variables and parameters do you need?
+	// what cell variables and parameters do you need?
 
 	// submodel_registry.register_model( receptor_dynamics_info );
 	DC_history_info.register_model();
@@ -31,12 +31,11 @@ void DC_history_model_setup( void )
 void DC_history_model( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int DC_type = get_cell_definition( "DC" ).type;
-
 	// bookkeeping -- find microenvironment variables we need
 
 	// bookkeeping -- find custom data we need
 	static double DCprob = parameters.doubles( "DC_leave_prob" );
-	// extern double DCAMOUNT; //declare existance of counter
+
 	// do nothing if dead
 	if( phenotype.death.dead == true )
 	{ return; }
@@ -62,7 +61,6 @@ void DC_history_model( Cell* pCell, Phenotype& phenotype, double dt )
 
 void DC_history_main_model( double dt )
 {
-	// extern double DCAMOUNT;
 	extern std::vector<int>history;
 	lympNode.DCAMOUNT=0;
 
@@ -76,8 +74,5 @@ void DC_history_main_model( double dt )
 	std::rotate(history.rbegin(),history.rbegin()+1,history.rend());
 	history.front() = lympNode.DCAMOUNT;
 
-	/* std::copy(history.begin(), history.end(), std::ostream_iterator<int>(std::cout, " "));
-	std::cout << std::endl;
-	 */
 	return;
 }
