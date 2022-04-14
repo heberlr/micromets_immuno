@@ -68,8 +68,6 @@
 #include "./custom.h"
 // vector of valid positions
 std::vector<std::vector <double>> valid_position;
-// generator sample from distribution
-std::default_random_engine generator{123456789};
 // Cells that will receive a nudge to come back to the domain
 std::vector<Cell*> cells_to_move_from_edge;
 extern LymphNode lympNode;
@@ -222,8 +220,7 @@ void setup_tissue( void )
 	{
 		for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
 			pC = create_cell( get_cell_definition("melanoma cell" ) );
-			std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
-			int index_sample = distribution_index(generator);
+			int index_sample = (int) ( UniformRandom() * (valid_position.size()-1) );
 			pC->assign_position( valid_position[index_sample] );
 			pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
 			valid_position.erase (valid_position.begin()+index_sample);
@@ -233,8 +230,7 @@ void setup_tissue( void )
 	// Ephitelium cells
   	for ( int i=0; i < parameters.doubles("cell_confluence_lung_cells")*Max_number_of_cell;i++){
 		pC = create_cell( get_cell_definition("lung cell" ) );
-		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
-		int index_sample = distribution_index(generator);
+		int index_sample = (int) ( UniformRandom() * (valid_position.size()-1) );
 		pC->assign_position( valid_position[index_sample] );
 		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
 		valid_position.erase (valid_position.begin()+index_sample);
@@ -658,10 +654,8 @@ std::vector<double> set_nudge_from_edge( Cell* pC , double tolerance ) // return
 void nudge_out_of_bounds_cell( Cell* pC , double tolerance )
 {
 	std::vector<double> nudge = set_nudge_from_edge(pC,tolerance);
-
 	// remove attachments
 	pC->remove_all_attached_cells();
-
 	// set velocity away rom edge
 	pC->velocity = nudge;
 
@@ -682,10 +676,15 @@ void nudge_out_of_bounds_cell( Cell* pC , double tolerance )
 
 void process_tagged_cells_on_edge( void )
 {
+	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
 	for( int n=0 ; n < cells_to_move_from_edge.size(); n++ )
 	{
 		Cell* pC = cells_to_move_from_edge[n];
-		nudge_out_of_bounds_cell( pC , 10.0 );
+		if ( pC->type == melanoma_type){
+			delete_cell(pC);
+		}else{
+			nudge_out_of_bounds_cell( pC , 10.0 );
+		}
 	}
 	return;
 }
@@ -704,8 +703,7 @@ void include_tumor_cells(void)
 	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
 	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
 		pC = create_cell( get_cell_definition("melanoma cell" ) );
-		std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
-		int index_sample = distribution_index(generator);
+		int index_sample = (int) ( UniformRandom() * (valid_position.size()-1) );
 		pC->assign_position( valid_position[index_sample] );
 		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
 		valid_position.erase (valid_position.begin()+index_sample);
@@ -714,7 +712,8 @@ void include_tumor_cells(void)
 
 void vaccine(void)
 {
-	if (  fabs(PhysiCell_globals.current_time - (parameters.doubles("time_vaccine") + parameters.ints("count_vaccine")*parameters.doubles("vaccine_interval"))) >= 0.01 * diffusion_dt )
+	if ( parameters.ints("number_of_cells_vaccine") == 0 ) return; // No vaccine
+	if (  fabs(PhysiCell_globals.current_time - (parameters.doubles("time_vaccine") + parameters.ints("count_vaccine")*parameters.doubles("vaccine_interval"))) >= 0.01 * diffusion_dt ) // Check right time
 		return;
 	parameters.ints("count_vaccine")++;
 	std::cout<< "Take shot: " << PhysiCell_globals.current_time << " min - dose: " << parameters.ints("number_of_cells_vaccine") << " cells\n";

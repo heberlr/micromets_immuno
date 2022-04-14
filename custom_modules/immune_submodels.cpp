@@ -16,8 +16,6 @@ extern std::vector<Cell*> cells_to_move_from_edge;
 std::vector<int> vascularized_voxel_indices;
 // vector of valid positions in domain (mesh created in custom.cpp)
 extern std::vector<std::vector <double>> valid_position;
-// generator sample from distribution
-extern std::default_random_engine generator;
 
 extern LymphNode lympNode;
 
@@ -28,11 +26,17 @@ void choose_initialized_voxels( void )
 	int max_voxel_index = microenvironment.mesh.voxels.size() - 1;
 	int number_of_vascularized_voxels = (int) ( percentage_vascularised/100.0 * ( max_voxel_index+1) );
 
+	// Sample with no replacement
+	std::vector<int> voxelNoVacularized(microenvironment.mesh.voxels.size());
+	std::iota(voxelNoVacularized.begin(), voxelNoVacularized.end(), 0); // Enumerate from 0 to max_voxel_index
+
 	// choose which voxels are veins
 	for( int n = 0 ; n < number_of_vascularized_voxels ; n++ )
 	{
-		int index_vascularised_voxel = (int) ( UniformRandom() * max_voxel_index );
-		vascularized_voxel_indices.push_back( index_vascularised_voxel );
+		int index_NoVasc_voxel = (int) ( UniformRandom() * (voxelNoVacularized.size()-1) );
+		vascularized_voxel_indices.push_back( voxelNoVacularized[index_NoVasc_voxel] );
+		// Remove from No vascularized vector
+		voxelNoVacularized.erase (voxelNoVacularized.begin()+index_NoVasc_voxel);
 	}
 
 	return;
@@ -52,8 +56,7 @@ void create_infiltrating_immune_cell_initial( Cell_Definition* pCD )
 	// randomly select an place from the mesh to create cell (Initial condition)
 	Cell* pC = create_cell( *pCD );
 	// Sample from mesh positions
-	std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
-	int index_sample = distribution_index(generator);
+	int index_sample = (int) ( UniformRandom() * (valid_position.size()-1) );
 	pC->assign_position( valid_position[index_sample] );
 	valid_position.erase (valid_position.begin()+index_sample);
 
