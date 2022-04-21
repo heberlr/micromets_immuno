@@ -40,8 +40,9 @@ def generate_parSamples(parameters, default_value, variation, Samples_number,Rep
     #Write file with samples
     for sample_id in range(Samples_number):
         for replica_id in range(Replicas_number):
+            path = '/N/slate/hlimadar/melanoma_v3/'
             folder = 'output_S'+str("%06d"%sample_id)+'_R'+str("%02d"%replica_id)
-            file.write("folder"+" "+folder+"\n")
+            file.write("folder"+" "+path+folder+"\n")
             # Set of parameters
             for id_par in range(0, len(parameters)):
                 file.write(parameters[id_par]+" "+str(samples[sample_id,id_par])+"\n")
@@ -112,7 +113,7 @@ def plot_samples(filename, label1, label2, default_value1, default_value2):
 
 if __name__ == '__main__':
     parameters = np.array(["macrophage_max_recruitment_rate","macrophage_recruitment_min_signal","macrophage_recruitment_saturation_signal","DC_max_recruitment_rate","DC_recruitment_min_signal","DC_recruitment_saturation_signal","DC_leave_prob","TC_death_rate","T_Cell_Recruitment","DM_decay"])
-    default_value = np.array([4e-9, 0.1, 0.3, 2e-9, 0.1, 0.3, 3.3e-9, 1.4e-6, 1.1e-4, 3.5e-4])
+    default_value = np.array([4e-9, 0.1, 0.3, 2e-9, 0.1, 0.3, 2e-3, 1.4e-6, 1.1e-4, 3.5e-4])
     variation = 1.0
     constrain = ([1,2],[4,5]) # parameters[1] < parameters[2] and parameters[4] < parameters[5]
     file = "ParameterSamples.txt"

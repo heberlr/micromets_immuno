@@ -914,13 +914,13 @@
 		<DC_recruitment_min_signal type="double" units="substrate/micron^3" description="min concentration to attract DC">0.1</DC_recruitment_min_signal> <!--0.1 debug -->
 		<DC_recruitment_saturation_signal type="double" units="substrate/micron^3" description="saturating concentration to attract DC">0.3</DC_recruitment_saturation_signal> <!-- 0.3 debug -->
 
-		<TC_death_rate description="TC death rate" type="double" units="cells/min">0.0000014</TC_death_rate>
+		<TC_death_rate description="TC death rate" type="double" units="cells/min">1.4e-6</TC_death_rate>
 		<max_activation_TC description="max activation TC" type="double" units="cells/min">0.003</max_activation_TC>
 		<half_max_activation_TC description="half max activation TC" type="double" units="cells">2000</half_max_activation_TC>
 		<max_clearance_TC description="max clearance TC" type="double" units="cells/min">0.0007</max_clearance_TC>
 		<half_max_clearance_TC description="half max clearance TC" type="double" units="cells">200</half_max_clearance_TC>
 		<TC_population_threshold description="TC population threshold" type="double" units="cells">10</TC_population_threshold>
-		<DM_decay description="DM decay rate" type="double" units="cells/min">0.00035</DM_decay>
+		<DM_decay description="DM decay rate" type="double" units="cells/min">3.5e-4</DM_decay>
 		<Th1_max_activation type="double" units="cells/min" description="Th1 max activation speed">0.0007</Th1_max_activation>
 		<Th1_damping type="double" units="cells/min" description="Th1 damping factor">0.000015</Th1_damping>
 		<Th1_decay type="double" units="cells/min" description="Th1 active decay rate">7e-7</Th1_decay>
@@ -928,7 +928,7 @@
 		<Th2_self_feeback type="double" units="cells/min" description="Th2 max self feeback speed">0.000028</Th2_self_feeback>
 		<Th2_max_conversion type="double" units="cells/min" description="Th2 max conversion speed">0.000002</Th2_max_conversion>
 		<Th1_Th2_conversion_weight type="double" units="cells/min" description="Th1 to Th2 conversion weight">1</Th1_Th2_conversion_weight>
-		<T_Cell_Recruitment description="T cell recruitment rate to tissue" type="double" units="cells/min">0.00011</T_Cell_Recruitment>
+		<T_Cell_Recruitment description="T cell recruitment rate to tissue" type="double" units="cells/min">1.1e-4</T_Cell_Recruitment>
 
 		<div_initialization description="---Initialization Options--" type="divider" />
 		<cell_confluence_lung_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_lung_cells>
@@ -947,7 +947,7 @@
 		<DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
 		<DC_induced_CD8_attachment description="DC induced CD8 attachement rate" type="double" units="cells/min/micron^3">0.6</DC_induced_CD8_attachment>
 
-		<DC_leave_prob description="probability of DC leaving to lymph node" type="double" units="cells/min">3.3e-6</DC_leave_prob>
+		<DC_leave_prob description="probability of DC leaving to lymph node" type="double" units="cells/min">2e-3</DC_leave_prob>
 
 		<epsilon_distance descriptions="Multiple of interaction distance for immune cells" type="double" units="dimensionless">1.75</epsilon_distance>
 
