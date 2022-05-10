@@ -3,29 +3,149 @@
 
 using namespace PhysiCell;
 
-std::string immune_submodels_version = "0.4.0";
+std::string immune_submodels_version = "0.1.0";
 // Submodel_Information Immune_submodels_info; // not needed for now
 
 Submodel_Information CD8_submodel_info;
 Submodel_Information Macrophage_submodel_info;
 Submodel_Information DC_submodel_info;
 Submodel_Information CD4_submodel_info;
-
-std::vector<Cell*> cells_to_move_from_edge;
-
-
+// Cells that will receive a nudge to come back to the domain
+extern std::vector<Cell*> cells_to_move_from_edge;
+// Indices of vascularized voxels
 std::vector<int> vascularized_voxel_indices;
-
-// vector of valid positions
+// vector of valid positions in domain (mesh created in custom.cpp)
 extern std::vector<std::vector <double>> valid_position;
-// generator sample from distribution
-extern std::default_random_engine generator;
 
-extern AntigenLibrary AntigenLib;
 extern LymphNode lympNode;
 
-// return true if out of bounds, within a tolerance
-bool check_for_out_of_bounds( Cell* pC , double tolerance )
+void choose_initialized_voxels( void )
+{
+	// read in percentage of tissue that's vascularized
+	double percentage_vascularised = parameters.doubles("percentage_tissue_vascularized");
+	int max_voxel_index = microenvironment.mesh.voxels.size() - 1;
+	int number_of_vascularized_voxels = (int) ( percentage_vascularised/100.0 * ( max_voxel_index+1) );
+
+	// Sample with no replacement
+	std::vector<int> voxelNoVacularized(microenvironment.mesh.voxels.size());
+	std::iota(voxelNoVacularized.begin(), voxelNoVacularized.end(), 0); // Enumerate from 0 to max_voxel_index
+
+	// choose which voxels are veins
+	for( int n = 0 ; n < number_of_vascularized_voxels ; n++ )
+	{
+		int index_NoVasc_voxel = (int) ( UniformRandom() * (voxelNoVacularized.size()-1) );
+		vascularized_voxel_indices.push_back( voxelNoVacularized[index_NoVasc_voxel] );
+		// Remove from No vascularized vector
+		voxelNoVacularized.erase (voxelNoVacularized.begin()+index_NoVasc_voxel);
+	}
+
+	return;
+}
+
+std::vector<double> choose_vascularized_position( void )
+{
+	// Randomly select the vessel to extravasate the cell
+	int my_voxel_index = (int) ( UniformRandom() * (vascularized_voxel_indices.size()-1) );
+	int n = vascularized_voxel_indices[ my_voxel_index ] ;
+
+	return microenvironment.mesh.voxels[n].center;
+}
+
+void create_infiltrating_immune_cell_initial( Cell_Definition* pCD )
+{
+	// randomly select an place from the mesh to create cell (Initial condition)
+	Cell* pC = create_cell( *pCD );
+	// Sample from mesh positions
+	int index_sample = (int) ( UniformRandom() * (valid_position.size()-1) );
+	pC->assign_position( valid_position[index_sample] );
+	valid_position.erase (valid_position.begin()+index_sample);
+
+	return;
+}
+
+void create_infiltrating_immune_cell( Cell_Definition* pCD )
+{
+	Cell* pC = create_cell( *pCD );
+
+	std::vector<double> position = choose_vascularized_position();
+
+	pC->assign_position( position );
+
+	return;
+}
+
+void create_infiltrating_immune_cell( std::string cell_name )
+{
+	create_infiltrating_immune_cell( find_cell_definition( cell_name ) );
+
+	return;
+}
+
+void create_infiltrating_Tcell(void)
+{
+	static Cell_Definition* pCD = find_cell_definition( "CD8 Tcell" );
+	create_infiltrating_immune_cell( pCD );
+
+	return;
+}
+
+void create_infiltrating_CD4Tcell(void)
+{
+	static Cell_Definition* pCD = find_cell_definition( "CD4 Tcell" );
+	create_infiltrating_immune_cell( pCD );
+
+	return;
+}
+
+void create_infiltrating_DC(void)
+{
+	static Cell_Definition* pCD = find_cell_definition( "DC" );
+	create_infiltrating_immune_cell( pCD );
+
+	return;
+}
+
+void create_infiltrating_macrophage(void)
+{
+	static Cell_Definition* pCD = find_cell_definition( "macrophage" );
+	create_infiltrating_immune_cell( pCD );
+
+	return;
+}
+
+void immune_cell_motility_direction( Cell* pCell, Phenotype& phenotype , double dt )
+{
+	if( phenotype.death.dead == true )
+	{
+		phenotype.motility.migration_speed = 0.0;
+		return;
+	}
+
+	static int TNF_index = microenvironment.find_density_index( "TNF");
+	static int debris_index = microenvironment.find_density_index( "debris");
+
+	// if not activated, chemotaxis along debris
+	phenotype.motility.migration_bias_direction = pCell->nearest_gradient(debris_index);
+	normalize( &phenotype.motility.migration_bias_direction );
+	if( pCell->custom_data["activated_immune_cell"] < 0.5 )
+	{ return; }
+
+	// if activated, follow the weighted direction
+	phenotype.motility.migration_bias_direction *= pCell->custom_data["sensitivity_to_debris_chemotaxis"];
+
+	std::vector<double> gradC = pCell->nearest_gradient(TNF_index);
+	normalize( &gradC );
+	gradC *= pCell->custom_data["sensitivity_to_TNF_chemotaxis"];
+
+	phenotype.motility.migration_bias_direction += gradC;
+
+	normalize( &( phenotype.motility.migration_bias_direction) );
+
+
+	return;
+}
+
+bool check_for_out_of_bounds( Cell* pC , double tolerance ) // return true if out of bounds, within a tolerance
 {
 	static double Xmin = microenvironment.mesh.bounding_box[0];
 	static double Ymin = microenvironment.mesh.bounding_box[1];
@@ -66,237 +186,15 @@ bool check_for_out_of_bounds( Cell* pC , double tolerance )
 	return false;
 }
 
-// return {push_x,push_y,push_z} of direction to nudge cell
-std::vector<double> set_nudge_from_edge( Cell* pC , double tolerance )
-{
-	static double Xmin = microenvironment.mesh.bounding_box[0];
-	static double Ymin = microenvironment.mesh.bounding_box[1];
-	static double Zmin = microenvironment.mesh.bounding_box[2];
-
-	static double Xmax = microenvironment.mesh.bounding_box[3];
-	static double Ymax = microenvironment.mesh.bounding_box[4];
-	static double Zmax = microenvironment.mesh.bounding_box[5];
-
-	static bool two_dimensions = default_microenvironment_options.simulate_2D;
-
-	static bool setup_done = false;
-	if( default_microenvironment_options.simulate_2D == true && setup_done == false )
-	{
-		Zmin = 0.0;
-		Zmax = 0.0;
-		setup_done = true;
-	}
-
-	std::vector<double> nudge = {0,0,0};
-
-	if( pC->position[0] < Xmin + tolerance )
-	{ nudge[0] += 1; }
-	if( pC->position[0] > Xmax - tolerance )
-	{ nudge[0] -= 1; }
-
-	if( pC->position[1] < Ymin + tolerance )
-	{ nudge[1] += 1;  }
-	if( pC->position[1] > Ymax - tolerance )
-	{ nudge[1] -= 1;  }
-
-	if( two_dimensions )
-	{ normalize(nudge); return nudge; }
-
-	if( pC->position[2] < Zmin + tolerance )
-	{ nudge[2] += 1; }
-	if( pC->position[2] > Zmax - tolerance )
-	{ nudge[2] -= 1; }
-
-	normalize(nudge);
-	return nudge;
-}
-
-void nudge_out_of_bounds_cell( Cell* pC , double tolerance )
-{
-	std::vector<double> nudge = set_nudge_from_edge(pC,tolerance);
-
-	// remove attachments
-	pC->remove_all_attached_cells();
-
-	// set velocity away rom edge
-	pC->velocity = nudge;
-
-	// set new position
-	nudge *= tolerance;
-	pC->position += nudge;
-
-	// update in the data structure
-	pC->update_voxel_in_container();
-
-	// allow that cell to move and be movable
-	pC->is_out_of_domain = false;
-	pC->is_active = true;
-	pC->is_movable= true;
-
-	return;
-}
-
-void process_tagged_cells_on_edge( void )
-{
-
-	for( int n=0 ; n < cells_to_move_from_edge.size(); n++ )
-	{
-		Cell* pC = cells_to_move_from_edge[n];
-		// std::cout << "moving cell from edge " << pC << " " << pC->type_name << std::endl;
-		// replace_out_of_bounds_cell( cells_to_move_from_edge[n] , 10.0 );
-		nudge_out_of_bounds_cell( pC , 10.0 );
-	}
-	//	if( cells_to_move_from_edge.size() > 0 )
-	//	{ std::cout << std::endl; }
-
-	return;
-}
-
-void choose_initialized_voxels( void )
-{
-	// read in percentage of tissue that's vascularised
-	double percentage_vascularised = parameters.doubles("percentage_tissue_vascularized");
-	int max_voxel_index = microenvironment.mesh.voxels.size() - 1;
-	int number_of_vascularized_voxels = (int) ( percentage_vascularised/100.0 * ( max_voxel_index+1) );
-
-	// choose which voxels are veins
-	for( int n = 0 ; n < number_of_vascularized_voxels ; n++ )
-	{
-		int index_vascularised_voxel = (int) ( UniformRandom() * max_voxel_index );
-		vascularized_voxel_indices.push_back( index_vascularised_voxel );
-	}
-
-	return;
-}
-
-void create_infiltrating_immune_cell( Cell_Definition* pCD )
-{
-	Cell* pC = create_cell( *pCD );
-
-	std::vector<double> position = choose_vascularized_position();
-
-	pC->assign_position( position );
-
-	// Neoantigen signature to CD8 T cell - sample from antigen library (Heber)
-	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
-	static int neoantigen_signature_index = pC->custom_data.find_vector_variable_index( "neoantigen_signature" );
-	if ( pC->type == CD8_Tcell_type ){
-		pC->custom_data.vector_variables[neoantigen_signature_index].value = AntigenLib.sample_antigen();
-	}
-
-	return;
-}
-
-void create_infiltrating_immune_cell_initial( Cell_Definition* pCD )
-{
-
-	Cell* pC = create_cell( *pCD );
-	// Sample from mesh positions (Heber)
-	std::uniform_int_distribution<int> distribution_index(0, valid_position.size()-1);
-	int index_sample = distribution_index(generator);
-	pC->assign_position( valid_position[index_sample] );
-	valid_position.erase (valid_position.begin()+index_sample);
-
-	// randomly place cell intially
-	/*double Xmin = microenvironment.mesh.bounding_box[0];
-	double Ymin = microenvironment.mesh.bounding_box[1];
-	double Zmin = microenvironment.mesh.bounding_box[2];
-
-	double Xmax = microenvironment.mesh.bounding_box[3];
-	double Ymax = microenvironment.mesh.bounding_box[4];
-	double Zmax = microenvironment.mesh.bounding_box[5];
-
-	if( default_microenvironment_options.simulate_2D == true )
-	{
-		Zmin = 0.0;
-		Zmax = 0.0;
-	}
-
-	double Xrange = (Xmax - Xmin);
-	double Yrange = (Ymax - Ymin);
-	double Zrange = (Zmax - Zmin);
-
-	// keep cells away from the outer edge
-
-	Xmin += 0.1*Xrange;
-	Ymin += 0.1*Yrange;
-	Zmin = 0;
-
-	Xrange *= 0.8;
-	Yrange *= 0.8;
-	Zrange = 0.0;
-
-	// create some of each type of cell
-
-	std::vector<double> position = {0,0,0};
-	position[0] = Xmin + UniformRandom()*Xrange;
-	position[1] = Ymin + UniformRandom()*Yrange;
-
-	pC->assign_position( position );*/
-
-	return;
-}
-
-std::vector<double> choose_vascularized_position( void )
-{
-	//extern std::vector<int> vascularized_voxel_indices;
-	int my_voxel_index = (int) ( UniformRandom() * (vascularized_voxel_indices.size()-1) );
-	int n = vascularized_voxel_indices[ my_voxel_index ] ;
-
-	return microenvironment.mesh.voxels[n].center;
-}
-
-void create_infiltrating_immune_cell( std::string cell_name )
-{
-	create_infiltrating_immune_cell( find_cell_definition( cell_name ) );
-
-	return;
-}
-
-
-void create_infiltrating_Tcell(void)
-{
-	static Cell_Definition* pCD = find_cell_definition( "CD8 Tcell" );
-	create_infiltrating_immune_cell( pCD );
-
-	return;
-}
-
-// (Adrianne) creating infiltrating CD4 cells
-void create_infiltrating_CD4Tcell(void)
-{
-	static Cell_Definition* pCD = find_cell_definition( "CD4 Tcell" );
-	create_infiltrating_immune_cell( pCD );
-
-	return;
-}
-
-// (Adrianne) creating infiltrating DCs
-void create_infiltrating_DC(void)
-{
-	static Cell_Definition* pCD = find_cell_definition( "DC" );
-	create_infiltrating_immune_cell( pCD );
-
-	return;
-}
-
-void create_infiltrating_macrophage(void)
-{
-	static Cell_Definition* pCD = find_cell_definition( "macrophage" );
-	create_infiltrating_immune_cell( pCD );
-
-	return;
-}
 
 void CD8_Tcell_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2 , double dt )
 {
-	//std::cout << pC1 << " " << pC1->type_name << " contact with " << pC2 << " " << pC2->type_name << std::endl;
 	// elastic adhesions
 	standard_elastic_contact_function( pC1,p1, pC2, p2, dt );
 
 	// increase contact time of cell you are attacking
 	#pragma omp critical
-	{ pC2->custom_data["TCell_contact_time"] += dt; /*std::cout << "TCell_contact_time: " << pC2->custom_data["TCell_contact_time"] << std::endl;*/}
+	{ pC2->custom_data["TCell_contact_time"] += dt; }
 
 	return;
 }
@@ -304,7 +202,6 @@ void CD8_Tcell_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype&
 void CD8_Tcell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	// MISSING CHANGE DEATH RATE (DEPEND ON GENERATION)
-
 	static int debris_index = microenvironment.find_density_index( "debris");
 
 	if( phenotype.death.dead == true )
@@ -337,11 +234,7 @@ void CD8_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		#pragma omp critical
 		{ cells_to_move_from_edge.push_back( pCell ); }
-		// replace_out_of_bounds_cell( pCell, 10.0 );
-		// return;
 	}
-
-	//if (pCell->state.neighbors.size()>0){ std::cout << "ID: " << pCell->ID << " Neighbors: " << pCell->state.neighbors.size() << std::endl; exit(0);}
 
 	// if I am not adhered to a cell, turn motility on
 	if( pCell->state.neighbors.size() == 0 )
@@ -349,10 +242,8 @@ void CD8_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	else
 	{ phenotype.motility.is_motile = false; }
 
-	// check for contact with melanoma cell
-
 	// if I'm adhered to something ...
-	if( pCell->state.number_of_attached_cells() > 0 ) // pCell->state.neighbors.size() > 0 )
+	if( pCell->state.number_of_attached_cells() > 0 )
 	{
 		// decide whether to detach
 		bool detach_me = false;
@@ -371,7 +262,6 @@ void CD8_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	}
 
 	// I'm not attached, look for cells nearby and try to attach
-
 	// if this returns non-NULL, we're now attached to a cell
 	if( immune_cell_check_neighbors_for_attachment( pCell , dt) )
 	{
@@ -379,39 +269,6 @@ void CD8_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 		phenotype.motility.is_motile = false;
 		return;
 	}
-
-	return;
-}
-
-void immune_cell_motility_direction( Cell* pCell, Phenotype& phenotype , double dt )
-{
-	if( phenotype.death.dead == true )
-	{
-		phenotype.motility.migration_speed = 0.0;
-		return;
-	}
-
-	static int TNF_index = microenvironment.find_density_index( "TNF");
-	static int debris_index = microenvironment.find_density_index( "debris");
-
-	// if not activated, chemotaxis along debris
-	phenotype.motility.migration_bias_direction = pCell->nearest_gradient(debris_index);
-	normalize( &phenotype.motility.migration_bias_direction );
-	if( pCell->custom_data["activated_immune_cell"] < 0.5 )
-	{ return; }
-
-	// if activated, follow the weighted direction
-
-	phenotype.motility.migration_bias_direction *= pCell->custom_data["sensitivity_to_debris_chemotaxis"];
-
-	std::vector<double> gradC = pCell->nearest_gradient(TNF_index);
-	normalize( &gradC );
-	gradC *= pCell->custom_data["sensitivity_to_TNF_chemotaxis"];
-
-	phenotype.motility.migration_bias_direction += gradC;
-
-	normalize( &( phenotype.motility.migration_bias_direction) );
-
 
 	return;
 }
@@ -441,7 +298,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// check for cells to eat
 	std::vector<Cell*> neighbors = pCell->cells_in_my_container();
 
-	// at least one of the cells is pCell
+	// at least one of the cells is pCell (himself)
 	if( neighbors.size() < 2 )
 	{ return; }
 
@@ -457,24 +314,24 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		pContactCell = neighbors[n];
 
 		double cell_cell_distance = sqrt((pContactCell->position[0]-pCell->position[0])*(pContactCell->position[0]-pCell->position[0])+(pContactCell->position[1]-pCell->position[1])*(pContactCell->position[1]-pCell->position[1]));
-		double radius_mac = pCell->phenotype.geometry.radius; // (Adrianne) radius of DC)
+		double radius_mac = pCell->phenotype.geometry.radius; // (Adrianne) radius of macrophage)
 		double radius_test_cell = pContactCell->phenotype.geometry.radius; // (Adrianne) radius of test cell)
 
 		// (Adrianne) if it is not me, not dead and is a CD8 T cell that is within a very short distance from me, I will stop secreting TNF
 		if( pContactCell != pCell && pContactCell->phenotype.death.dead == false && pContactCell->type == CD8_Tcell_type
 			&& pCell->custom_data["activated_immune_cell"] > 0.5 && cell_cell_distance<=parameters.doubles("epsilon_distance")*(radius_mac+radius_test_cell))
-			{
-				phenotype.secretion.secretion_rates[TNF_index] = 0;// (Adrianne) contact with CD8 T cell turns off TNF secretion
-				n=neighbors.size();
-			}
-			// (Adrianne) if it is not me, not dead and is a CD4 T cell that is within a very short distance from me, I will be able to phagocytose tumor (but not neccesarily dead) cells
+		{
+			phenotype.secretion.secretion_rates[TNF_index] = 0;// (Adrianne) contact with CD8 T cell turns off TNF secretion
+			n=neighbors.size();
+		}
+		// (Adrianne) if it is not me, not dead and is a CD4 T cell that is within a very short distance from me, I will be able to phagocytose tumor (but not neccesarily dead) cells
 		else if( pContactCell != pCell && pContactCell->phenotype.death.dead == false && pContactCell->type == CD4_Tcell_type
 			&& pCell->custom_data["activated_immune_cell"] > 0.5 && cell_cell_distance<=parameters.doubles("epsilon_distance")*(radius_mac+radius_test_cell))
 			{
 				pCell->custom_data["ability_to_phagocytose_melanoma_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose tumor cells
 				n=neighbors.size();
 			}
-			n++;
+		n++;
 	}
 
 	// (Adrianne) if macrophage volume exceeds a threshold value we say it is "exhausted" and unable to phagocytose until it's volume drops below this threshold
@@ -503,121 +360,103 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		pTestCell = neighbors[n];
 		// if it is not me and not a macrophage
 		if( pTestCell != pCell && pTestCell->phenotype.death.dead == true &&
-			UniformRandom() < probability_of_phagocytosis ) // && // remove in v 3.2
-			//			pTestCell->phenotype.volume.total < max_phagocytosis_volume ) / remove in v 3.2
-			{
-				{
-					// (Adrianne) obtain volume of cell to be ingested
-					double volume_ingested_cell = pTestCell->phenotype.volume.total;
+			UniformRandom() < probability_of_phagocytosis )
+		{
+			// (Adrianne) obtain volume of cell to be ingested
+			double volume_ingested_cell = pTestCell->phenotype.volume.total;
 
-					pCell->ingest_cell( pTestCell );
-					static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-					if (pTestCell->type == melanoma_type) std::cout << " Macrophage (ID: " << pCell->ID << ") eats " << " dead melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
+			pCell->ingest_cell( pTestCell );
+			static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+			if (pTestCell->type == melanoma_type) std::cout << " Macrophage (ID: " << pCell->ID << ") eats " << " dead melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
 
-					// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
-					double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
-					// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
-					pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
-				}
-				// Macrophage activation happen when eats foreign genetic material (melanoma dead cells)
-				// static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-				// if (pTestCell->type != melanoma_type) return;
+			// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
+			double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
+			// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
+			pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
 
-				// activate the cell
-				phenotype.secretion.secretion_rates[TNF_index] =
-				pCell->custom_data["activated_TNF_secretion_rate"]; // 10;
-				phenotype.secretion.saturation_densities[TNF_index] = 1;
+			// Macrophage activation happen when mac eats foreign genetic material (melanoma dead cells)
+			// static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+			// if (pTestCell->type != melanoma_type) return;
 
-				phenotype.secretion.uptake_rates[TNF_index] = 0.0;
+			// activate the cell
+			phenotype.secretion.secretion_rates[TNF_index] =
+			pCell->custom_data["activated_TNF_secretion_rate"];
+			phenotype.secretion.saturation_densities[TNF_index] = 1;
+			phenotype.secretion.uptake_rates[TNF_index] = 0.0;
+			phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
+			pCell->custom_data["activated_immune_cell"] = 1.0;
 
-				phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
-
-
-				pCell->custom_data["activated_immune_cell"] = 1.0;
-
-				return;
-			}
-			else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_melanoma_cell"]== 1 && /*pTestCell->custom_data[nP]>1 &&*/
-			UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose live melanoma cells
-			{
-				{
-					// (Adrianne) obtain volume of cell to be ingested
-					double volume_ingested_cell = pTestCell->phenotype.volume.total;
-
-					pCell->ingest_cell( pTestCell );
-					static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-					if (pTestCell->type == melanoma_type) std::cout << " Hyperactivated macrophage (ID: " << pCell->ID << ") eats " << " melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
-
-					// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
-					double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
-					// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
-					pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
-				}
-
-				// Macrophage activation happen when eats foreign genetic material (melanoma dead cells)
-				// static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-				// if (pTestCell->type != melanoma_type) return;
-
-				// activate the cell
-				phenotype.secretion.secretion_rates[TNF_index] =
-				pCell->custom_data["activated_TNF_secretion_rate"]; // 10;
-				phenotype.secretion.saturation_densities[TNF_index] = 1;
-
-				phenotype.secretion.uptake_rates[TNF_index] = 0.0;
-
-				phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
-
-				pCell->custom_data["activated_immune_cell"] = 1.0;
-
-				return;
-			}
-			n++;
+			return;
 		}
+		else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_melanoma_cell"]== 1 && UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose live melanoma cells (hyperactivation)
+		{
+			// (Adrianne) obtain volume of cell to be ingested
+			double volume_ingested_cell = pTestCell->phenotype.volume.total;
+
+			pCell->ingest_cell( pTestCell );
+			static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+			if (pTestCell->type == melanoma_type) std::cout << " Hyperactivated macrophage (ID: " << pCell->ID << ") eats " << " melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
+
+			// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
+			double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
+			// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
+			pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
+
+			// Macrophage activation happen when eats foreign genetic material (melanoma dead cells)
+			// static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+			// if (pTestCell->type != melanoma_type) return;
+
+			// activate the cell
+			phenotype.secretion.secretion_rates[TNF_index] =
+			pCell->custom_data["activated_TNF_secretion_rate"];
+			phenotype.secretion.saturation_densities[TNF_index] = 1;
+			phenotype.secretion.uptake_rates[TNF_index] = 0.0;
+			phenotype.motility.migration_speed = pCell->custom_data["activated_speed"];
+			pCell->custom_data["activated_immune_cell"] = 1.0;
+
+			return;
+		}
+		n++;
+	}
 	return;
 }
 
 void macrophage_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
-				static int debris_index = microenvironment.find_density_index( "debris");
+	static int debris_index = microenvironment.find_density_index( "debris");
 
-				if( phenotype.death.dead == true )
-				{
-					pCell->functions.update_phenotype = NULL;
-					pCell->functions.custom_cell_rule = NULL;
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL;
+		pCell->functions.custom_cell_rule = NULL;
 
-					phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
-					return;
-				}
+		phenotype.secretion.secretion_rates[debris_index] = pCell->custom_data["debris_secretion_rate"];
+		return;
+	}
 
-				// bounds check
-				if( check_for_out_of_bounds( pCell , 10.0 ) )
-				{
-					#pragma omp critical
-					{ cells_to_move_from_edge.push_back( pCell ); }
-					// replace_out_of_bounds_cell( pCell, 10.0 );
-					// return;
-				}
+	// bounds check
+	if( check_for_out_of_bounds( pCell , 10.0 ) )
+	{
+		#pragma omp critical
+		{ cells_to_move_from_edge.push_back( pCell ); }
+	}
 
-				//	// death check
-				//	if( phenotype.death.dead == true )
-				//	{ remove_all_adhesions( pCell ); }
-
-				return;
+	return;
 }
 
 void DC_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2 , double dt )
 {
-	//std::cout << pC1 << " " << pC1->type_name << " contact with " << pC2 << " " << pC2->type_name << std::endl;
 	// elastic adhesions
 	standard_elastic_contact_function( pC1,p1, pC2, p2, dt );
 
 	return;
 }
-// (Adrianne) DC phenotype function
+
 void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static Cell_Definition* pCD = find_cell_definition( "DC" );
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
+
 	// no apoptosis until activation (resident DC in constant number for homeostasis)
 	if( pCell->custom_data["activated_immune_cell"] < 0.5 )
 	{ phenotype.death.rates[apoptosis_index] = 0.0; }
@@ -628,9 +467,6 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
 	Cell* pTempCell = NULL;
 
-	// Index neoantigen signature
-	static int neoantigen_signature_index = pCell->custom_data.find_vector_variable_index( "neoantigen_signature" );
-
 	if( pCell->custom_data["activated_immune_cell"] > 0.5 ) // (Adrianne) activated DCs that don't leave the tissue can further activate CD8s increasing their proliferation rate and attachment rates
 	{
 
@@ -639,7 +475,6 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		Cell* pTestCell = neighbors[n];
 		while( n < neighbors.size() )
 		{
-			if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false && pTestCell->type == CD8_Tcell_type)
 			pTestCell = neighbors[n];
 
 			// (Adrianne) find the euclidean distance between the DC and the cell it's testing
@@ -650,39 +485,34 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			// (Adrianne) check if any neighbour cells are live T cells and that they are close enough to the DC
 			if( pTestCell != pCell && pTestCell->phenotype.death.dead == false && pTestCell->type == CD8_Tcell_type
 				&& cell_cell_distance<=parameters.doubles("epsilon_distance")*(radius_DC+radius_test_cell))
-				{
+			{
 
-					pTestCell-> custom_data["cell_attachment_rate"] = parameters.doubles("DC_induced_CD8_attachment"); // (Adrianne) DC induced T cell attachement rate
+				pTestCell-> custom_data["cell_attachment_rate"] = parameters.doubles("DC_induced_CD8_attachment"); // (Adrianne) DC induced T cell attachement rate
 
-					// (Adrianne) finding the G0G1 and S phase index and setting the transition rate to be non zero so that CD8 T cells start proliferating after interacting with DC
-					int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
-					int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
-					pTestCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = parameters.doubles("DC_induced_CD8_proliferation");
+				// (Adrianne) finding the G0G1 and S phase index and setting the transition rate to be non zero so that CD8 T cells start proliferating after interacting with DC
+				int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
+				int cycle_S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
+				pTestCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = parameters.doubles("DC_induced_CD8_proliferation");
 
-					n = neighbors.size();
-
-				}
-
-				n++;
+				n = neighbors.size();
 
 			}
 
-			return;
+			n++;
+
+		}
+		return;
 	}
 	else
 	{
 		//Activation of DC cells - attach with death melanoma cells
 		// if this returns non-NULL, we're now attached to at least one cell
-		if( immune_cell_check_neighbors_for_attachment( pCell , dt) )
+		if( immune_cell_check_neighbors_for_attachment( pCell , dt) ) // Look around by melanoma or lung cells to attach
 		{
-			// Look around by melanoma cells attached)
 			for (int i = 0; i < pCell->state.number_of_attached_cells(); i++){
 				pTempCell = pCell->state.attached_cells[i];
-				//Add antigen to library
 				#pragma omp critical
 				{
-					AntigenLib.add_antigen(pTempCell->custom_data.vector_variables[neoantigen_signature_index].value, PhysiCell_globals.current_time );
-					//AntigenLib.print();
 					pCell->custom_data["activated_immune_cell"] = 1.0;
 					phenotype.motility.is_motile = false;
 				}
@@ -692,7 +522,6 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	return;
 }
 
-// (Adrianne) DC mechanics function
 void DC_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
@@ -711,18 +540,11 @@ void DC_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		#pragma omp critical
 		{ cells_to_move_from_edge.push_back( pCell ); }
-		// replace_out_of_bounds_cell( pCell, 10.0 );
-		// return;
 	}
-
-	//	// death check
-	//	if( phenotype.death.dead == true )
-	//	{ remove_all_adhesions( pCell ); }
 
 	return;
 }
 
-// (Adrianne CD4 phenotype function
 void CD4_Tcell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	int cycle_G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
@@ -730,22 +552,21 @@ void CD4_Tcell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	static int apoptosis_index = pCell->phenotype.death.find_death_model_index( "apoptosis" );
 	static int generation_index = pCell->custom_data.find_variable_index( "division_generation" );
-	if(pCell->phenotype.cycle.data.elapsed_time_in_phase<6 &&  pCell->phenotype.cycle.data.current_phase_index==0)
-	{
-		pCell->phenotype.death.rates[apoptosis_index] = 100; // new death rate of T cells when they have exceeded generation
-		pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0;
 
 	// Model of proliferation based on generation
-	// 	pCell->custom_data[ generation_index ] += 1;
-	// }
-	// if (pCell->custom_data[ generation_index] > 4){
-	// 	pCell->phenotype.death.rates[apoptosis_index] = 100; // new death rate of T cells when they have exceeded generation
-	// 	pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0;
+	if(pCell->phenotype.cycle.data.elapsed_time_in_phase<6 &&  pCell->phenotype.cycle.data.current_phase_index==0)
+	{
+		pCell->custom_data[ generation_index ] += 1;
 	}
+
+	if (pCell->custom_data[ generation_index] > 4){
+		pCell->phenotype.death.rates[apoptosis_index] = 100; // new death rate of T cells when they have exceeded generation
+		pCell->phenotype.cycle.data.transition_rate(cycle_G0G1_index,cycle_S_index) = 0;
+	}
+
 	return;
 }
 
-// (Adrianne) CD4 mechanics function
 void CD4_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
@@ -763,13 +584,7 @@ void CD4_Tcell_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		#pragma omp critical
 		{ cells_to_move_from_edge.push_back( pCell ); }
-		// replace_out_of_bounds_cell( pCell, 10.0 );
-		// return;
 	}
-
-//	// death check
-//	if( phenotype.death.dead == true )
-//	{ remove_all_adhesions( pCell ); }
 
 	return;
 }
@@ -778,7 +593,6 @@ void immune_submodels_setup( void )
 {
 	Cell_Definition* pCD;
 
-	//
 	// set up CD8 Tcells
 	// set version info
 	CD8_submodel_info.name = "CD8 Tcell model";
@@ -840,7 +654,7 @@ void immune_submodels_setup( void )
 	pCD = find_cell_definition( "DC" );
 	pCD->functions.update_phenotype = DC_submodel_info.phenotype_function;
 	pCD->functions.custom_cell_rule = DC_submodel_info.mechanics_function;
-	pCD->functions.contact_function = DC_contact_function; // (Heber) Attached cells
+	pCD->functions.contact_function = DC_contact_function;
 	pCD->functions.update_migration_bias = immune_cell_motility_direction;
 
 	// (Adrianne) set up CD4 Tcells ** we don't want CD4's to do anything expect be recruited to the tissue and migrate in tissue
@@ -881,74 +695,65 @@ Cell* check_for_live_neighbor_for_interaction( Cell* pAttacker , double dt )
 
 Cell* check_for_dead_neighbor_for_interaction( Cell* pAttacker , double dt )
 {
-std::vector<Cell*> nearby = pAttacker->cells_in_my_container();
-int i = 0;
-while( i < nearby.size() )
-{
-	// don't try to kill yourself
-	if( nearby[i] != pAttacker && nearby[i]->phenotype.death.dead == true )
-	{ return nearby[i]; }
-	i++;
-}
-return NULL;
+	std::vector<Cell*> nearby = pAttacker->cells_in_my_container();
+	int i = 0;
+	while( i < nearby.size() )
+	{
+		// don't try to kill yourself
+		if( nearby[i] != pAttacker && nearby[i]->phenotype.death.dead == true )
+		{ return nearby[i]; }
+		i++;
+	}
+	return NULL;
 }
 
 bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt )
 {
-static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
-static int DC_type = get_cell_definition( "DC" ).type;
-static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-static int lung_type = get_cell_definition( "lung cell" ).type;
-static int neoantigen_signature_index = pAttacker->custom_data.find_vector_variable_index( "neoantigen_signature" );
+	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
+	static int DC_type = get_cell_definition( "DC" ).type;
+	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int lung_type = get_cell_definition( "lung cell" ).type;
 
-// if the target is not melanoma cell, give up for CD8 attack
-if ( pTarget->type != melanoma_type && pAttacker->type == CD8_Tcell_type)
-{ return false; }
+	// if the target is not melanoma cell, give up for CD8 attack
+	if ( pTarget->type != melanoma_type && pAttacker->type == CD8_Tcell_type)
+	{ return false; }
 
-// If the target is not melanoma cell, give up for DC attack (Just melanoma cells attach DCs)
-//if ( pTarget->type != melanoma_type  && pAttacker->type == DC_type) // Correct (Heber)
+	// If the target is not melanoma cell, give up for DC attack (Just melanoma cells attach DCs)
+	//if ( pTarget->type != melanoma_type  && pAttacker->type == DC_type) //
 
-// If the target is not melanoma or lung cell, give up for DC attack (Just melanoma or lung cells attach DCs)
-if ( pTarget->type != melanoma_type && pTarget->type != lung_type && pAttacker->type == DC_type)
-{ return false; }
+	// If the target is not melanoma or lung cell, give up for DC attack (Just melanoma or lung cells attach DCs)
+	if ( pTarget->type != melanoma_type && pTarget->type != lung_type && pAttacker->type == DC_type)
+	{ return false; }
 
-// if the target cell is dead, give up for CD8 attack
-if( pTarget->phenotype.death.dead == true && pAttacker->type == CD8_Tcell_type)
-{ return false; }
+	// if the target cell is dead, give up for CD8 attack
+	if( pTarget->phenotype.death.dead == true && pAttacker->type == CD8_Tcell_type)
+	{ return false; }
 
-// if the target cell is not dead, give up for DC attach (melanoma dead cell presenting antigen)
-if( pTarget->phenotype.death.dead != true && pAttacker->type == DC_type )
-{ return false; }
+	// if the target cell is not dead, give up for DC attach (melanoma dead cell presenting antigen)
+	if( pTarget->phenotype.death.dead != true && pAttacker->type == DC_type )
+	{ return false; }
 
-// if the target cell is too far away, give up
-std::vector<double> displacement = pTarget->position - pAttacker->position;
-double distance_scale = norm( displacement );
+	// if the target cell is too far away, give up
+	std::vector<double> displacement = pTarget->position - pAttacker->position;
+	double distance_scale = norm( displacement );
 
-// better: use mechanics constants
-if( distance_scale > pAttacker->custom_data["max_attachment_distance"] )
-{ return false; }
+	// better: use mechanics constants
+	if( distance_scale > pAttacker->custom_data["max_attachment_distance"] )
+	{ return false; }
 
-// now, get the attachment probability
+	// now, get the attachment probability
+	double attachment_probability = pAttacker->custom_data["cell_attachment_rate"] * dt;
 
-double attachment_probability = pAttacker->custom_data["cell_attachment_rate"] * dt;
+	// don't need to cap it at 1.00: if prob > 100%,
+	// then this statement always evaluates as true,
+	// just the same as capping probability at 100%
+	if( UniformRandom() <= attachment_probability )
+	{
+		attach_cells( pAttacker, pTarget );
+		return true;
+	}
 
-// neoantigen recognition for CD8 T cell attacking
-if ( pAttacker->type == CD8_Tcell_type){
-	int HammingDistance = Hamming_Distance(pAttacker->custom_data.vector_variables[neoantigen_signature_index].value, pTarget->custom_data.vector_variables[neoantigen_signature_index].value);
-	double half_hamming_distance = 1.0; //<half_hamming_distance description="Hamming distance with a half probability of recognition (greater than 0)" type="double" units="dimensionless">1.0</half_hamming_distance>
-	double hill_coefficient_recognition = 1.0; //<hill_coefficient_recognition description="Hill coefficient for recognition function" type="double" units="dimensionless">1.0</hill_coefficient_recognition>
-	attachment_probability *= (1.0/(1.0 + pow(HammingDistance/half_hamming_distance, hill_coefficient_recognition) ) );
-}
-// don't need to cap it at 1.00: if prob > 100%,
-// then this statement always evaluates as true,
-// just the same as capping probability at 100%
-if( UniformRandom() <= attachment_probability )
-{
-	attach_cells( pAttacker, pTarget );
-	return true;
-}
-
-return false;
+	return false;
 }
 
 Cell* immune_cell_check_neighbors_for_attachment( Cell* pAttacker , double dt )
@@ -970,7 +775,7 @@ Cell* immune_cell_check_neighbors_for_attachment( Cell* pAttacker , double dt )
 		i++;
 	}
 
-	// Cell has more than one attached cell (Heber)
+	// Cell has more than one attached cell
 	if ( pAttacker->state.number_of_attached_cells() > 0 ) return pAttacker->state.attached_cells[0];
 
 	return NULL;
@@ -1004,14 +809,12 @@ void immune_cell_recruitment( double dt )
 		double elapsed_time = (t_immune - t_last_immune );
 
 		// macrophage recruitment
-
 		static double macrophage_recruitment_rate = parameters.doubles( "macrophage_max_recruitment_rate" );
 		static double M_min_signal = parameters.doubles( "macrophage_recruitment_min_signal" );
 		static double M_sat_signal = parameters.doubles( "macrophage_recruitment_saturation_signal" );
 		static double M_max_minus_min = M_sat_signal - M_min_signal;
-
-		double total_rate = 0;
 		// integrate \int_domain r_max * (signal-signal_min)/(signal_max-signal_min) * dV
+		double total_rate = 0;
 		double total_scaled_signal= 0.0;
 		for( int n=0; n<microenvironment.mesh.voxels.size(); n++ )
 		{
@@ -1025,20 +828,17 @@ void immune_cell_recruitment( double dt )
 			{ dRate = 0; }
 			total_rate += dRate;
 		}
-		// multiply by dV and rate_max
 		total_scaled_signal = total_rate;
-
+		// multiply by dV and rate_max
 		total_rate *= microenvironment.mesh.dV;
 		total_rate *= macrophage_recruitment_rate;
 
 		// expected number of new macrophages
 		double number_of_new_cells_prob = total_rate * elapsed_time ;
-
 		int number_of_new_cells_int = floor( number_of_new_cells_prob );
 		double alpha = number_of_new_cells_prob - number_of_new_cells_int;
 
 		//STOCHASTIC PORTION
-
 		if( UniformRandom()< alpha )
 		{
 			number_of_new_cells_int++;
@@ -1049,56 +849,41 @@ void immune_cell_recruitment( double dt )
 		{
 			if( t_immune < first_macrophage_recruitment_time )
 			{ first_macrophage_recruitment_time = t_immune; }
-
 			std::cout << "\tRecruiting " << number_of_new_cells_int << " macrophages ... " << std::endl;
-
 			for( int n = 0; n < number_of_new_cells_int ; n++ )
 			{ create_infiltrating_macrophage(); }
 		}
 
 		// CD8 Tcell recruitment (Michael) changed to take floor of ODE value
-		// extern double TCt;
 		extern std::vector<int>historyTc;
-
 		int number_of_new_cells = (int) floor( lympNode.TCt );
 		lympNode.TCt -= number_of_new_cells;
-
 		std::rotate(historyTc.rbegin(),historyTc.rbegin()+1,historyTc.rend());
 		historyTc.front() = number_of_new_cells;
-
 		recruited_Tcells += historyTc.back();
-
 
 		if( historyTc.back())
 		{
 			if( t_immune < first_CD8_T_cell_recruitment_time )
 			{ first_CD8_T_cell_recruitment_time = t_immune; }
-
 			std::cout << "\tRecruiting " << historyTc.back() << " CD8 T cells ... " << std::endl;
-
 			for( int n = 0; n < historyTc.back(); n++ )
 			{ create_infiltrating_Tcell(); }
 		}
 
 		// CD4 recruitment (Michael) changed to take floor of ODE value
-		// extern double Tht;
 		extern std::vector<int>historyTh;
-
 		number_of_new_cells = (int) floor( lympNode.Tht );
 		lympNode.Tht-=number_of_new_cells;
-
 		std::rotate(historyTh.rbegin(),historyTh.rbegin()+1,historyTh.rend());
 		historyTh.front() = number_of_new_cells;
-
 		recruited_CD4Tcells += historyTh.back();
 
 		if( historyTh.back() )
 		{
 			if( t_immune < first_CD4_T_cell_recruitment_time )
 			{ first_CD4_T_cell_recruitment_time = t_immune; }
-
 			std::cout << "\tRecruiting " << historyTh.back() << " CD4 T cells ... " << std::endl;
-
 			for( int n = 0; n < historyTh.back() ; n++ )
 			{ create_infiltrating_CD4Tcell(); }
 		}
@@ -1108,9 +893,8 @@ void immune_cell_recruitment( double dt )
 		static double DC_min_signal = parameters.doubles( "DC_recruitment_min_signal" );
 		static double DC_sat_signal = parameters.doubles( "DC_recruitment_saturation_signal" );
 		static double DC_max_minus_min = DC_sat_signal - DC_min_signal;
-
-		total_rate = 0;
 		// integrate \int_domain r_max * (signal-signal_min)/(signal_max-signal_min) * dV
+		total_rate = 0;
 		total_scaled_signal= 0.0;
 		for( int n=0; n<microenvironment.mesh.voxels.size(); n++ )
 		{
@@ -1124,20 +908,17 @@ void immune_cell_recruitment( double dt )
 			{ dRate = 0; }
 			total_rate += dRate;
 		}
-		// multiply by dV and rate_max
 		total_scaled_signal = total_rate;
-
+		// multiply by dV and rate_max
 		total_rate *= microenvironment.mesh.dV;
 		total_rate *= DC_recruitment_rate;
 
 		// expected number of new DCs
 		number_of_new_cells_prob = total_rate * elapsed_time ;
-
 		number_of_new_cells_int = floor( number_of_new_cells_prob );
 		alpha = number_of_new_cells_prob - number_of_new_cells_int;
 
 		//STOCHASTIC PORTION
-
 		if( UniformRandom()< alpha )
 		{
 			number_of_new_cells_int++;
@@ -1148,20 +929,15 @@ void immune_cell_recruitment( double dt )
 		{
 			if( t_immune < first_DC_recruitment_time )
 			{ first_DC_recruitment_time = t_immune; }
-
 			std::cout << "\tRecruiting " << number_of_new_cells_int << " DCs ... " << std::endl;
-
 			for( int n = 0; n < number_of_new_cells_int ; n++ )
 			{ create_infiltrating_DC(); }
 		}
-
 
 		t_last_immune = t_immune;
 		t_next_immune = t_immune + dt_immune;
 
 	}
-
-
 	t_immune += dt;
 
 	return;
@@ -1193,7 +969,8 @@ void initial_immune_cell_placement( void )
 	return;
 }
 
-int Hamming_Distance(const std::vector<double> &Seq1, const std::vector<double> &Seq2){
+int Hamming_Distance(const std::vector<double> &Seq1, const std::vector<double> &Seq2)
+{
   int count = 0;
   for (int i=0; i < Seq1.size(); i++){
     if (Seq1[i] != Seq2[i]) count++;

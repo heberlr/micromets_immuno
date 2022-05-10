@@ -84,24 +84,35 @@ using namespace PhysiCell;
 void create_cell_types( void );
 void setup_tissue( void );
 void divide_custom_data( void );
-void check_lung_cell_out_of_domain( void );
-void mutation ( Cell* );
 // set up the BioFVM microenvironment
 void setup_microenvironment( void );
 
-// custom pathology coloring function
-
-std::string blue_yellow_interpolation( double min, double val, double max );
+// custom coloring function
 std::vector<std::string> epithelium_coloring_function( Cell* );
 std::vector<std::string> tissue_coloring_function( Cell* );
 
-// eventually move this to a tissue submodel
-
-void move_exported_to_pathogen_field( void );
-
+/* functions to output */
+bool Write_SVG_circle_opacity( std::ostream& os, double center_x, double center_y, double radius, double stroke_size,	std::string stroke_color , std::string fill_color , double opacity );
 void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) );
-void print_cell_count( std::ofstream& file );
+std::vector<int> cell_count( void );
+
+/* functions for nudging cells outside of domain */
+void process_tagged_cells_on_edge( void );
+void clear_cells_to_move_from_edge( void );
+std::vector<double> set_nudge_from_edge( Cell* pC , double tolerance );
+void nudge_out_of_bounds_cell( Cell* pC , double tolerance );
+
+/* functions for autologous vaccine*/
 void include_tumor_cells(void);
 void vaccine(void);
-void include_TNF(void);
+
+/* Bitmap images */
+class binaryVec {
+  public:
+    std::vector<bool> binaryVector;
+    binaryVec(): binaryVector(24,false){}
+};
+void Binary2Color(const std::vector<bool> &BinaryVector, int &Rvalue, int &Gvalue, int &Bvalue);
+void SetBinaryVector(const std::vector<double> &Pos, const int type, std::vector<std::vector<binaryVec>> &PixelsBinary, BMP &Image );
+void SetBinaryVectorSubs(const std::vector<double> &Pos, const double debris,const double TNF, std::vector<std::vector<binaryVec>> &PixelsBinary, BMP &Image );
 void GenerateBitmap(const char* filename);

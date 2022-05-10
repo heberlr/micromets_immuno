@@ -2,14 +2,13 @@
 
 using namespace PhysiCell;
 
-std::string external_immune_version = "0.4.0";
+std::string external_immune_version = "0.1.0";
 
 Submodel_Information external_immune_info;
 
 // generator sample from distribution
 extern std::default_random_engine generator;
 
-extern AntigenLibrary AntigenLib;
 extern LymphNode lympNode;
 
 void external_immune_model_setup( void )
@@ -24,8 +23,6 @@ void external_immune_model_setup( void )
 	// what microenvironment variables do I need?
 
 	// what custom data do I need?
-	//external_immune_info.parameters.doubles.push_back( "DM" );
-	//external_immune_info.parameters.doubles.push_back( "TC" );
 
 	external_immune_info.register_model();
 
@@ -34,7 +31,6 @@ void external_immune_model_setup( void )
 
 void external_immune_model( double dt )
 {
-	AntigenLib.update_collection(PhysiCell_globals.current_time, 720.0); // update collection of antigens (720 mim, time to include neoantigen on library)
 	static double dC = parameters.doubles( "TC_death_rate" );
 	static double pT1 = parameters.doubles( "max_activation_TC" );
 	static double pT2 = parameters.doubles( "half_max_activation_TC" );
@@ -54,7 +50,6 @@ void external_immune_model( double dt )
 	double lypmh_scale = lympNode.GridCOUNT / 5e5;
 
 	// actual model goes here
-
 	double x[4][6]={{0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}};//initialize x
 	double f[4][6]={{0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}};//initialize f
 	int j;
@@ -105,98 +100,4 @@ void external_immune_model( double dt )
 
 
 	return;
-}
-
-// Methods from neoantigens_library
-void AntigenLibrary::add_first_antigen(const std::vector<double> &antigen_signature){
-	antigen FirstAntigen;
-	FirstAntigen.ID = 0;
-	FirstAntigen.time = 0.0;
-	FirstAntigen.probability_weight = 1;
-	FirstAntigen.signature = antigen_signature;
-	Collection.push_back(FirstAntigen);
-}
-
-bool AntigenLibrary::check_library(const std::vector<double> &antigen_signature)
-{
-	// Check collection
-	for( int i=0; i < Collection.size() ;i++ )
-	{
-		for( int j=0; j < Collection[i].signature.size() ;j++ )
-			if ( Collection[i].signature[j] != antigen_signature[j] ) break;
-			else if( j == Collection[i].signature.size()-1 ){ Collection[i].probability_weight++; return true;}
-	}
-	// Check temporary collection
-	for( int i=0; i < TempCollection.size() ;i++ )
-	{
-		for( int j=0; j < TempCollection[i].signature.size() ;j++ )
-			if ( TempCollection[i].signature[j] != antigen_signature[j] ) break;
-			else if( j == TempCollection[i].signature.size()-1 ){ TempCollection[i].probability_weight++; return true; }
-	}
-	return false;
-}
-
-void AntigenLibrary::add_antigen(const std::vector<double> &antigen_signature, const double current_time)
-{
-	if ( check_library(antigen_signature) ) return; // This signature already exists
-	else
-	{
-		antigen AntigenTemp;
-		AntigenTemp.signature = antigen_signature;
-		AntigenTemp.ID = Collection.size() + TempCollection.size();
-		AntigenTemp.time = current_time;
-		AntigenTemp.probability_weight = 1;
-		TempCollection.push_back(AntigenTemp);
-	}
-	return;
-}
-
-void AntigenLibrary::update_collection(const double current_time, const double intervalToRecord)
-{
-	std::vector<int> IndexesToRemove;
-	for( int i=0; i < TempCollection.size() ;i++ )
-	{
-		if ( current_time - TempCollection[i].time > intervalToRecord  ) // If have a certain time
-		{
-			Collection.push_back(TempCollection[i]);
-			IndexesToRemove.push_back(i);
-		}
-	}
-	for( int i=0; i < IndexesToRemove.size() ;i++ )
-	{
-		TempCollection[ IndexesToRemove[i] ] = TempCollection[TempCollection.size()-1]; // last element replace this element on vector
-		TempCollection.pop_back(); // remove the last element from vecotr
-	}
-	return;
-}
-
-std::vector<double> AntigenLibrary::sample_antigen()
-{
-	std::vector<int> prob(Collection.size(),0);
-	for(int i=0; i < Collection.size(); i++) prob[i] = Collection[i].probability_weight;
-	std::discrete_distribution<int> discrete_dist(prob.begin(),prob.end());
-	int index = discrete_dist(generator);
-	//std::cout << "Size: " << Collection.size() << " SampleIndex: " << index << std::endl;
-	return Collection[index].signature;
-}
-
-void AntigenLibrary::print()
-{
-	std::cout << "\n----------------- Neoantigen Collection ----------------" << std::endl;
-	for( int i=0; i < Collection.size() ;i++ )
-	{
-		std::cout << "Antigen ID: " << Collection[i].ID << " Time: " << Collection[i].time << " Weight: " << Collection[i].probability_weight << " Signature: [ ";
-		for( int j=0; j < Collection[i].signature.size() ;j++ )
-			std::cout << Collection[i].signature[j] << " ";
-		std::cout << "]" << std::endl;
-	}
-
-	std::cout << "-------------- Temporary Neoantigen Collection ----------------" << std::endl;
-	for( int i=0; i < TempCollection.size() ;i++ )
-	{
-		std::cout << "Antigen ID: " << TempCollection[i].ID << " Time: " << TempCollection[i].time << " Weight: " << TempCollection[i].probability_weight << " Signature: [ ";
-		for( int j=0; j < TempCollection[i].signature.size() ;j++ )
-			std::cout << TempCollection[i].signature[j] << " ";
-		std::cout << "]\n" << std::endl;
-	}
 }

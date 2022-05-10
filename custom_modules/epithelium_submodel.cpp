@@ -2,13 +2,13 @@
 
 using namespace PhysiCell;
 
-std::string epithelium_submodel_version = "0.4.0";
+std::string epithelium_submodel_version = "0.1.0";
 
 Submodel_Information epithelium_submodel_info;
 
 void epithelium_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2, double dt )
 {
-	// elastic adhesions 
+	// elastic adhesions
 	standard_elastic_contact_function( pC1,p1, pC2, p2, dt );
 
 	return;
@@ -17,21 +17,22 @@ void epithelium_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype
 bool strain_based_apoptosis( Cell* pCell )
 {
 	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
-	static double  max_strain = 0.75; //<max_mechanical_strain description="maximum tolerated deformation of lung cell (death)" type="double" units="micron">0.75</max_mechanical_strain>
+	static double  max_strain = 0.75; // maximum tolerated deformation of lung cell (death) [0.75 microns]
 	if( pCell->custom_data[strain_index] <= max_strain ) return false;
 
-	std::vector<Cell*> neighbors = pCell->cells_in_my_container();//find cells in a neighbourhood of melanoma cells
+	std::vector<Cell*> neighbors = pCell->cells_in_my_container();//find cells in neighbourhood
 	static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
 	int n = 0;
 	Cell* pTestCell;
 	while( n < neighbors.size() )
 	{
 		pTestCell = neighbors[n];
+		// Cell is not himself, live melanoma cell
 		if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false && pTestCell->type == melanoma_cell_type){
 			double cell_cell_distance = sqrt((pTestCell->position[0]-pCell->position[0])*(pTestCell->position[0]-pCell->position[0])+(pTestCell->position[1]-pCell->position[1])*(pTestCell->position[1]-pCell->position[1]));
-			double radius_DC = pCell->phenotype.geometry.radius; // (Adrianne) radius of DC)
-			double radius_test_cell = pTestCell->phenotype.geometry.radius;
-			if( cell_cell_distance <= parameters.doubles("epsilon_distance")*(radius_DC+radius_test_cell) ){
+			double radius_lung_cell = pCell->phenotype.geometry.radius;
+			double radius_melanoma_cell = pTestCell->phenotype.geometry.radius;
+			if( cell_cell_distance <= parameters.doubles("epsilon_distance")*(radius_lung_cell+radius_melanoma_cell) ){
 				return true;
 			}
 		}
@@ -47,10 +48,12 @@ void epithelium_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	phenotype.motility.is_motile = false;
 
-	// update mechanical strain
+	// Mechanical strain
 	static int strain_index = pCell->custom_data.find_variable_index( "mechanical_strain" );
 	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
 	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
+
+	// Update the strain displacement (ECM - position) - mechanical strain = |ECM - position|
 	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value = pCell->custom_data.vector_variables[ECM_attachment_point_index].value;
 	pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value -= pCell->position;
 	pCell->custom_data[strain_index] = norm( pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
@@ -101,11 +104,12 @@ void epithelium_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 		return;
 	}
 
-	// plastoelastic mechanics
+	// Plastoelastic mechanics
 	static int spring_constant_index = pCell->custom_data.find_variable_index( "spring_constant" );
 	static int relaxation_constant_index = pCell->custom_data.find_variable_index( "mechanical_relaxation_rate" );
 	static int ECM_attachment_point_index = pCell->custom_data.find_vector_variable_index( "ECM_attachment_point" );
 	static int mechanical_strain_displacement_index = pCell->custom_data.find_vector_variable_index( "mechanical_strain_displacement" );
+
 	// first, update the cell's velocity based upon the elastic model
 	axpy( &( pCell->velocity ) , pCell->custom_data[spring_constant_index] , pCell->custom_data.vector_variables[mechanical_strain_displacement_index].value );
 
@@ -119,15 +123,6 @@ void epithelium_submodel_setup( void )
 {
 	Cell_Definition* pCD;
 
-	// set up any submodels you need
-
-	// receptor trafficking
-	//receptor_dynamics_model_setup(); // done
-	// pathogen replication
-	//internal_pathogen_model_setup();
-	// single-cell response
-	// internal_pathogen_response_model_setup();
-
 	// set up epithelial cells
 	// set version info
 	epithelium_submodel_info.name = "epithelium model";
@@ -138,7 +133,7 @@ void epithelium_submodel_setup( void )
 	epithelium_submodel_info.mechanics_function = epithelium_mechanics;
 
 	// what microenvironment variables do you expect?
-	epithelium_submodel_info.microenvironment_variables.push_back( "TNF" );
+	epithelium_submodel_info.microenvironment_variables.push_back( "debris" );
 
 	// what custom data do I need?
 	//epithelium_submodel_info.cell_variables.push_back( "something" );
