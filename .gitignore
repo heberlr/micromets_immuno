@@ -4,3 +4,4 @@
 /output_*
 config/tmp.xml
 *.bmp
+/Results/
