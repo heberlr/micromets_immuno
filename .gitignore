@@ -5,3 +5,4 @@
 config/tmp.xml
 *.bmp
 /Results/
+*.pickle
