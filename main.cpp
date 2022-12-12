@@ -159,7 +159,7 @@ int main( int argc, char* argv[] )
 	// for simplicity, set a pathology coloring function
 
 	std::vector<std::string> (*cell_coloring_function)(Cell*) = tissue_coloring_function;
-	if( PhysiCell_settings.enable_SVG_saves == true && !parameters.bools("bitmap_save") )
+	if( PhysiCell_settings.enable_SVG_saves == true && !parameters.bools("bitmap_save") && !parameters.bools("only_population") )
 	{
 		sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() );
 		//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
@@ -229,10 +229,11 @@ int main( int argc, char* argv[] )
 			{
 				if( PhysiCell_settings.enable_SVG_saves == true )
 				{
-					if ( !parameters.bools("bitmap_save") ){
+					if ( !parameters.bools("bitmap_save") && !parameters.bools("only_population") ){
 						sprintf( filename , "%s/snapshot%08u.svg" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
 						SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-					}else{
+					}
+					if ( parameters.bools("bitmap_save") && !parameters.bools("only_population") ){
 						sprintf( filename , "%s/output%08u.bmp" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
 						GenerateBitmap(filename);
 					}
@@ -306,13 +307,10 @@ int main( int argc, char* argv[] )
 	{
 		NumCells_file.close();
 
-		if ( !parameters.bools("bitmap_save") ){
+		if ( !parameters.bools("bitmap_save") && !parameters.bools("only_population") ){
 			sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
 			//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 			SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-
-
-
 		}
 	}
 
