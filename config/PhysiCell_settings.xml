@@ -975,7 +975,8 @@
 		<custom_save_time description="save time with local and global dt" type="bool">false</custom_save_time>
 		<local_dt_save_time description="local dt to save data and svg" type="double" units="min">60.0</local_dt_save_time>
 		<global_dt_save_time description="global dt to save data and svg" type="double" units="min">1440.0</global_dt_save_time>
-		<bitmap_save description="save bitmap instead of svg files" type="bool">false</bitmap_save>
+		<bitmap_save description="save bitmap instead of svg files (needs svg enable)" type="bool">false</bitmap_save>
+		<only_population description="save only cells population (needs svg enable)" type="bool">false</only_population>
 		<bitmap_width description="width pixels of the bitmap image" type="int">5</bitmap_width>
 		<bitmap_height description="height pixels of the bitmap image" type="int">5</bitmap_height>
 	</user_parameters>
