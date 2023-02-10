@@ -41,12 +41,14 @@ def Loading_AditionalDataset():
     return df
 
 def Loading_UMAP():
-    # Download the analysis of 20 patients
-    local_path = 'Clust_UMAP_15_01_2.pickle'
+    # Download the UMAP of trajectories
+    local_path = 'Clust_UMAP_15_01_2.pickle' # trajectories of all simulations
     link = 'https://figshare.com/ndownloader/files/38481611'
+    local_path2 = 'Patient_UMAP_15_01_2.pickle' # trajectory averages of all simulations
+    link2 = 'https://figshare.com/ndownloader/files/38898579'
     download_file(local_path, link)
-    df = loading_pkl_file(local_path)
-    return df
+    download_file(local_path2, link2)
+    return loading_pkl_file(local_path), loading_pkl_file(local_path2)
 
 def ZscoreImagesToTensor(dataframe): # Normalize images (zscore) and convert to tensor (pytorch pattern)
     images = np.asarray(dataframe['imagens'].tolist(), dtype="float64") # shape (1e4, 5, 5, 3)
