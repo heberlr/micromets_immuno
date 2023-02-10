@@ -155,9 +155,9 @@
 				</mechanics>
 
 				<motility>
-					<speed units="micron/min">4</speed>
-					<persistence_time units="min">5</persistence_time>
-					<migration_bias units="dimensionless">0.7</migration_bias>
+					<speed units="micron/min">0</speed>
+					<persistence_time units="min">0</persistence_time>
+					<migration_bias units="dimensionless">0.0</migration_bias>
 
 					<options>
 						<enabled>false</enabled>
@@ -189,20 +189,19 @@
 
 				<TCell_contact_time description="tracks total contact time with CD8 T cells" type="double" units="min">0.0</TCell_contact_time>
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
-				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
+				<cell_attachment_lifetime description="the mean duration of a CD8-melanoma attachment" type="double" units="min">0</cell_attachment_lifetime>
 				<TCell_contact_death_threshold description="threshold CD8 T cell contact time to trigger apoptosis" type="double" units="min">50</TCell_contact_death_threshold>
-				<max_attachment_distance desription="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
+				<max_attachment_distance description="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
-				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
+				<material_internalisation description="the inverse of internalization rate of the ingested material by phagocyte" type="double" units="min/micron^3">1</material_internalisation>
 				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
-				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
-				<exhausted_macrophage_death_rate desription="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
+				<threshold_macrophage_volume description="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
+				<exhausted_macrophage_death_rate description="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
 
-
-				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
-				<phagocytosis_relative_target_cutoff_size desription="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
+				<phagocytosis_rate description="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
+				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
 				<sensitivity_to_TNF_chemotaxis description="relative sensitivity to TNF in chemotaxis" type="double" units="dimensionless">10.0</sensitivity_to_TNF_chemotaxis>
@@ -284,9 +283,9 @@
 				</mechanics>
 
 				<motility>
-					<speed units="micron/min">4</speed>
-					<persistence_time units="min">5</persistence_time>
-					<migration_bias units="dimensionless">0.7</migration_bias>
+					<speed units="micron/min">0</speed>
+					<persistence_time units="min">0</persistence_time>
+					<migration_bias units="dimensionless">0.0</migration_bias>
 
 					<options>
 						<enabled>false</enabled>
@@ -320,17 +319,16 @@
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
 				<TCell_contact_death_threshold description="threshold CD8 T cell contact time to trigger apoptosis" type="double" units="min">50</TCell_contact_death_threshold>
-				<max_attachment_distance desription="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
+				<max_attachment_distance description="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
-				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
+				<material_internalisation description="the inverse of internalization rate of the ingested material by phagocyte" type="double" units="min/micron^3">1</material_internalisation>
 				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
-				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
-				<exhausted_macrophage_death_rate desription="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
+				<threshold_macrophage_volume description="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
+				<exhausted_macrophage_death_rate description="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
 
-
-				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
+				<phagocytosis_rate description="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
 				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
@@ -413,9 +411,9 @@
 				</mechanics>
 
 				<motility>
-					<speed units="micron/min">4</speed>
-					<persistence_time units="min">5</persistence_time>
-					<migration_bias units="dimensionless">0.7</migration_bias>
+					<speed units="micron/min">0</speed>
+					<persistence_time units="min">0</persistence_time>
+					<migration_bias units="dimensionless">0.0</migration_bias>
 
 					<options>
 						<enabled>false</enabled>
@@ -449,17 +447,16 @@
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
 				<TCell_contact_death_threshold description="threshold CD8 T cell contact time to trigger apoptosis" type="double" units="min">50</TCell_contact_death_threshold>
-				<max_attachment_distance desription="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
+				<max_attachment_distance description="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
-				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
+				<material_internalisation description="the inverse of internalization rate of the ingested material by phagocyte" type="double" units="min/micron^3">1</material_internalisation>
 				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
-				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
-				<exhausted_macrophage_death_rate desription="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
+				<threshold_macrophage_volume description="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
+				<exhausted_macrophage_death_rate description="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
 
-
-				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
+				<phagocytosis_rate description="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
 				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
@@ -575,17 +572,17 @@
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0.2</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">8.5</cell_attachment_lifetime>
 				<TCell_contact_death_threshold description="threshold CD8 T cell contact time to trigger apoptosis" type="double" units="min">50</TCell_contact_death_threshold>
-				<max_attachment_distance desription="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
+				<max_attachment_distance description="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
-				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
+				<material_internalisation description="the inverse of internalization rate of the ingested material by phagocyte" type="double" units="min/micron^3">1</material_internalisation>
 				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
-				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
-				<exhausted_macrophage_death_rate desription="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
+				<threshold_macrophage_volume description="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
+				<exhausted_macrophage_death_rate description="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
 
-				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
-				<phagocytosis_relative_target_cutoff_size desription="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
+				<phagocytosis_rate description="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
+				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
 				<sensitivity_to_TNF_chemotaxis description="relative sensitivity to TNF in chemotaxis" type="double" units="dimensionless">10.0</sensitivity_to_TNF_chemotaxis>
@@ -700,17 +697,17 @@
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
 				<TCell_contact_death_threshold description="threshold CD8 T cell contact time to trigger apoptosis" type="double" units="min">50</TCell_contact_death_threshold>
-				<max_attachment_distance desription="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
+				<max_attachment_distance description="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
-				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
+				<material_internalisation description="the inverse of internalization rate of the ingested material by phagocyte" type="double" units="min/micron^3">1</material_internalisation>
 				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
-				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
-				<exhausted_macrophage_death_rate desription="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
+				<threshold_macrophage_volume description="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
+				<exhausted_macrophage_death_rate description="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
 
-				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
-				<phagocytosis_relative_target_cutoff_size desription="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
+				<phagocytosis_rate description="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
+				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
 				<sensitivity_to_TNF_chemotaxis description="relative sensitivity to TNF in chemotaxis" type="double" units="dimensionless">10.0</sensitivity_to_TNF_chemotaxis>
@@ -828,17 +825,17 @@
 				<cell_attachment_rate description="the rate at which the cell attaches to cells in contact" type="double" units="1/min">100.0</cell_attachment_rate>
 				<cell_attachment_lifetime description="the mean duration of a cell-cell attachment" type="double" units="min">0</cell_attachment_lifetime>
 				<TCell_contact_death_threshold description="threshold CD8 T cell contact time to trigger apoptosis" type="double" units="min">50</TCell_contact_death_threshold>
-				<max_attachment_distance desription="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
+				<max_attachment_distance description="max distance at which to form a cell-cell attachment" type="double" units="micron">15</max_attachment_distance>
 
 				<time_to_next_phagocytosis description="time it takes for the apoptotic material to be phagocytosed" type="double" units="min">0</time_to_next_phagocytosis>
-				<material_internalisation_rate desription="rate material is ingested by phagocyte" type="double" units="micron/min">1</material_internalisation_rate>
+				<material_internalisation description="the inverse of internalization rate of the ingested material by phagocyte" type="double" units="min/micron^3">1</material_internalisation>
 				<ability_to_phagocytose_melanoma_cell description="Boolean for whether macrophages can phagocytose melanoma cells" type="int" units="dimensionless">0</ability_to_phagocytose_melanoma_cell>
 
-				<threshold_macrophage_volume desription="Threshold volume for macrophage exhaustion" type="double" units="micron">6500</threshold_macrophage_volume>
+				<threshold_macrophage_volume description="Threshold volume for macrophage exhaustion" type="double" units="micron^3">6500</threshold_macrophage_volume>
+				<exhausted_macrophage_death_rate description="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
 
-				<exhausted_macrophage_death_rate desription="Threshold volume for macrophage exhaustion" type="double" units="1/min">0.01</exhausted_macrophage_death_rate>
-				<phagocytosis_rate desription="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
-				<phagocytosis_relative_target_cutoff_size desription="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
+				<phagocytosis_rate description="rate of phagocytosing a nearby target" type="double" units="1/min">0.167</phagocytosis_rate>
+				<phagocytosis_relative_target_cutoff_size description="relative target cutoff size for phagocytosis" type="double" units="dimensionless">0</phagocytosis_relative_target_cutoff_size>
 
 				<sensitivity_to_debris_chemotaxis description="relative sensitivity to debris in chemotaxis" type="double" units="dimensionless">1.0</sensitivity_to_debris_chemotaxis>
 				<sensitivity_to_TNF_chemotaxis description="relative sensitivity to TNF in chemotaxis" type="double" units="dimensionless">10.0</sensitivity_to_TNF_chemotaxis>
@@ -914,21 +911,21 @@
 		<DC_recruitment_min_signal type="double" units="substrate/micron^3" description="min concentration to attract DC">0.1</DC_recruitment_min_signal> <!--0.1 debug -->
 		<DC_recruitment_saturation_signal type="double" units="substrate/micron^3" description="saturating concentration to attract DC">0.3</DC_recruitment_saturation_signal> <!-- 0.3 debug -->
 
-		<TC_death_rate description="TC death rate" type="double" units="cells/min">1.4e-6</TC_death_rate>
-		<max_activation_TC description="max activation TC" type="double" units="cells/min">0.003</max_activation_TC>
+		<TC_death_rate description="TC death rate" type="double" units="1/min">1.4e-6</TC_death_rate>
+		<activation_rate_TC description="activation rate of TC" type="double" units="1/min">0.003</activation_rate_TC>
 		<half_max_activation_TC description="half max activation TC" type="double" units="cells">2000</half_max_activation_TC>
-		<max_clearance_TC description="max clearance TC" type="double" units="cells/min">0.0007</max_clearance_TC>
+		<clearance_rate_TC description="max clearance TC" type="double" units="1/min">0.0007</clearance_rate_TC>
 		<half_max_clearance_TC description="half max clearance TC" type="double" units="cells">200</half_max_clearance_TC>
 		<TC_population_threshold description="TC population threshold" type="double" units="cells">10</TC_population_threshold>
-		<DM_decay description="DM decay rate" type="double" units="cells/min">3.5e-4</DM_decay>
-		<Th1_max_activation type="double" units="cells/min" description="Th1 max activation speed">0.0007</Th1_max_activation>
-		<Th1_damping type="double" units="cells/min" description="Th1 damping factor">0.000015</Th1_damping>
-		<Th1_decay type="double" units="cells/min" description="Th1 active decay rate">7e-7</Th1_decay>
-		<Th_base_decay type="double" units="cells/min" description="Th base dacay rates">0.0000156</Th_base_decay>
+		<DM_decay description="DM decay rate" type="double" units="1/min">3.5e-4</DM_decay>
+		<Th1_max_activation type="double" units="cells^2/min" description="Th1 max activation speed">0.0007</Th1_max_activation>
+		<Th1_damping type="double" units="1/min" description="Th1 damping factor">0.000015</Th1_damping>
+		<Th1_decay type="double" units="1/cells*min" description="Th1 active decay rate">7e-7</Th1_decay>
+		<Th_base_decay type="double" units="1/min" description="Th base dacay rates">0.0000156</Th_base_decay>
 		<Th2_self_feeback type="double" units="cells/min" description="Th2 max self feeback speed">0.000028</Th2_self_feeback>
-		<Th2_max_conversion type="double" units="cells/min" description="Th2 max conversion speed">0.000002</Th2_max_conversion>
-		<Th1_Th2_conversion_weight type="double" units="cells/min" description="Th1 to Th2 conversion weight">1</Th1_Th2_conversion_weight>
-		<T_Cell_Recruitment description="T cell recruitment rate to tissue" type="double" units="cells/min">1.1e-4</T_Cell_Recruitment>
+		<Th2_max_conversion type="double" units="1/cells*min" description="Th2 max conversion speed">0.000002</Th2_max_conversion>
+		<Th1_Th2_conversion_weight type="double" units="cells" description="Th1 to Th2 conversion weight">1</Th1_Th2_conversion_weight>
+		<T_Cell_Recruitment description="T cell recruitment rate to tissue" type="double" units="1/min">1.1e-4</T_Cell_Recruitment>
 
 		<div_initialization description="---Initialization Options--" type="divider" />
 		<cell_confluence_lung_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_lung_cells>
@@ -947,7 +944,7 @@
 		<DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
 		<DC_induced_CD8_attachment description="DC induced CD8 attachement rate" type="double" units="cells/min/micron^3">0.6</DC_induced_CD8_attachment>
 
-		<DC_leave_prob description="probability of DC leaving to lymph node" type="double" units="cells/min">2e-3</DC_leave_prob>
+		<DC_leave_rate description="rate of DC leaving to lymph node" type="double" units="1/min">0.2</DC_leave_rate>
 
 		<epsilon_distance descriptions="Multiple of interaction distance for immune cells" type="double" units="dimensionless">1.75</epsilon_distance>
 
@@ -975,7 +972,8 @@
 		<custom_save_time description="save time with local and global dt" type="bool">false</custom_save_time>
 		<local_dt_save_time description="local dt to save data and svg" type="double" units="min">60.0</local_dt_save_time>
 		<global_dt_save_time description="global dt to save data and svg" type="double" units="min">1440.0</global_dt_save_time>
-		<bitmap_save description="save bitmap instead of svg files" type="bool">false</bitmap_save>
+		<bitmap_save description="save bitmap instead of svg files (needs svg enable)" type="bool">false</bitmap_save>
+		<only_population description="save only cells population (needs svg enable)" type="bool">false</only_population>
 		<bitmap_width description="width pixels of the bitmap image" type="int">5</bitmap_width>
 		<bitmap_height description="height pixels of the bitmap image" type="int">5</bitmap_height>
 	</user_parameters>

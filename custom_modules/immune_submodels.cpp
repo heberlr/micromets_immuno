@@ -351,7 +351,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	double probability_of_phagocytosis = pCell->custom_data["phagocytosis_rate"] * dt;
 
 	// (Adrianne) add an additional variable that is the time taken to ingest material
-	double material_internalisation_rate = pCell->custom_data["material_internalisation_rate"];
+	double material_internalisation = pCell->custom_data["material_internalisation"];
 
 	n = 0;
 	Cell* pTestCell = neighbors[n];
@@ -370,7 +370,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			if (pTestCell->type == melanoma_type) std::cout << " Macrophage (ID: " << pCell->ID << ") eats " << " dead melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
 
 			// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
-			double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
+			double time_to_ingest = volume_ingested_cell*material_internalisation;// convert volume to time taken to phagocytose
 			// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
 			pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
 
@@ -398,7 +398,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			if (pTestCell->type == melanoma_type) std::cout << " Hyperactivated macrophage (ID: " << pCell->ID << ") eats " << " melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
 
 			// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
-			double time_to_ingest = volume_ingested_cell*material_internalisation_rate;// convert volume to time taken to phagocytose
+			double time_to_ingest = volume_ingested_cell*material_internalisation;// convert volume to time taken to phagocytose
 			// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
 			pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
 

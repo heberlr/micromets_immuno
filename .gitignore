@@ -4,3 +4,6 @@
 /output_*
 config/tmp.xml
 *.bmp
+/Results/
+*.pickle
+*.ipynb_checkpoints*
