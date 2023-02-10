@@ -14,4 +14,4 @@ $ make
 $ ./melanoma
 ```
 
-To see the analysis of data set: (https://raw.githubusercontent.com/heberlr/melanoma/development/Data_Analysis/Plot_Results.ipynb
+To see the analysis of data set: (https://raw.githubusercontent.com/heberlr/melanoma/development/Data_Analysis/PlotResults.ipynb
