@@ -91,10 +91,16 @@ def plotSamplesMicroEnv(DataFrame, sampleID, ax1, ax2):
   lp1.legend(loc='upper center', bbox_to_anchor=(0.5, 1.22),
         ncol=2, fancybox=True, shadow=True)
 
-def plot_PopCells(df_output, sampleID): # Patients examples: NC=2, MC = 93, SC=5, NC+MC=9, NC+SC=7, MC+SC=106, -- (CC and MC and SC)= 6
+def plot_PopCells(df_output, sampleID, FigName=None): # Patients examples: NC=2, MC = 93, SC=5, NC+MC=9, NC+SC=7, MC+SC=106, -- (CC and MC and SC)= 6
     fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(16, 5))
     plotSamplesLN(df_output, sampleID,ax1)
     plotSamplesMicroEnv(df_output, sampleID,ax2,ax3)
     # set the spacing between subplots
     fig.tight_layout()
-    plt.show()
+    if (FigName): plt.savefig(FigName)
+    else: plt.show()
+
+if __name__ == '__main__':
+    df_input, df_output = Loading_dataset()
+    # Plot of populations of patient 6
+    plot_PopCells(df_output, 6,  FigName='Figure5.svg')
