@@ -32,9 +32,9 @@ void external_immune_model_setup( void )
 void external_immune_model( double dt )
 {
 	static double dC = parameters.doubles( "TC_death_rate" );
-	static double pT1 = parameters.doubles( "max_activation_TC" );
+	static double pT1 = parameters.doubles( "activation_rate_TC" );
 	static double pT2 = parameters.doubles( "half_max_activation_TC" );
-	static double dT1 = parameters.doubles( "max_clearance_TC" );
+	static double dT1 = parameters.doubles( "clearance_rate_TC" );
 	static double dT2 = parameters.doubles( "half_max_clearance_TC" );
 	static double Tc0 = parameters.doubles( "TC_population_threshold" );
 	static double dDm = parameters.doubles( "DM_decay" );
