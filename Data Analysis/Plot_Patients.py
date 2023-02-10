@@ -8,7 +8,7 @@ from DataSet import *
 
 colours = {'NC':'#CA8151','MC':'#FFE1B3','SC':'#307CA1','NC+MC':'#999999','NC+SC':'#797979','MC+SC':'#898989','NC+MC+SC':'#696969','Mixed':'#595959', 'Mixed/MC': '#494949'}
 
-def Plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, Title=True):
+def Plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, Title=False, FigName=None):
   fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(16, 6))
   Sim_sizes = Sim_df_lastFrame['label'].value_counts()
   Pat_7classes_sizes =  Pat_df_7classes['label'].value_counts()
@@ -27,9 +27,10 @@ def Plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, Title=True):
   if (Title): ax2.set_title("10k patients - 7 sets")
   ax3.pie(Pat_3classes_sizes,labels=Pat_3classes_sizes.index,colors=[colours[key] for key in Pat_3classes_sizes.index], autopct='%1.1f%%', shadow=True, startangle=90, textprops={'fontsize': 14,'color':'k'})
   if (Title): ax3.set_title("10k patients - 3 sets")
-  plt.show()
+  if (FigName): plt.savefig(FigName)
+  else: plt.show()
 
-def Plot_Parameters(df_input_min_max_scaled):
+def Plot_Parameters(df_input_min_max_scaled, FigName=None):
   df_SC_NC_min_max_scaled = df_input_min_max_scaled.loc[(df_input_min_max_scaled["label"] == 'NC') | (df_input_min_max_scaled["label"] == 'SC')]
   data_plot = pd.melt(df_SC_NC_min_max_scaled, id_vars=['sample','label'], value_vars=NameParameters)
   plt.figure(figsize=(16, 6))
@@ -38,9 +39,10 @@ def Plot_Parameters(df_input_min_max_scaled):
   ax.set(xlabel=None)
   ax.set_ylabel('Normalized parameters',fontsize=14)
   ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1),fontsize=14)
-  plt.show()
+  if (FigName): plt.savefig(FigName)
+  else: plt.show()
 
-def Plot_PatientAnalysis(PlotPatientPoint = False):
+def Plot_PatientAnalysis(PlotPatientPoint = False, FigName=None):
     df_PatientVariation = PatientsAnalysis()
     fig = plt.figure(figsize=(12, 8))
     G = gridspec.GridSpec(4, 6, width_ratios=[1,1,1,1,1,0.3])
@@ -88,16 +90,44 @@ def Plot_PatientAnalysis(PlotPatientPoint = False):
     colorbar.set_ticks([colorbar.vmin + r / NumPoints * (0.5 + i) for i in range(NumPoints)])
     colorbar.set_ticklabels(NewColours.keys())
     plt.tight_layout()
-    plt.show()
+    if (FigName): plt.savefig(FigName)
+    else: plt.show()
 
-def Plot_UMAP(Sim_df_lastFrame):
+def Plot_UMAP(Sim_df_lastFrame, FigName=None):
     fig = plt.figure(figsize=(8, 7))
-    df_UMAP = Loading_UMAP()
+    df_UMAP, df = Loading_UMAP()
     df_UMAP['label'] = Sim_df_lastFrame['label']
-    ax = sns.scatterplot(data=df_UMAP,x='UMAP1',y='UMAP2',hue='label',palette=[colours['NC'],colours['MC'],colours['SC']])
+    ax = sns.scatterplot(data=df_UMAP,x='UMAP1',y='UMAP2',hue='label',palette=[colours['NC'],colours['MC'],colours['SC']], hue_order=['NC','MC','SC'])
     ax.legend(markerscale=2.0, fontsize=14)
     ax.set_xlabel('UMAP 1', fontsize=14)
     ax.set_ylabel('UMAP 2', fontsize=14)
     ax.xaxis.set_tick_params(labelsize=14)
     ax.yaxis.set_tick_params(labelsize=14)
-    plt.show()
+    if (FigName): plt.savefig(FigName)
+    else: plt.show()
+
+def Plot_UMAP_MeanPatients(Pat_df_7classes, FigName=None):
+    fig = plt.figure(figsize=(8, 7))
+    df,df_UMAP = Loading_UMAP()
+    df_UMAP['label'] = Pat_df_7classes['label']
+    ax = sns.scatterplot(data=df_UMAP,x='UMAP1',y='UMAP2',hue='label',palette=[colours['NC'],colours['MC'],colours['SC'],colours['NC+MC'],colours['NC+SC'],colours['MC+SC'],colours['NC+MC+SC']], hue_order=['NC','MC','SC','NC+MC','NC+SC','MC+SC','NC+MC+SC'])
+    ax.legend(markerscale=2.0, fontsize=14)
+    ax.set_xlabel('UMAP 1', fontsize=14)
+    ax.set_ylabel('UMAP 2', fontsize=14)
+    ax.xaxis.set_tick_params(labelsize=14)
+    ax.yaxis.set_tick_params(labelsize=14)
+    if (FigName): plt.savefig(FigName)
+    else: plt.show()
+
+if __name__ == '__main__':
+    df_input, df_output = Loading_dataset()
+    Sim_df_lastFrame = Classifier_Simulations(df_output)
+    Pat_df_7classes, Pat_df_3classes = Classifier_Patients(Sim_df_lastFrame)
+    Plot_UMAP(Sim_df_lastFrame,FigName='Figure4_B.svg') # Plot UMAP of the trajectories
+    Plot_UMAP_MeanPatients(Pat_df_7classes,FigName='Figure4_D.svg') # Plot UMAP of the trajectory averages
+    Plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, FigName='Figure4_AC.svg') # Patient statistics
+    # Plot the quartiles of patient features
+    df_input_min_max_scaled = Normalize_Parameters(df_input, Pat_df_3classes)
+    Plot_Parameters(df_input_min_max_scaled, FigName='Figure6_A.svg')
+    # Plot the analysis of 20 patients
+    Plot_PatientAnalysis(FigName='Figure6_B.svg')
