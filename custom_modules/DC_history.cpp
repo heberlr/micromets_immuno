@@ -34,7 +34,7 @@ void DC_history_model( Cell* pCell, Phenotype& phenotype, double dt )
 	// bookkeeping -- find microenvironment variables we need
 
 	// bookkeeping -- find custom data we need
-	static double DCprob = parameters.doubles( "DC_leave_prob" );
+	static double DCprob = parameters.doubles( "DC_leave_rate" )*dt;
 
 	// do nothing if dead
 	if( phenotype.death.dead == true )
