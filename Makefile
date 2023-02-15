@@ -1,7 +1,7 @@
 #export PHYSICELL_CPP=g++-10 # Running in OSX
 
 VERSION := $(shell grep . VERSION.txt | cut -f1 -d:)
-PROGRAM_NAME := melanoma
+PROGRAM_NAME := micromets_lung
 
 osRelease = $(shell lsb_release -r | sed -e "s/Release:\W*//" -e "s/\..*//")
 ifeq ($(osRelease),7)
@@ -71,7 +71,7 @@ PhysiCell_module_OBJECTS := PhysiCell_SVG.o PhysiCell_pathology.o PhysiCell_Mult
 PhysiCell_pugixml.o PhysiCell_settings.o
 
 # put your custom objects here (they should be in the custom_modules directory)
-PhysiCell_custom_module_OBJECTS := custom.o EasyBMP.o DC_history.o external_immune.o submodel_data_structures.o immune_submodels.o epithelium_submodel.o melanoma_submodel.o
+PhysiCell_custom_module_OBJECTS := custom.o EasyBMP.o DC_history.o external_immune.o submodel_data_structures.o immune_submodels.o epithelium_submodel.o cancer_submodel.o
 
 pugixml_OBJECTS := pugixml.o
 
@@ -187,8 +187,8 @@ immune_submodels.o: ./custom_modules/immune_submodels.cpp
 epithelium_submodel.o: ./custom_modules/epithelium_submodel.cpp
 	$(COMPILE_COMMAND) -c ./custom_modules/epithelium_submodel.cpp
 
-melanoma_submodel.o: ./custom_modules/melanoma_submodel.cpp
-	$(COMPILE_COMMAND) -c ./custom_modules/melanoma_submodel.cpp
+cancer_submodel.o: ./custom_modules/cancer_submodel.cpp
+	$(COMPILE_COMMAND) -c ./custom_modules/cancer_submodel.cpp
 
 DC_history.o: ./custom_modules/DC_history.cpp
 	$(COMPILE_COMMAND) -c ./custom_modules/DC_history.cpp
