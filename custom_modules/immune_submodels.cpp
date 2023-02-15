@@ -328,7 +328,7 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		else if( pContactCell != pCell && pContactCell->phenotype.death.dead == false && pContactCell->type == CD4_Tcell_type
 			&& pCell->custom_data["activated_immune_cell"] > 0.5 && cell_cell_distance<=parameters.doubles("epsilon_distance")*(radius_mac+radius_test_cell))
 			{
-				pCell->custom_data["ability_to_phagocytose_melanoma_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose tumor cells
+				pCell->custom_data["ability_to_phagocytose_cancer_cell"] = 1; // (Adrianne) contact with CD4 T cell induces macrophage's ability to phagocytose tumor cells
 				n=neighbors.size();
 			}
 		n++;
@@ -366,17 +366,17 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			double volume_ingested_cell = pTestCell->phenotype.volume.total;
 
 			pCell->ingest_cell( pTestCell );
-			static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-			if (pTestCell->type == melanoma_type) std::cout << " Macrophage (ID: " << pCell->ID << ") eats " << " dead melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
+			static int cancer_type = get_cell_definition( "cancer cell" ).type;
+			if (pTestCell->type == cancer_type) std::cout << " Macrophage (ID: " << pCell->ID << ") eats " << " dead cancer cell (ID: " << pTestCell->ID << ")"<< std::endl;
 
 			// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
 			double time_to_ingest = volume_ingested_cell*material_internalisation;// convert volume to time taken to phagocytose
 			// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
 			pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
 
-			// Macrophage activation happen when mac eats foreign genetic material (melanoma dead cells)
-			// static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-			// if (pTestCell->type != melanoma_type) return;
+			// Macrophage activation happen when mac eats foreign genetic material (cancer dead cells)
+			// static int cancer_type = get_cell_definition( "cancer cell" ).type;
+			// if (pTestCell->type != cancer_type) return;
 
 			// activate the cell
 			phenotype.secretion.secretion_rates[TNF_index] =
@@ -388,23 +388,23 @@ void macrophage_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 			return;
 		}
-		else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_melanoma_cell"]== 1 && UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose live melanoma cells (hyperactivation)
+		else if( pTestCell != pCell && pCell->custom_data["ability_to_phagocytose_cancer_cell"]== 1 && UniformRandom() < probability_of_phagocytosis ) // (Adrianne) macrophages that have been activated by T cells can phagocytose live cancer cells (hyperactivation)
 		{
 			// (Adrianne) obtain volume of cell to be ingested
 			double volume_ingested_cell = pTestCell->phenotype.volume.total;
 
 			pCell->ingest_cell( pTestCell );
-			static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-			if (pTestCell->type == melanoma_type) std::cout << " Hyperactivated macrophage (ID: " << pCell->ID << ") eats " << " melanoma cell (ID: " << pTestCell->ID << ")"<< std::endl;
+			static int cancer_type = get_cell_definition( "cancer cell" ).type;
+			if (pTestCell->type == cancer_type) std::cout << " Hyperactivated macrophage (ID: " << pCell->ID << ") eats " << " cancer cell (ID: " << pTestCell->ID << ")"<< std::endl;
 
 			// (Adrianne) macrophage cannot phagocytose again until it has elapsed the time taken to phagocytose the material
 			double time_to_ingest = volume_ingested_cell*material_internalisation;// convert volume to time taken to phagocytose
 			// (Adrianne) update internal time vector in macrophages that tracks time it will spend phagocytosing the material so they can't phagocytose again until this time has elapsed
 			pCell->custom_data.variables[time_to_next_phagocytosis_index].value = PhysiCell_globals.current_time+time_to_ingest;
 
-			// Macrophage activation happen when eats foreign genetic material (melanoma dead cells)
-			// static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
-			// if (pTestCell->type != melanoma_type) return;
+			// Macrophage activation happen when eats foreign genetic material (cancer dead cells)
+			// static int cancer_type = get_cell_definition( "cancer cell" ).type;
+			// if (pTestCell->type != cancer_type) return;
 
 			// activate the cell
 			phenotype.secretion.secretion_rates[TNF_index] =
@@ -505,9 +505,9 @@ void DC_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	}
 	else
 	{
-		//Activation of DC cells - attach with death melanoma cells
+		//Activation of DC cells - attach with death cancer cells
 		// if this returns non-NULL, we're now attached to at least one cell
-		if( immune_cell_check_neighbors_for_attachment( pCell , dt) ) // Look around by melanoma or lung cells to attach
+		if( immune_cell_check_neighbors_for_attachment( pCell , dt) ) // Look around by cancer or lung cells to attach
 		{
 			for (int i = 0; i < pCell->state.number_of_attached_cells(); i++){
 				pTempCell = pCell->state.attached_cells[i];
@@ -711,25 +711,25 @@ bool attempt_immune_cell_attachment( Cell* pAttacker, Cell* pTarget , double dt 
 {
 	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
 	static int DC_type = get_cell_definition( "DC" ).type;
-	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int cancer_type = get_cell_definition( "cancer cell" ).type;
 	static int lung_type = get_cell_definition( "lung cell" ).type;
 
-	// if the target is not melanoma cell, give up for CD8 attack
-	if ( pTarget->type != melanoma_type && pAttacker->type == CD8_Tcell_type)
+	// if the target is not cancer cell, give up for CD8 attack
+	if ( pTarget->type != cancer_type && pAttacker->type == CD8_Tcell_type)
 	{ return false; }
 
-	// If the target is not melanoma cell, give up for DC attack (Just melanoma cells attach DCs)
-	//if ( pTarget->type != melanoma_type  && pAttacker->type == DC_type) //
+	// If the target is not cancer cell, give up for DC attack (Just cancer cells attach DCs)
+	//if ( pTarget->type != cancer_type  && pAttacker->type == DC_type) //
 
-	// If the target is not melanoma or lung cell, give up for DC attack (Just melanoma or lung cells attach DCs)
-	if ( pTarget->type != melanoma_type && pTarget->type != lung_type && pAttacker->type == DC_type)
+	// If the target is not cancer or lung cell, give up for DC attack (Just cancer or lung cells attach DCs)
+	if ( pTarget->type != cancer_type && pTarget->type != lung_type && pAttacker->type == DC_type)
 	{ return false; }
 
 	// if the target cell is dead, give up for CD8 attack
 	if( pTarget->phenotype.death.dead == true && pAttacker->type == CD8_Tcell_type)
 	{ return false; }
 
-	// if the target cell is not dead, give up for DC attach (melanoma dead cell presenting antigen)
+	// if the target cell is not dead, give up for DC attach (cancer dead cell presenting antigen)
 	if( pTarget->phenotype.death.dead != true && pAttacker->type == DC_type )
 	{ return false; }
 

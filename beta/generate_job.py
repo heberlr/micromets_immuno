@@ -88,7 +88,7 @@ def create_fileIndiv(ID_Job,idSample, idRep, NumCPUsPerTask):
   print ("module load python/3.6.11")
   print ("export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n")
 
-  run = './melanoma /N/slate/hlimadar/melanoma_v3/output_S'+str("%06d"%idSample)+'_R'+str("%02d"%idRep)+'/config.xml'
+  run = './PulmonaryMicroMets /N/slate/hlimadar/PulmonaryMicroMets_v3/output_S'+str("%06d"%idSample)+'_R'+str("%02d"%idRep)+'/config.xml'
   print ("srun --cpu-bind=sockets "+run)
 
   sys.stdout = original_stdout

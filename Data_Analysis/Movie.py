@@ -8,7 +8,7 @@ def annotate_axes(ax, text, fontsize=18):
 def PlotFrame(popcells, imagecell, frameID, FigName=None):
   # ax0: Tumor microenvironment
   # ax1: Legend
-  # ax2: Melanoma and healthy tissue population
+  # ax2: Cancer and healthy tissue population
   # ax3: Lymph Node population
   # ax4: Immune cells population
   fig = plt.figure(layout=None, facecolor='0.9',figsize=(12,12))
@@ -25,7 +25,7 @@ def PlotFrame(popcells, imagecell, frameID, FigName=None):
   ax1.axes.yaxis.set_visible(False)
   # Population plots
   colours = {'live_lung': 'b', 'live_cancer': 'y', 'inac_DC': '#810F7C', 'act_DC': '#ff1493', 'inac_Mac': '#238B45', 'act_Mac': '#C0FF00', 'exas_Mac': '#A8DD76', 'hyper_MAC': '#A8DDB5', 'live_CD4': 'orange','live_CD8': 'red', 'LN_DC':'#016ca4', 'LN_TC':'#cd5000', 'LN_TH1':'#ffbb7b', 'LN_TH2':'#595959', 'LN_TCt':'#ababab', 'LN_Tht':'#a1c8f0'}
-  # Melanoma and Lung
+  # Cancer and Lung
   ax2 = fig.add_subplot(gs[-1, 0])
   ax2.plot(popcells[:,0]/1440.0, popcells[:,7], color=colours['live_lung'], label='live_lung')
   ax2.plot(popcells[:,0]/1440.0, popcells[:,14], color=colours['live_cancer'], label='live_cancer')
