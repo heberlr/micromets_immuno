@@ -40,7 +40,7 @@ def generate_parSamples(parameters, default_value, variation, Samples_number,Rep
     #Write file with samples
     for sample_id in range(Samples_number):
         for replica_id in range(Replicas_number):
-            path = '/N/slate/hlimadar/PulmonaryMicroMets_v3/'
+            path = '/N/slate/hlimadar/micromets_lung_v3/'
             folder = 'output_S'+str("%06d"%sample_id)+'_R'+str("%02d"%replica_id)
             file.write("folder"+" "+path+folder+"\n")
             # Set of parameters
