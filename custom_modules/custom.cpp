@@ -84,6 +84,7 @@ void create_cell_types( void )
 
 	This is a good place to set default functions.
 	*/
+	initialize_default_cell_definition();
 	cell_defaults.functions.volume_update_function = standard_volume_update_function;
 	cell_defaults.functions.update_velocity = standard_update_cell_velocity;
 
@@ -119,7 +120,7 @@ void create_cell_types( void )
 	// (which ensures that the cells have all the internal variables they need)
 	immune_submodels_setup();
 	epithelium_submodel_setup();
-	melanoma_submodel_setup();
+	cancer_submodel_setup();
 
 	submodel_registry.display( std::cout );
 
@@ -215,11 +216,11 @@ void setup_tissue( void )
 	initial_immune_cell_placement();
 
 	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
-	// Melanoma cells
-	if ( parameters.doubles("time_add_melanoma_cell") == 0.0 )
+	// cancer cells
+	if ( parameters.doubles("time_add_cancer_cell") == 0.0 )
 	{
-		for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
-			pC = create_cell( get_cell_definition("melanoma cell" ) );
+		for ( int i=0; i < parameters.ints("number_of_cancer_cells") ;i++){
+			pC = create_cell( get_cell_definition("cancer cell" ) );
 			int index_sample = (int) ( UniformRandom() * (valid_position.size()-1) );
 			pC->assign_position( valid_position[index_sample] );
 			pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
@@ -277,7 +278,7 @@ std::vector<std::string> epithelium_coloring_function( Cell* pCell )
 std::vector<std::string> tissue_coloring_function( Cell* pCell )
 {
 	static int lung_epithelial_type = get_cell_definition( "lung cell" ).type;
-	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int cancer_type = get_cell_definition( "cancer cell" ).type;
 
 	static int CD8_Tcell_type = get_cell_definition( "CD8 Tcell" ).type;
 	static int Macrophage_type = get_cell_definition( "macrophage" ).type;
@@ -291,7 +292,7 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 	if( pCell->phenotype.death.dead == true )
 	{
-		if( pCell->type != lung_epithelial_type && pCell->type != melanoma_type )
+		if( pCell->type != lung_epithelial_type && pCell->type != cancer_type )
 		{
 			output[0] = parameters.strings("apoptotic_immune_color");
 			output[2] = output[0];
@@ -307,7 +308,7 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 				return output;
 			}
 			else{
-				output[0] = parameters.strings("apoptotic_melanoma_color");
+				output[0] = parameters.strings("apoptotic_cancer_color");
 				output[2] = output[0];
 				output[3] = output[0];
 			}
@@ -316,13 +317,16 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 	if( pCell->phenotype.death.dead == false && pCell->type == lung_epithelial_type )
 	{
-		output = epithelium_coloring_function(pCell);
+		output[0] = "rgb(0,0,255)";
+		output[2] = "rgb(0,0,255)";
+		output[3] = "rgb(0,0,255)";
+		// output = epithelium_coloring_function(pCell);
 		return output;
 	}
 
-	if( pCell->phenotype.death.dead == false && pCell->type == melanoma_type )
+	if( pCell->phenotype.death.dead == false && pCell->type == cancer_type )
 	{
-		output[0] = parameters.strings("melanoma_color");
+		output[0] = parameters.strings("cancer_color");
 		output[2] = output[0];
 		output[3] = output[0];
 		return output;
@@ -353,7 +357,7 @@ std::vector<std::string> tissue_coloring_function( Cell* pCell )
 
 		if( pCell->phenotype.volume.total> pCell->custom_data["threshold_macrophage_volume"] )// macrophage exhausted
 		{ color = parameters.strings("exhausted_macrophage_color"); }
-		else if( pCell->custom_data["ability_to_phagocytose_melanoma_cell"] == 1)// macrophage has been activated to kill melanoma cells by T cell
+		else if( pCell->custom_data["ability_to_phagocytose_cancer_cell"] == 1)// macrophage has been activated to kill cancer cells by T cell
 		{ color = parameters.strings("hyperactivated_macrophage_color"); }
 
 		output[0] = color;
@@ -464,9 +468,9 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 		os << "  </g>" << std::endl;
 
 		static Cell_Definition* pEpithelial = find_cell_definition( "lung cell" );
-		static Cell_Definition* pMelanoma = find_cell_definition( "melanoma cell" );
+		static Cell_Definition* pcancer = find_cell_definition( "cancer cell" );
 
-		// plot intersecting epithelial and melanoma cells
+		// plot intersecting epithelial and cancer cells
 		os << "  <g id=\"cells\">" << std::endl;
 		for( int i=0 ; i < total_cell_count ; i++ )
 		{
@@ -474,7 +478,7 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 
 				static std::vector<std::string> Colors;
 				if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-				&& (pC->type == pEpithelial->type || pC->type == pMelanoma->type) )
+				&& (pC->type == pEpithelial->type || pC->type == pcancer->type) )
 				{
 						double r = pC->phenotype.geometry.radius ;
 						double rn = pC->phenotype.geometry.nuclear_radius ;
@@ -494,14 +498,14 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 				}
 		}
 
-		//plot intersecting non=epithelial and non-melanoma cells
+		//plot intersecting non=epithelial and non-cancer cells
 		for( int i=0 ; i < total_cell_count ; i++ )
 		{
 				Cell* pC = (*all_cells)[i]; // global_cell_list[i];
 
 				static std::vector<std::string> Colors;
 				if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius
-				&& pC->type != pEpithelial->type && pC->type != pMelanoma->type)
+				&& pC->type != pEpithelial->type && pC->type != pcancer->type)
 				{
 						double r = pC->phenotype.geometry.radius ;
 						double rn = pC->phenotype.geometry.nuclear_radius ;
@@ -580,7 +584,7 @@ void SVG_plot_custom( std::string filename , Microenvironment& M, double z_slice
 
 void divide_custom_data()
 {
-	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int cancer_type = get_cell_definition( "cancer cell" ).type;
 	static double tolerance = 0.001;
 
   #pragma omp parallel for
@@ -589,8 +593,8 @@ void divide_custom_data()
 		Cell* pCell;
 		pCell = (*all_cells)[i];
 
-		// if cell is dead or is not melanoma cell, skip it
-		if( pCell->phenotype.death.dead == true || pCell->type != melanoma_type)
+		// if cell is dead or is not cancer cell, skip it
+		if( pCell->phenotype.death.dead == true || pCell->type != cancer_type)
 	    { continue; }
 
 		static int last_cycle_index = pCell->custom_data.find_variable_index( "last_cycle_entry_time");
@@ -676,11 +680,11 @@ void nudge_out_of_bounds_cell( Cell* pC , double tolerance )
 
 void process_tagged_cells_on_edge( void )
 {
-	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int cancer_type = get_cell_definition( "cancer cell" ).type;
 	for( int n=0 ; n < cells_to_move_from_edge.size(); n++ )
 	{
 		Cell* pC = cells_to_move_from_edge[n];
-		if ( pC->type == melanoma_type){
+		if ( pC->type == cancer_type){
 			delete_cell(pC);
 		}else{
 			nudge_out_of_bounds_cell( pC , 10.0 );
@@ -696,13 +700,13 @@ void clear_cells_to_move_from_edge( void )
 
 void include_tumor_cells(void)
 {
-	if (  PhysiCell_globals.current_time == 0 || fabs( PhysiCell_globals.current_time - parameters.doubles("time_add_melanoma_cell")  ) >= 0.01 * diffusion_dt )
+	if (  PhysiCell_globals.current_time == 0 || fabs( PhysiCell_globals.current_time - parameters.doubles("time_add_cancer_cell")  ) >= 0.01 * diffusion_dt )
 		return;
 	Cell* pC;
-	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
+	Cell_Definition* pCD = find_cell_definition( "cancer cell" );
 	static int ECM_attachment_point_index = pCD->custom_data.find_vector_variable_index( "ECM_attachment_point" );
-	for ( int i=0; i < parameters.ints("number_of_melanoma_cells") ;i++){
-		pC = create_cell( get_cell_definition("melanoma cell" ) );
+	for ( int i=0; i < parameters.ints("number_of_cancer_cells") ;i++){
+		pC = create_cell( get_cell_definition("cancer cell" ) );
 		int index_sample = (int) ( UniformRandom() * (valid_position.size()-1) );
 		pC->assign_position( valid_position[index_sample] );
 		pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
@@ -725,13 +729,13 @@ void vaccine(void)
 	double Xrange = Xmax - Xmin;
 	double Yrange = Ymax - Ymin;
 	Cell* pC;
-	Cell_Definition* pCD = find_cell_definition( "melanoma cell" );
+	Cell_Definition* pCD = find_cell_definition( "cancer cell" );
 
 	for ( int i=0; i < parameters.ints("number_of_cells_vaccine") ;i++){
 		std::vector<double> position = {0,0,0};
 		position[0] = Xmin + UniformRandom()*Xrange;
 		position[1] = Ymin + UniformRandom()*Yrange;
-		pC = create_cell( get_cell_definition("melanoma cell" ) );
+		pC = create_cell( get_cell_definition("cancer cell" ) );
 		pC->assign_position( position );
 		//pC->custom_data.vector_variables[ECM_attachment_point_index].value = pC->position;
 		static int apoptosis_index = 	pC->phenotype.death.find_death_model_index( "Apoptosis" );
@@ -750,7 +754,7 @@ void vaccine(void)
 std::vector<int> cell_count( void )
 {
 	static int lung_cell_type = get_cell_definition( "lung cell" ).type;
-	static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
+	static int cancer_cell_type = get_cell_definition( "cancer cell" ).type;
 	static int CD8_type = get_cell_definition( "CD8 Tcell" ).type;
 	static int CD4_type = get_cell_definition( "CD4 Tcell" ).type;
 	static int macrophage_type = get_cell_definition( "macrophage" ).type;
@@ -762,7 +766,7 @@ std::vector<int> cell_count( void )
 		if( (*all_cells)[i]->phenotype.death.dead == true )
 		{
 			if( (*all_cells)[i]->type == lung_cell_type ) NumberofCells[1]++; // Dead lung
-			else if( (*all_cells)[i]->type == melanoma_cell_type ) NumberofCells[2]++; // Dead melanoma
+			else if( (*all_cells)[i]->type == cancer_cell_type ) NumberofCells[2]++; // Dead cancer
 			else if( (*all_cells)[i]->type == DC_type ) NumberofCells[3]++; // Dead DC
 			else if( (*all_cells)[i]->type == macrophage_type ) NumberofCells[4]++; // Dead macrophage
 			else if( (*all_cells)[i]->type == CD4_type ) NumberofCells[5]++; // Dead CD4
@@ -772,7 +776,7 @@ std::vector<int> cell_count( void )
 		{
 			NumberofCells[0]++;
 		}
-		else if ( (*all_cells)[i]->type == melanoma_cell_type )
+		else if ( (*all_cells)[i]->type == cancer_cell_type )
 		{
 			NumberofCells[7]++;
 		}
@@ -782,7 +786,7 @@ std::vector<int> cell_count( void )
 		}
 		else if ( (*all_cells)[i]->type == macrophage_type )
 		{
-			if ( (*all_cells)[i]->custom_data["ability_to_phagocytose_melanoma_cell"] == 1 )
+			if ( (*all_cells)[i]->custom_data["ability_to_phagocytose_cancer_cell"] == 1 )
 			{	NumberofCells[11]++; } //hyperactivated macrophage
 			else
 			{
@@ -811,9 +815,9 @@ void Binary2Color(const std::vector<bool> &BinaryVector, int &Rvalue, int &Gvalu
 {
   // -------- Red channel -------------
   // 0 - live lung cell;              1 - dead lung cell;
-  // 2 - dead melanoma cell;          3 - dead DC
+  // 2 - dead cancer cell;          3 - dead DC
   // 4 - dead macrophage;             5 - dead CD4 T cell;
-  // 6 - dead CD8 T cell;             7 - live melanoma cell;
+  // 6 - dead CD8 T cell;             7 - live cancer cell;
   // -------- Green channel -------------
   // 8 - inactivated DC;              9 - inactivated macrophage;
   // 10 - exhausted macrophage;       11 - hyperactivated macrophage;
@@ -905,7 +909,7 @@ void GenerateBitmap(const char* filename)
   std::vector<std::vector<binaryVec>> PixelsBinary(Image.TellHeight(), std::vector<binaryVec>(Image.TellWidth()));
 
 	static int lung_type = get_cell_definition( "lung cell" ).type;
-	static int melanoma_type = get_cell_definition( "melanoma cell" ).type;
+	static int cancer_type = get_cell_definition( "cancer cell" ).type;
 	static int CD8_type = get_cell_definition( "CD8 Tcell" ).type;
 	static int CD4_type = get_cell_definition( "CD4 Tcell" ).type;
 	static int macrophage_type = get_cell_definition( "macrophage" ).type;
@@ -916,9 +920,9 @@ void GenerateBitmap(const char* filename)
 			if ( (*all_cells)[i]->phenotype.death.dead == false ) SetBinaryVector((*all_cells)[i]->position,0,PixelsBinary,Image); //bit 0 - live lung cell
 			else SetBinaryVector((*all_cells)[i]->position,1,PixelsBinary,Image); //bit 1 - dead lung cell
 		}
-		else if ( (*all_cells)[i]->type == melanoma_type ){
-			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,2,PixelsBinary,Image); //bit 2 - dead melanoma cell
-			else SetBinaryVector((*all_cells)[i]->position,7,PixelsBinary,Image); //bit 7 - live melanoma cell
+		else if ( (*all_cells)[i]->type == cancer_type ){
+			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,2,PixelsBinary,Image); //bit 2 - dead cancer cell
+			else SetBinaryVector((*all_cells)[i]->position,7,PixelsBinary,Image); //bit 7 - live cancer cell
 		}
 		else if ( (*all_cells)[i]->type == DC_type ){
 			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,3,PixelsBinary,Image); //bit 3 - dead DC
@@ -928,7 +932,7 @@ void GenerateBitmap(const char* filename)
 		}
 		else if ( (*all_cells)[i]->type == macrophage_type ){
 			if ( (*all_cells)[i]->phenotype.death.dead == true ) SetBinaryVector((*all_cells)[i]->position,4,PixelsBinary,Image); //bit 4 - dead macrophage
-			else if ( (*all_cells)[i]->custom_data["ability_to_phagocytose_melanoma_cell"] == 1 ){
+			else if ( (*all_cells)[i]->custom_data["ability_to_phagocytose_cancer_cell"] == 1 ){
 				SetBinaryVector((*all_cells)[i]->position,11,PixelsBinary,Image); //bit 11 - hyperactivated macrophage
 			}else if ( (*all_cells)[i]->phenotype.volume.total> (*all_cells)[i]->custom_data["threshold_macrophage_volume"] ){
 				SetBinaryVector((*all_cells)[i]->position,10,PixelsBinary,Image); //bit 10 - exhausted macrophage
