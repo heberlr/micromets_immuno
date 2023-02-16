@@ -159,12 +159,12 @@ int main( int argc, char* argv[] )
 	// for simplicity, set a pathology coloring function
 
 	std::vector<std::string> (*cell_coloring_function)(Cell*) = tissue_coloring_function;
-	if( PhysiCell_settings.enable_SVG_saves == true && !parameters.bools("bitmap_save") && !parameters.bools("only_population") )
+	if( PhysiCell_settings.enable_SVG_saves == true && !parameters.bools("only_population") )
 	{
 		sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() );
 		//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 		SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-  	}
+  }
 
 	// Initial condition of lymph node
 	lympNode.InitialCondition(parameters.doubles("initial_DCs_lymphNode"),10.0,1.0,1.0,0.0,0.0);
@@ -186,12 +186,9 @@ int main( int argc, char* argv[] )
 
 	std::ofstream NumCells_file;
 	std::vector<int> NumberofCells;
-	if( PhysiCell_settings.enable_SVG_saves == true )
-	{
-		sprintf( filename , "%s/NumCells.dat" , PhysiCell_settings.folder.c_str() );
-		NumCells_file.open (filename);
-		NumCells_file << "# current time, DC_LN, TC_LN, TH1_LN, TH2_LN, TCT_LN, THT_LN, Live_Lung, Dead_Lung, Dead_Cancer, Dead_DC, Dead_Mac, Dead_CD4, Dead_CD8, Live_Cancer, Inac_DC, Inac_Mac, Exas_Mac, Hyper_Mac, Live_CD4, Act_DC, Act_Mac, Live_CD8" << std::endl;
-	}
+	sprintf( filename , "%s/NumCells.dat" , PhysiCell_settings.folder.c_str() );
+	NumCells_file.open (filename);
+	NumCells_file << "# current time, DC_LN, TC_LN, TH1_LN, TH2_LN, TCT_LN, THT_LN, Live_Lung, Dead_Lung, Dead_Cancer, Dead_DC, Dead_Mac, Dead_CD4, Dead_CD8, Live_Cancer, Inac_DC, Inac_Mac, Exas_Mac, Hyper_Mac, Live_CD4, Act_DC, Act_Mac, Live_CD8" << std::endl;
 
 	// main loop
 	try
@@ -227,25 +224,22 @@ int main( int argc, char* argv[] )
 			// save SVG plot if it's time
 			if( fabs( PhysiCell_globals.current_time - PhysiCell_globals.next_SVG_save_time  ) < 0.01 * diffusion_dt )
 			{
-				if( PhysiCell_settings.enable_SVG_saves == true )
-				{
-					if ( !parameters.bools("bitmap_save") && !parameters.bools("only_population") ){
-						sprintf( filename , "%s/snapshot%08u.svg" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
-						SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-					}
-					if ( parameters.bools("bitmap_save") && !parameters.bools("only_population") ){
-						sprintf( filename , "%s/output%08u.bmp" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
-						GenerateBitmap(filename);
-					}
-					NumberofCells = cell_count();
-					NumCells_file << PhysiCell_globals.current_time << " " << lympNode.DM << " " << lympNode.TC << " " << lympNode.TH1 << " " << lympNode.TH2 << " " << lympNode.TCt << " " << lympNode.Tht << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << " " << NumberofCells[8] << " " << NumberofCells[9] << " " << NumberofCells[10] << " " << NumberofCells[11] << " " << NumberofCells[12] << " " << NumberofCells[13] << " " << NumberofCells[14] << " " << NumberofCells[15] << std::endl; //write globals data
- 					PhysiCell_globals.SVG_output_index++;
-					if ( parameters.bools("custom_save_time") ){
-						if ( abs(fmod(PhysiCell_globals.current_time, parameters.doubles("global_dt_save_time")) - parameters.doubles("local_dt_save_time")) < 0.01 * diffusion_dt ) PhysiCell_globals.next_SVG_save_time += (parameters.doubles("global_dt_save_time") - 2*parameters.doubles("local_dt_save_time"));
-						else PhysiCell_globals.next_SVG_save_time += parameters.doubles("local_dt_save_time");
-					}
-					else PhysiCell_globals.next_SVG_save_time += PhysiCell_settings.SVG_save_interval;
+				if ( PhysiCell_settings.enable_SVG_saves == true && !parameters.bools("only_population") ){
+					sprintf( filename , "%s/snapshot%08u.svg" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
+					SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 				}
+				if ( parameters.bools("bitmap_save") && !parameters.bools("only_population") ){
+					sprintf( filename , "%s/output%08u.bmp" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index );
+					GenerateBitmap(filename);
+				}
+				NumberofCells = cell_count();
+				NumCells_file << PhysiCell_globals.current_time << " " << lympNode.DM << " " << lympNode.TC << " " << lympNode.TH1 << " " << lympNode.TH2 << " " << lympNode.TCt << " " << lympNode.Tht << " " << NumberofCells[0] << " " << NumberofCells[1] << " " << NumberofCells[2] << " " << NumberofCells[3] << " " << NumberofCells[4] << " " << NumberofCells[5] << " " << NumberofCells[6] << " " << NumberofCells[7] << " " << NumberofCells[8] << " " << NumberofCells[9] << " " << NumberofCells[10] << " " << NumberofCells[11] << " " << NumberofCells[12] << " " << NumberofCells[13] << " " << NumberofCells[14] << " " << NumberofCells[15] << std::endl; //write globals data
+					PhysiCell_globals.SVG_output_index++;
+				if ( parameters.bools("custom_save_time") ){
+					if ( abs(fmod(PhysiCell_globals.current_time, parameters.doubles("global_dt_save_time")) - parameters.doubles("local_dt_save_time")) < 0.01 * diffusion_dt ) PhysiCell_globals.next_SVG_save_time += (parameters.doubles("global_dt_save_time") - 2*parameters.doubles("local_dt_save_time"));
+					else PhysiCell_globals.next_SVG_save_time += parameters.doubles("local_dt_save_time");
+				}
+				else PhysiCell_globals.next_SVG_save_time += PhysiCell_settings.SVG_save_interval;
 			}
 
 			// update the microenvironment
@@ -303,15 +297,12 @@ int main( int argc, char* argv[] )
 		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
 	}
 
-	if( PhysiCell_settings.enable_SVG_saves == true  )
+	NumCells_file.close();
+	if( PhysiCell_settings.enable_SVG_saves == true && !parameters.bools("only_population") )
 	{
-		NumCells_file.close();
-
-		if ( !parameters.bools("bitmap_save") && !parameters.bools("only_population") ){
-			sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
-			//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-			SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-		}
+		sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() );
+		//	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+		SVG_plot_custom( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 	}
 
 	// timer
