@@ -4,7 +4,7 @@ Building off of recent COVID-19 modeling (https://www.biorxiv.org/content/10.110
 
 This model is part of the pilot project for building a Cancer patient digital twins (CPDTs) framework.
 
-![alt ensure executable](https://raw.githubusercontent.com/heberlr/melanoma/development/beta/model_scheme.png)
+![alt ensure executable](https://raw.githubusercontent.com/heberlr/micromets_lung/development/beta/model_scheme.png)
 
 To compile and run [PhysiCell](http://physicell.mathcancer.org/) for this model:
 
@@ -14,4 +14,4 @@ $ make
 $ ./micromets_lung
 ```
 
-To see the analysis of data set: https://github.com/heberlr/melanoma/blob/development/Data_Analysis/PlotResults.ipynb
+To see the analysis of data set: https://github.com/heberlr/micromets_lung/blob/development/Data_Analysis/PlotResults.ipynb
