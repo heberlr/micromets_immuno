@@ -26,7 +26,7 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.73851712"
-     inkscape:cx="355.442"
+     inkscape:cx="972.89552"
      inkscape:cy="207.17191"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
@@ -187,6 +187,13 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(2.9130317,-8.0274349)">
+    <rect
+       style="fill:#ffffff;stroke:#b3b3b3;stroke-width:0.8;stroke-linejoin:round;stroke-miterlimit:11.3;stroke-dasharray:none"
+       id="rect1933"
+       width="244.33534"
+       height="107.47889"
+       x="-2.5130317"
+       y="8.4274349" />
     <g
        id="g947"
        transform="matrix(0.22626238,0,0,0.22626238,167.91504,6.3109944)"
@@ -199,7 +206,10 @@
          width="318.53281"
          height="415.72675"
          x="-11.93011"
-         y="34.069889" />
+         y="34.069889"
+         inkscape:export-filename="model_scheme.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
       <g
          id="tissue"
          transform="matrix(1,0,0,-1,-72.424324,763.13937)">
@@ -398,7 +408,7 @@
                id="tspan13561"
                x="102.01684"
                y="-606.98474"
-               style="font-size:18.6667px">Dead melanoma cell</tspan></text>
+               style="font-size:18.6667px">Dead cancer cell</tspan></text>
           <g
              id="g13567"
              transform="translate(69.028249,-156.30636)"
@@ -449,7 +459,7 @@
                id="tspan13577"
                x="102.79156"
                y="-665.57056"
-               style="font-size:18.6667px">Melanoma cell</tspan></text>
+               style="font-size:18.6667px">Cancer cell</tspan></text>
           <g
              id="g49"
              transform="translate(-521.33834,62.630073)"
@@ -561,7 +571,10 @@
     </g>
     <g
        id="g1219"
-       transform="matrix(0.26458333,0,0,0.26458333,-4.9662626,-24.536103)">
+       transform="matrix(0.26458333,0,0,0.26458333,-4.9662626,-24.536103)"
+       inkscape:export-filename="model_scheme.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
       <path
          d="m 316.18496,307.62699 9.27805,-12.40803 -12.40805,-9.27815 0.7825,5.42152 -26.86145,3.87695 1.56499,10.8431 26.86146,-3.87695 z"
          stroke="#a5a5a5"
@@ -1320,12 +1333,5 @@
          y="250.72871"
          style="font-size:14.6667px">recruitment</text>
     </g>
-    <rect
-       style="fill:none;stroke:#b3b3b3;stroke-width:0.8;stroke-linejoin:round;stroke-miterlimit:11.3;stroke-dasharray:none"
-       id="rect1933"
-       width="244.33534"
-       height="107.47889"
-       x="-2.5130317"
-       y="8.4274349" />
   </g>
 </svg>
