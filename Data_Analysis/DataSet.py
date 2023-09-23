@@ -3,7 +3,14 @@ import pandas as pd
 import pickle
 import wget, os
 import torchvision.transforms as transforms
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_ind, mannwhitneyu
+from fitter import Fitter
+
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from matplotlib.ticker import ScalarFormatter
+from matplotlib_venn import venn3_unweighted
+import seaborn as sns
 
 NameParameters = ["macrophage_max_recruitment_rate","macrophage_recruitment_min_signal","macrophage_recruitment_saturation_signal","DC_max_recruitment_rate","DC_recruitment_min_signal","DC_recruitment_saturation_signal","DC_leave_prob","TC_death_rate","T_Cell_Recruitment","DM_decay"]
 NC_Patients_samples = np.array([515, 723, 1810, 2539, 2723, 2958, 3160, 5379, 6040, 7642]) # (No control)
@@ -40,16 +47,20 @@ def Loading_AditionalDataset():
     df = loading_pkl_file(local_path)
     return df
 
-def Loading_UMAP():
+def Loading_UMAP_traj():
     # Download the UMAP of trajectories
     local_path = 'Clust_UMAP_15_01_2.pickle' # trajectories of all simulations
     link = 'https://figshare.com/ndownloader/files/38481611'
+    download_file(local_path, link)
+    # return loading_pkl_file(local_path)
+    return pd.read_pickle(local_path)
+
+def Loading_UMAP_avg():
     local_path2 = 'Patient_UMAP_15_01_2.pickle' # trajectory averages of all simulations
     link2 = 'https://figshare.com/ndownloader/files/38898579'
-    download_file(local_path, link)
     download_file(local_path2, link2)
-    return loading_pkl_file(local_path), loading_pkl_file(local_path2)
-
+    return loading_pkl_file(local_path2)
+    
 def ZscoreImagesToTensor(dataframe): # Normalize images (zscore) and convert to tensor (pytorch pattern)
     images = np.asarray(dataframe['imagens'].tolist(), dtype="float64") # shape (1e4, 5, 5, 3)
     images_norm = np.zeros(shape = (images.shape[0],images.shape[3],images.shape[1],images.shape[2]), dtype="float64") # shape (1e4, 3, 5, 5)
@@ -116,22 +127,45 @@ def Normalize_Parameters(df_input, Pat_df_3classes):
 
 def T_test(df_input_min_max_scaled):
     df_SC_NC_min_max_scaled = df_input_min_max_scaled.loc[(df_input_min_max_scaled["label"] == 'NC') | (df_input_min_max_scaled["label"] == 'SC')]
-    Parameters_data = df_SC_NC_min_max_scaled.to_numpy()
-    # remove sample ID and label
-    NC_Parameters = Parameters_data[Parameters_data[:,-1] == 'NC'][:,1:-1]
-    SC_Parameters = Parameters_data[Parameters_data[:,-1] == 'SC'][:,1:-1]
+    Parameters_data = df_SC_NC_min_max_scaled
     T_test = []
-    for i in range(len(NameParameters)):
-        T_test.append( ttest_ind(NC_Parameters[:,i],SC_Parameters[:,i]) )
-    dict_tTest = {NameParameters[i]: T_test[i][0] for i in range(len(NameParameters))}
-    dict_pValue = {NameParameters[i]: T_test[i][1] for i in range(len(NameParameters))}
+    for parName in NameParameters:
+        T_test.append( ttest_ind(Parameters_data.loc[Parameters_data['label'] == 'NC'][parName], Parameters_data.loc[Parameters_data['label'] == 'SC'][parName] ) )
+    dict_tTest = {NameParameters[i]: T_test[i].statistic for i in range(len(NameParameters))}
+    dict_pValue = {NameParameters[i]: T_test[i].pvalue for i in range(len(NameParameters))}
     return pd.DataFrame([dict_tTest, dict_pValue],index=['t-stat', 'p-value'])
+    
+def MannWhitneyU_test(df_input_min_max_scaled):
+    df_SC_NC_min_max_scaled = df_input_min_max_scaled.loc[(df_input_min_max_scaled["label"] == 'NC') | (df_input_min_max_scaled["label"] == 'SC')]
+    Parameters_data = df_SC_NC_min_max_scaled
+    MWU_test = []
+    for parName in NameParameters:
+        MWU_test.append( mannwhitneyu(Parameters_data.loc[Parameters_data['label'] == 'NC'][parName], Parameters_data.loc[Parameters_data['label'] == 'SC'][parName], method="asymptotic" ) )
+    dict_MWUTest = {NameParameters[i]: MWU_test[i].statistic for i in range(len(NameParameters))}
+    dict_pValue = {NameParameters[i]: MWU_test[i].pvalue for i in range(len(NameParameters))}
+    return pd.DataFrame([dict_MWUTest, dict_pValue],index=['MWU-stat', 'p-value'])
+
+def Fitter_dist(df_input_min_max_scaled):
+    dic_Fit = {}
+    fileName = 'FitterPars.pickle'
+    if not os.path.exists(fileName):
+        df_SC_NC_min_max_scaled = df_input_min_max_scaled.loc[(df_input_min_max_scaled["label"] == 'NC') | (df_input_min_max_scaled["label"] == 'SC')]
+        data_plot = pd.melt(df_SC_NC_min_max_scaled, id_vars=['sample','label'], value_vars=NameParameters)
+        for parName in ['DC_max_recruitment_rate','macrophage_max_recruitment_rate']:
+            f_SC = Fitter(data_plot.loc[(data_plot['label'] == 'SC') & (data_plot['variable'] == parName)]['value'].to_numpy()); f_SC.fit()
+            f_NC = Fitter(data_plot.loc[(data_plot['label'] == 'NC') & (data_plot['variable'] == parName)]['value'].to_numpy()); f_NC.fit()
+            dic_Fit[parName+'SC'] = f_SC
+            dic_Fit[parName+'NC'] = f_NC
+        with open(fileName, 'wb') as handle:
+            pickle.dump(dic_Fit, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    else:
+        dic_Fit = loading_pkl_file(fileName)
+    return dic_Fit
 
 def PatientsAnalysis():
     df = Loading_AditionalDataset()
     Mean_liveCancer_NC = []; Std_liveCancer_NC = []; ParMac_NC = []; ParDC_NC = []; Patient_NC = []; PatientLabel_NC = []
     Mean_liveCancer_MC = []; Std_liveCancer_MC = []; ParMac_MC = []; ParDC_MC = []; Patient_MC = []; PatientLabel_MC = []
-
     for sample in df['sample'].unique():
         if ( df.loc[(df['sample'] == sample) & (df['replicate'] == 0)]['sample_ref'].to_list() in  NC_Patients_samples): # (No control patients)
             Mean_liveCancer_NC.append(np.array(df.loc[df['sample'] == sample]['cancer_cell_day10']).mean())
