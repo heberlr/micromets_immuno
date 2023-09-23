@@ -1,9 +1,13 @@
 *.o
 *.exe
 *.pyc
+*.log
 /output_*
-config/tmp.xml
-*.bmp
+/output/*.svg
+/output/*.xml
+/output/*.mat
+/output/*.bmp
+/output/*.dat
 /Results/
 *.pickle
 *.ipynb_checkpoints*

@@ -1,15 +1,15 @@
-#include "./melanoma_submodel.h"
+#include "./cancer_submodel.h"
 
 using namespace PhysiCell;
 
-std::string melanoma_submodel_version = "0.1.0";
+std::string cancer_submodel_version = "0.1.0";
 
-Submodel_Information melanoma_submodel_info;
+Submodel_Information cancer_submodel_info;
 
 // Cells that will receive a nudge to come back to the domain
 extern std::vector<Cell*> cells_to_move_from_edge;
 
-void melanoma_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2, double dt )
+void cancer_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& p2, double dt )
 {
 	// elastic adhesions
 	standard_elastic_contact_function( pC1,p1, pC2, p2, dt );
@@ -19,7 +19,7 @@ void melanoma_contact_function( Cell* pC1, Phenotype& p1, Cell* pC2, Phenotype& 
 
 double strain_based_proliferation( Cell* pCell )
 {
-	static double  max_pressure = 10.0; // maximum tolerated pressure of melanoma cell (proliferation) [10.0 microns]
+	static double  max_pressure = 10.0; // maximum tolerated pressure of cancer cell (proliferation) [10.0 microns]
 	if( pCell->state.simple_pressure < max_pressure )
 	{
 		return pow( (max_pressure - pCell->state.simple_pressure)/max_pressure, 1.0 );
@@ -27,7 +27,7 @@ double strain_based_proliferation( Cell* pCell )
 	return 0.0;
 }
 
-void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
+void cancer_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
 	static int apoptosis_index = phenotype.death.find_death_model_index( "Apoptosis" );
@@ -62,7 +62,7 @@ void melanoma_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	return;
 }
 
-void melanoma_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
+void cancer_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static int debris_index = microenvironment.find_density_index( "debris");
 
@@ -91,7 +91,7 @@ void melanoma_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
 	return;
 }
 
-void melanoma_submodel_setup( void )
+void cancer_submodel_setup( void )
 {
 	Cell_Definition* pCD;
 
@@ -99,25 +99,25 @@ void melanoma_submodel_setup( void )
 
 	// set up epithelial cells
 	// set version info
-	melanoma_submodel_info.name = "melanoma model";
-	melanoma_submodel_info.version = melanoma_submodel_version;
+	cancer_submodel_info.name = "cancer model";
+	cancer_submodel_info.version = cancer_submodel_version;
 	// set functions
-	melanoma_submodel_info.main_function = NULL;
-	melanoma_submodel_info.phenotype_function = melanoma_phenotype;
-	melanoma_submodel_info.mechanics_function = melanoma_mechanics;
+	cancer_submodel_info.main_function = NULL;
+	cancer_submodel_info.phenotype_function = cancer_phenotype;
+	cancer_submodel_info.mechanics_function = cancer_mechanics;
 
 	// what microenvironment variables do you expect?
-	melanoma_submodel_info.microenvironment_variables.push_back( "debris" );
+	cancer_submodel_info.microenvironment_variables.push_back( "debris" );
 
 	// what custom data do I need?
-	//melanoma_submodel_info.cell_variables.push_back( "something" );
+	//cancer_submodel_info.cell_variables.push_back( "something" );
 	// register the submodel
-	melanoma_submodel_info.register_model();
+	cancer_submodel_info.register_model();
 	// set functions for the corresponding cell definition
-	pCD = find_cell_definition( "melanoma cell" );
-	pCD->functions.update_phenotype = melanoma_submodel_info.phenotype_function;
-	pCD->functions.custom_cell_rule = melanoma_submodel_info.mechanics_function;
-	pCD->functions.contact_function = melanoma_contact_function;
+	pCD = find_cell_definition( "cancer cell" );
+	pCD->functions.update_phenotype = cancer_submodel_info.phenotype_function;
+	pCD->functions.custom_cell_rule = cancer_submodel_info.mechanics_function;
+	pCD->functions.contact_function = cancer_contact_function;
 
 	return;
 }

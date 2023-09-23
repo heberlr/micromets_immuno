@@ -72,7 +72,7 @@
 #include "./external_immune.h"
 #include "./immune_submodels.h"
 #include "./epithelium_submodel.h"
-#include "./melanoma_submodel.h"
+#include "./cancer_submodel.h"
 #include "./DC_history.h"
 #include "./EasyBMP.h"
 

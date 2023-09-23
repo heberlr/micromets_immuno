@@ -21,18 +21,18 @@ bool strain_based_apoptosis( Cell* pCell )
 	if( pCell->custom_data[strain_index] <= max_strain ) return false;
 
 	std::vector<Cell*> neighbors = pCell->cells_in_my_container();//find cells in neighbourhood
-	static int melanoma_cell_type = get_cell_definition( "melanoma cell" ).type;
+	static int cancer_cell_type = get_cell_definition( "cancer cell" ).type;
 	int n = 0;
 	Cell* pTestCell;
 	while( n < neighbors.size() )
 	{
 		pTestCell = neighbors[n];
-		// Cell is not himself, live melanoma cell
-		if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false && pTestCell->type == melanoma_cell_type){
+		// Cell is not himself, live cancer cell
+		if ( pTestCell != pCell && pTestCell->phenotype.death.dead == false && pTestCell->type == cancer_cell_type){
 			double cell_cell_distance = sqrt((pTestCell->position[0]-pCell->position[0])*(pTestCell->position[0]-pCell->position[0])+(pTestCell->position[1]-pCell->position[1])*(pTestCell->position[1]-pCell->position[1]));
 			double radius_lung_cell = pCell->phenotype.geometry.radius;
-			double radius_melanoma_cell = pTestCell->phenotype.geometry.radius;
-			if( cell_cell_distance <= parameters.doubles("epsilon_distance")*(radius_lung_cell+radius_melanoma_cell) ){
+			double radius_cancer_cell = pTestCell->phenotype.geometry.radius;
+			if( cell_cell_distance <= parameters.doubles("epsilon_distance")*(radius_lung_cell+radius_cancer_cell) ){
 				return true;
 			}
 		}

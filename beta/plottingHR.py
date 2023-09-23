@@ -20,7 +20,7 @@ class NumberOfCells:
         self.sizeV = sizeV
         self.times = np.zeros( last_index+1 );
         self.lung = np.zeros( last_index+1 );
-        self.melanoma = np.zeros( last_index+1 );
+        self.cancer = np.zeros( last_index+1 );
         self.dead = np.zeros( last_index+1 );
         self.macrophage = np.zeros( last_index+1 )
         self.dendritic = np.zeros( last_index+1 );
@@ -30,7 +30,7 @@ class NumberOfCells:
         Sum = NumberOfCells(self.sizeV)
         Sum.times = self.times
         Sum.lung = self.lung + other.lung
-        Sum.melanoma = self.melanoma + other.melanoma
+        Sum.cancer = self.cancer + other.cancer
         Sum.dead = self.dead + other.dead
         Sum.macrophage = self.macrophage + other.macrophage
         Sum.dendritic = self.dendritic + other.dendritic
@@ -41,7 +41,7 @@ class NumberOfCells:
         Sum = NumberOfCells(self.sizeV)
         Sum.times = self.times
         Sum.lung = self.lung - other.lung
-        Sum.melanoma = self.melanoma - other.melanoma
+        Sum.cancer = self.cancer - other.cancer
         Sum.dead = self.dead - other.dead
         Sum.macrophage = self.macrophage - other.macrophage
         Sum.dendritic = self.dendritic - other.dendritic
@@ -57,7 +57,7 @@ class NumberOfCells:
         if not isinstance(other, (int, float)):
             return NotImplemented
         self.lung = self.lung / other
-        self.melanoma = self.melanoma / other
+        self.cancer = self.cancer / other
         self.dead = self.dead / other
         self.macrophage = self.macrophage / other
         self.dendritic = self.dendritic / other
@@ -68,7 +68,7 @@ class NumberOfCells:
         if not isinstance(other, (int, float)):
             return NotImplemented
         self.lung = self.lung ** other
-        self.melanoma = self.melanoma ** other
+        self.cancer = self.cancer ** other
         self.dead = self.dead ** other
         self.macrophage = self.macrophage ** other
         self.dendritic = self.dendritic ** other
@@ -77,7 +77,7 @@ class NumberOfCells:
         return self
     def __abs__(self):
         self.lung = abs(self.lung)
-        self.melanoma = abs(self.melanoma)
+        self.cancer = abs(self.cancer)
         self.dead = abs(self.dead)
         self.macrophage = abs(self.macrophage)
         self.dendritic = abs(self.dendritic)
@@ -121,13 +121,13 @@ def Neoantigens_plot(initial_index,last_index,folder):
         TypeNeoantigen = mcds.data['discrete_cells']['neoantigen_type']
         cell_type = mcds.data['discrete_cells']['cell_type']
         cycle = mcds.data['discrete_cells']['cycle_model']
-        Melanoma = np.argwhere( (cell_type==2)  & (cycle < 100) ).flatten()
-        ClonalNeoantigen = np.argwhere( (cell_type==2)  & (cycle < 100) & (TypeNeoantigen == 0) ).flatten()
-        SubClonalNeoantigen = np.argwhere( (cell_type==2) & (cycle < 100) & (TypeNeoantigen == 2) ).flatten()
-        SharedNeoantigen = np.argwhere( (cell_type==2) & (cycle < 100) & (TypeNeoantigen == 1) ).flatten()
-        clonal_count[n] = len(ClonalNeoantigen)/len(Melanoma)
-        subclonal_count[n] = len(SubClonalNeoantigen)/len(Melanoma)
-        shared_count[n] = len(SharedNeoantigen)/len(Melanoma)
+        Cancer = np.argwhere( (cell_type==1)  & (cycle < 100) ).flatten()
+        ClonalNeoantigen = np.argwhere( (cell_type==1)  & (cycle < 100) & (TypeNeoantigen == 0) ).flatten()
+        SubClonalNeoantigen = np.argwhere( (cell_type==1) & (cycle < 100) & (TypeNeoantigen == 2) ).flatten()
+        SharedNeoantigen = np.argwhere( (cell_type==1) & (cycle < 100) & (TypeNeoantigen == 1) ).flatten()
+        clonal_count[n] = len(ClonalNeoantigen)/len(Cancer)
+        subclonal_count[n] = len(SubClonalNeoantigen)/len(Cancer)
+        shared_count[n] = len(SharedNeoantigen)/len(Cancer)
     plt.plot(times/1440.0,clonal_count, 'o', color='blue', label='Clonal')
     plt.plot(times/1440.0,subclonal_count, 'o', color='red', label='Subclonal')
     plt.plot(times/1440.0,shared_count, 'o', color='yellow', label='Shared')
@@ -141,23 +141,23 @@ def Read_QOIs(mcds,n,QOIs):
     cell_type = mcds.data['discrete_cells']['cell_type']
     cell_type = cell_type.astype(int)
 
-    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
-    lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
-    dead = np.argwhere( (cycle >= 100) & ((cell_type==1) | (cell_type==2)) ).flatten()
-    macrophage = np.argwhere( cell_type==4 ).flatten()
-    dendritic = np.argwhere( cell_type==6 ).flatten()
-    CD8 = np.argwhere( cell_type==3 ).flatten()
-    CD4 = np.argwhere( cell_type==7 ).flatten()
+    cancer = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    lung = np.argwhere( (cell_type==0) & (cycle < 100) ).flatten()
+    dead = np.argwhere( (cycle >= 100) & ((cell_type==0) | (cell_type==1)) ).flatten()
+    macrophage = np.argwhere( cell_type==3 ).flatten()
+    dendritic = np.argwhere( cell_type==4 ).flatten()
+    CD8 = np.argwhere( cell_type==2 ).flatten()
+    CD4 = np.argwhere( cell_type==5 ).flatten()
 
     QOIs.lung[n] = len(lung)
-    QOIs.melanoma[n] = len(melanoma)
+    QOIs.cancer[n] = len(cancer)
     QOIs.dead[n] = len(dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.dendritic[n] = len(dendritic)
     QOIs.CD8[n] = len(CD8)
     QOIs.CD4[n] = len(CD4)
 
-def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
+def plotStrain(mcds,n,QOIs,figure,axes,filename=None):
     Lcell_size = 10;
     Dcell_size = 5;
     Ecell_size = 12;
@@ -175,24 +175,24 @@ def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     strain = mcds.data['discrete_cells']['mechanical_strain']
     pressure = mcds.data['discrete_cells']['simple_pressure']
 
-    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
-    lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    cancer = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    lung = np.argwhere( (cell_type==0) & (cycle < 100) ).flatten()
 
 
     QOIs.lung[n] = len(lung)
-    QOIs.melanoma[n] = len(melanoma)
+    QOIs.cancer[n] = len(cancer)
 
     plt.close()
     figure, axes = plt.subplots(nrows=1, ncols=1,figsize=(8,8))
     ax = plt.subplot(111)
-    sc = ax.scatter(cx[melanoma],cy[melanoma],c=strain[melanoma], vmin=strain.min(), vmax=strain.max(), s=5, cmap="jet",zorder=1)
+    sc = ax.scatter(cx[cancer],cy[cancer],c=strain[cancer], vmin=strain.min(), vmax=strain.max(), s=5, cmap="jet",zorder=1)
     #sc = ax.scatter(cx[lung],cy[lung],c=strain[lung], vmin=strain.min(), vmax=strain.max(), s=5, cmap="jet",zorder=2)
     ax.set_aspect('equal', adjustable='box')
     plt.colorbar(sc, label="strain ($\mu m$)")
 
     figure, axes = plt.subplots(nrows=1, ncols=1,figsize=(8,8))
     ax = plt.subplot(111)
-    sc = ax.scatter(cx[melanoma],cy[melanoma],c=pressure[melanoma], vmin=pressure.min(), vmax=pressure.max(), s=5, cmap="jet",zorder=1)
+    sc = ax.scatter(cx[cancer],cy[cancer],c=pressure[cancer], vmin=pressure.min(), vmax=pressure.max(), s=5, cmap="jet",zorder=1)
     #sc = ax.scatter(cx[lung],cy[lung],c=pressure[lung], vmin=pressure.min(), vmax=pressure.max(), s=5, cmap="jet",zorder=2)
     ax.set_aspect('equal', adjustable='box')
     plt.colorbar(sc, label="simple pressure")
@@ -201,15 +201,15 @@ def plotStrain(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     plt.ylim(-RadiusSize, RadiusSize)
     #plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 
-    if (SavePNG):
-      figure.savefig(filenameOut)
-      #plt.savefig(filenameOut)
+    if (filename):
+      figure.savefig(filename)
+      #plt.savefig(filename)
     else:
       plt.show()
     plt.clf()
 
 
-def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
+def plotAll(mcds,n,QOIs,figure,axes,filename=None):
     Lcell_size = 10;
     Dcell_size = 5;
     Ecell_size = 12;
@@ -224,16 +224,16 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     cell_type = mcds.data['discrete_cells']['cell_type']
     cell_type = cell_type.astype(int)
 
-    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
-    lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
-    dead = np.argwhere( (cycle >= 100) & ((cell_type==1) | (cell_type==2)) ).flatten()
-    macrophage = np.argwhere( cell_type==4 ).flatten()
-    dendritic = np.argwhere( cell_type==5 ).flatten()
-    CD8 = np.argwhere( cell_type==3 ).flatten()
-    CD4 = np.argwhere( cell_type==6 ).flatten()
+    cancer = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    lung = np.argwhere( (cell_type==0) & (cycle < 100) ).flatten()
+    dead = np.argwhere( (cycle >= 100) & ((cell_type==0) | (cell_type==1)) ).flatten()
+    macrophage = np.argwhere( cell_type==3 ).flatten()
+    dendritic = np.argwhere( cell_type==4 ).flatten()
+    CD8 = np.argwhere( cell_type==2 ).flatten()
+    CD4 = np.argwhere( cell_type==5 ).flatten()
 
     QOIs.lung[n] = len(lung)
-    QOIs.melanoma[n] = len(melanoma)
+    QOIs.cancer[n] = len(cancer)
     QOIs.dead[n] = len(dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.dendritic[n] = len(dendritic)
@@ -241,12 +241,12 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     QOIs.CD4[n] = len(CD4)
 
 
-    figure.suptitle( '#Lung:'+str("%04i"%(QOIs.lung[n]))+'  #Cancer:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #CD4:'+str("%04i"%(QOIs.CD4[n]))+ '  #Dead:'+str("%04i"%(QOIs.dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
-    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+    figure.suptitle( '#Lung:'+str("%04i"%(QOIs.lung[n]))+'  #Cancer:'+str("%04i"%(QOIs.cancer[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #CD4:'+str("%04i"%(QOIs.CD4[n]))+ '  #Dead:'+str("%04i"%(QOIs.dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
+    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(cancer_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
 
     ax = plt.subplot(121)
     plt.scatter( cx[lung],cy[lung],c='blue',s=Lcell_size,label='NC');
-    plt.scatter( cx[melanoma],cy[melanoma],c='yellow',s=Lcell_size,label='MC');
+    plt.scatter( cx[cancer],cy[cancer],c='yellow',s=Lcell_size,label='MC');
     plt.scatter( cx[dead],cy[dead],c='black',s=Dcell_size,label='D', alpha=0.25);
     plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
     plt.scatter( cx[dendritic],cy[dendritic],c='brown',s=Ecell_size,label='DC' );
@@ -256,6 +256,8 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     plt.ylim(-RadiusSize, RadiusSize)
     plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=3)
     ax.set_aspect('equal')
+    plt.xticks([])
+    plt.yticks([])
     plt.subplots_adjust(left=0.08,right=0.93,bottom=0.06,top=0.89,wspace=0.36,hspace=0.26)
 
     plt.subplot(222)
@@ -272,6 +274,8 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     plt.xlim(-RadiusSize, RadiusSize)
     plt.ylim(-RadiusSize, RadiusSize)
     plt.title("TNF")
+    plt.xticks([])
+    plt.yticks([])
 
     plt.subplot(224)
     debris = mcds.get_concentrations( 'debris' );
@@ -285,17 +289,19 @@ def plotAll(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     plt.xlim(-RadiusSize, RadiusSize)
     plt.ylim(-RadiusSize, RadiusSize)
     plt.title("Debris")
+    plt.xticks([])
+    plt.yticks([])
 
-    if (SavePNG):
-      figure.savefig(filenameOut)
-      #plt.savefig(filenameOut)
+    if (filename):
+      figure.savefig(filename)
+      #plt.savefig(filename)
     else:
       plt.draw()
       plt.waitforbuttonpress(0) # this will wait for indefinite time
       #plt.pause(0.2)
     plt.clf()
 
-def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
+def plotAll_hist(mcds,n,QOIs,figure,axes,filename=None):
     Lcell_size = 10;
     Dcell_size = 5;
     Ecell_size = 12;
@@ -310,16 +316,16 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     cell_type = mcds.data['discrete_cells']['cell_type']
     cell_type = cell_type.astype(int)
 
-    melanoma = np.argwhere( (cell_type==2) & (cycle < 100) ).flatten()
-    lung = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
-    dead = np.argwhere( (cycle >= 100) & ((cell_type==1) | (cell_type==2)) ).flatten()
-    macrophage = np.argwhere( cell_type==4 ).flatten()
-    dendritic = np.argwhere( cell_type==6 ).flatten()
-    CD8 = np.argwhere( cell_type==3 ).flatten()
-    CD4 = np.argwhere( cell_type==7 ).flatten()
+    cancer = np.argwhere( (cell_type==1) & (cycle < 100) ).flatten()
+    lung = np.argwhere( (cell_type==0) & (cycle < 100) ).flatten()
+    dead = np.argwhere( (cycle >= 100) & ((cell_type==0) | (cell_type==1)) ).flatten()
+    macrophage = np.argwhere( cell_type==3 ).flatten()
+    dendritic = np.argwhere( cell_type==4 ).flatten()
+    CD8 = np.argwhere( cell_type==2 ).flatten()
+    CD4 = np.argwhere( cell_type==5 ).flatten()
 
     QOIs.lung[n] = len(lung)
-    QOIs.melanoma[n] = len(melanoma)
+    QOIs.cancer[n] = len(cancer)
     QOIs.dead[n] = len(dead)
     QOIs.macrophage[n] = len(macrophage)
     QOIs.dendritic[n] = len(dendritic)
@@ -327,12 +333,12 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     QOIs.CD4[n] = len(CD4)
 
 
-    figure.suptitle( '#NC:'+str("%04i"%(QOIs.lung[n]))+'  #MC:'+str("%04i"%(QOIs.melanoma[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
-    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(melanoma_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
+    figure.suptitle( '#NC:'+str("%04i"%(QOIs.lung[n]))+'  #MC:'+str("%04i"%(QOIs.cancer[n]))+ '--  #M:'+str("%04i"%(QOIs.macrophage[n]))+ '  #DC:'+str("%04i"%(QOIs.dendritic[n]))+'\n'+'  #CD8:'+str("%04i"%(QOIs.CD8[n]))+ '  #D:'+str("%04i"%(QOIs.dead[n]))+'  Time:' +str("%8.2f"%(QOIs.times[n]/60.0)) + ' hours', size=14)
+    # figure.suptitle( '#NC:'+str("%04i"%(lung_count[n]))+'  #MC:'+str("%04i"%(cancer_count[n]))+ '--  #M:'+str("%04i"%(macrophage_count[n]))+ '  #DC:'+str("%04i"%(dendritic_count[n]))+'\n'+'  #CD8:'+str("%04i"%(CD8_count[n]))+ '  #CD4:'+str("%04i"%(CD4_count[n]))+ '  #D:'+str("%04i"%(dead_count[n]))+'  Time:' +str("%8.2f"%(n)) + ' hours', size=14)
 
     ax = plt.subplot2grid((4,4), (0,0), colspan=3, rowspan=3)
     plt.scatter( cx[lung],cy[lung],c='blue',s=Lcell_size,label='NC');
-    plt.scatter( cx[melanoma],cy[melanoma],c='yellow',s=Lcell_size,label='MC');
+    plt.scatter( cx[cancer],cy[cancer],c='yellow',s=Lcell_size,label='MC');
     plt.scatter( cx[dead],cy[dead],c='black',s=Dcell_size,label='D', alpha=0.25);
     plt.scatter( cx[macrophage],cy[macrophage],c='green',s=Ecell_size,label='M' );
     plt.scatter( cx[dendritic],cy[dendritic],c='brown',s=Ecell_size,label='DC' );
@@ -448,21 +454,21 @@ def plotAll_hist(mcds,n,QOIs,figure,axes,filenameOut,SavePNG):
     sns.set()
     sns.set_style('white')
     plt.xlim(0, 1)
-    sns.distplot(NeoCell[melanoma],color='black').get_lines()[0]
+    sns.distplot(NeoCell[cancer],color='black').get_lines()[0]
     plt.title("Neoantigen")
 
     plt.subplot2grid((4,4), (3,3))
     plt.xlim(0, 1)
-    if (np.std(PDL1[melanoma]) < 1.0e-15):
+    if (np.std(PDL1[cancer]) < 1.0e-15):
         print("\n")
     else:
-        print(np.std(PDL1[melanoma]))
-        sns.distplot(PDL1[melanoma],color='black').get_lines()[0]
+        print(np.std(PDL1[cancer]))
+        sns.distplot(PDL1[cancer],color='black').get_lines()[0]
     plt.title("PDL1 expression")
 
-    if (SavePNG):
-      figure.savefig(filenameOut)
-      #plt.savefig(filenameOut)
+    if (filename):
+      figure.savefig(filename)
+      #plt.savefig(filename)
     else:
       plt.draw()
       plt.waitforbuttonpress(0) # this will wait for indefinite time
@@ -473,8 +479,8 @@ def plotCurves(QOIs,STD):
     #fig, ax = plt.subplots()
     # plt.plot(QOIs.times/1440.0,QOIs.lung, color='blue',label='normal')
     # plt.fill_between(QOIs.times/1440.0, QOIs.lung - STD.lung, QOIs.lung + STD.lung, alpha=0.2, color='blue')
-    plt.plot(QOIs.times/1440.0,QOIs.melanoma, color='gold',label='melanoma')
-    plt.fill_between(QOIs.times/1440.0, QOIs.melanoma - STD.melanoma, QOIs.melanoma + STD.melanoma, alpha=0.2, color='gold')
+    plt.plot(QOIs.times/1440.0,QOIs.cancer, color='gold',label='cancer')
+    plt.fill_between(QOIs.times/1440.0, QOIs.cancer - STD.cancer, QOIs.cancer + STD.cancer, alpha=0.2, color='gold')
     plt.plot(QOIs.times/1440.0,QOIs.dead, color='black',label='dead')
     plt.fill_between(QOIs.times/1440.0, QOIs.dead - STD.dead, QOIs.dead + STD.dead, alpha=0.2, color='black')
     plt.plot(QOIs.times/1440.0,QOIs.macrophage, color='green',label='macrophage')
@@ -511,27 +517,28 @@ def plotExternalImmune():
     plt.legend(loc='upper left')
     plt.show()
 
-def Read_files(initial_index,last_index,folder,SavePNG,func=plotAll):
+def Read_files(initial_index,last_index,folder,file_ext='.png',func=plotAll):
     QOIs = NumberOfCells(last_index-initial_index+1)
     figure, axes = plt.subplots(nrows=2, ncols=2,figsize=(10,8))
     for n in range( initial_index,last_index+1 ):
-        filenameOut=folder+'/output'+"%08i"%n+'.png'
+        filenameOut=folder+'/output'+"%08i"%n+file_ext
         filename= "output%08i"%n+'.xml'
         mcds=pyMCDS(filename,folder)
         QOIs.times[n]= mcds.get_time()
-        func(mcds,n,QOIs,figure,axes,filenameOut,SavePNG)
+        func(mcds,n,QOIs,figure,axes,filename=filenameOut)
 
 if __name__ == '__main__':
     if (len(sys.argv) != 5):
-      print("Please provide 4 args: InitialTime LastTime, SavePNG (bool), and folder")
+      print("Please provide 4 args: folder, InitialTime LastTime, and File extension (.png,.jpg,.svg)")
       sys.exit(1)
-    initial_index = int(sys.argv[1]);
-    last_index = int(sys.argv[2]);
-    SavePNG = int(sys.argv[3])
-    folder = sys.argv[4]
+    folder = sys.argv[1]
+    initial_index = int(sys.argv[2]);
+    last_index = int(sys.argv[3]);
+    file_ext = sys.argv[4]
 
-    Read_files(initial_index,last_index,folder,SavePNG)
-    #Read_files(initial_index,last_index,folder,SavePNG,func=plotAll_hist)
-    #Read_files(initial_index,last_index,folder,SavePNG,func=plotStrain)
+
+    Read_files(initial_index,last_index,folder,file_ext)
+    #Read_files(initial_index,last_index,folder,file_ext,func=plotAll_hist)
+    #Read_files(initial_index,last_index,folder,file_ext,func=plotStrain)
     #Neoantigens_plot(initial_index,last_index,folder)
     #Replicates_plot(initial_index,last_index,folder,5)

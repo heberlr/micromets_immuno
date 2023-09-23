@@ -11,9 +11,9 @@ rank = comm.Get_rank()
 
 def model(Sample=-1, Replica=-1):
     # Write input for simulation & execute
-    callingModel = ['./melanoma', 'PatientVariation/output_S'+str("%06d"%Sample)+'_R'+str("%02d"%Replica)+'/config.xml']
-    # callingModel = ['./melanoma', '/N/slate/hlimadar/melanoma_v3/output_S'+str("%06d"%Sample)+'_R'+str("%02d"%Replica)+'/config.xml']
-    # callingModel = ['./melanoma', 'output/output_S'+str("%06d"%Sample)+'_R'+str("%02d"%Replica)+'/config.xml']
+    callingModel = ['./micromets_lung', 'PatientVariation/output_S'+str("%06d"%Sample)+'_R'+str("%02d"%Replica)+'/config.xml']
+    # callingModel = ['./micromets_lung', '/N/slate/hlimadar/micromets_lung_v3/output_S'+str("%06d"%Sample)+'_R'+str("%02d"%Replica)+'/config.xml']
+    # callingModel = ['./micromets_lung', 'output/output_S'+str("%06d"%Sample)+'_R'+str("%02d"%Replica)+'/config.xml']
     # cache = subprocess.run( callingModel,universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     cache = subprocess.run( callingModel,universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if ( cache.returncode != 0):

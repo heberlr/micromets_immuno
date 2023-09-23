@@ -809,19 +809,19 @@
 	<user_parameters>
 		<random_seed description="" type="int" units="dimensionless">123</random_seed>
         <immune_dt description="how often we check to introduce immune cells" type="double" units="min">10</immune_dt>
-        <macrophage_max_recruitment_rate description="max macrophage recruitment rate (for saturated signal)" type="double" units="cells/min/micron^3">4e-9</macrophage_max_recruitment_rate>
-        <macrophage_recruitment_min_signal description="min concentration to attract macrophages" type="double" units="substrate/micron^3">0.1</macrophage_recruitment_min_signal>
-        <macrophage_recruitment_saturation_signal description="saturating concentration to attract macrophages" type="double" units="substrate/micron^3">0.3</macrophage_recruitment_saturation_signal>
-        <DC_max_recruitment_rate description="max DC recruitment rate (for saturated signal)" type="double" units="cells/min/micron^3">2e-9</DC_max_recruitment_rate>
-        <DC_recruitment_min_signal description="min concentration to attract DC" type="double" units="substrate/micron^3">0.1</DC_recruitment_min_signal>
-        <DC_recruitment_saturation_signal description="saturating concentration to attract DC" type="double" units="substrate/micron^3">0.3</DC_recruitment_saturation_signal>
-        <TC_death_rate description="TC death rate" type="double" units="1/min">1.4e-6</TC_death_rate>
+        <macrophage_max_recruitment_rate description="max macrophage recruitment rate (for saturated signal)" type="double" units="cells/min/micron^3">5.407072439174493e-09</macrophage_max_recruitment_rate>
+        <macrophage_recruitment_min_signal description="min concentration to attract macrophages" type="double" units="substrate/micron^3">0.02287727888068549</macrophage_recruitment_min_signal>
+        <macrophage_recruitment_saturation_signal description="saturating concentration to attract macrophages" type="double" units="substrate/micron^3">0.22130397682220254</macrophage_recruitment_saturation_signal>
+        <DC_max_recruitment_rate description="max DC recruitment rate (for saturated signal)" type="double" units="cells/min/micron^3">3.592775721384107e-09</DC_max_recruitment_rate>
+        <DC_recruitment_min_signal description="min concentration to attract DC" type="double" units="substrate/micron^3">0.16405307572762548</DC_recruitment_min_signal>
+        <DC_recruitment_saturation_signal description="saturating concentration to attract DC" type="double" units="substrate/micron^3">0.5047990869421821</DC_recruitment_saturation_signal>
+        <TC_death_rate description="TC death rate" type="double" units="1/min">1.968775749572091e-06</TC_death_rate>
         <activation_rate_TC description="activation rate of TC" type="double" units="1/min">0.003</activation_rate_TC>
         <half_max_activation_TC description="half max activation TC" type="double" units="cells">2000</half_max_activation_TC>
         <clearance_rate_TC description="max clearance TC" type="double" units="1/min">0.0007</clearance_rate_TC>
         <half_max_clearance_TC description="half max clearance TC" type="double" units="cells">200</half_max_clearance_TC>
         <TC_population_threshold description="TC population threshold" type="double" units="cells">10</TC_population_threshold>
-        <DM_decay description="DM decay rate" type="double" units="1/min">3.5e-4</DM_decay>
+        <DM_decay description="DM decay rate" type="double" units="1/min">0.000545158654584723</DM_decay>
         <Th1_max_activation description="Th1 max activation speed" type="double" units="cells^2/min">0.0007</Th1_max_activation>
         <Th1_damping description="Th1 damping factor" type="double" units="1/min">0.000015</Th1_damping>
         <Th1_decay description="Th1 active decay rate" type="double" units="1/cells*min">7e-7</Th1_decay>
@@ -829,7 +829,7 @@
         <Th2_self_feeback description="Th2 max self feeback speed" type="double" units="cells/min">0.000028</Th2_self_feeback>
         <Th2_max_conversion description="Th2 max conversion speed" type="double" units="1/cells*min">0.000002</Th2_max_conversion>
         <Th1_Th2_conversion_weight description="Th1 to Th2 conversion weight" type="double" units="cells">1</Th1_Th2_conversion_weight>
-        <T_Cell_Recruitment description="T cell recruitment rate to tissue" type="double" units="1/min">1.1e-4</T_Cell_Recruitment>
+        <T_Cell_Recruitment description="T cell recruitment rate to tissue" type="double" units="1/min">6.530911520932855e-06</T_Cell_Recruitment>
         <cell_confluence_lung_cells description="cell confluence of normal cell in tissue" type="double" units="none">0.7</cell_confluence_lung_cells>
         <number_of_cancer_cells description="initial number of cancer cells in tissue" type="int" units="none">10</number_of_cancer_cells>
         <time_add_cancer_cell description="time where include cancer cells in tissue" type="double" units="none">0</time_add_cancer_cell>
@@ -844,7 +844,7 @@
         <count_vaccine description="count number of vaccines" type="int" units="none">0</count_vaccine>
         <DC_induced_CD8_proliferation description="DC induced CD8 proliferation rate" type="double" units="cells/min/micron^3">0.00208</DC_induced_CD8_proliferation>
         <DC_induced_CD8_attachment description="DC induced CD8 attachement rate" type="double" units="cells/min/micron^3">0.6</DC_induced_CD8_attachment>
-        <DC_leave_rate description="rate of DC leaving to lymph node" type="double" units="1/min">0.2</DC_leave_rate>
+        <DC_leave_rate description="rate of DC leaving to lymph node" type="double" units="1/min">0.26105136997822535</DC_leave_rate>
         <epsilon_distance description="" type="double" units="dimensionless">1.75</epsilon_distance>
         <percentage_tissue_vascularized description="percentage of tissue sitting above blood vessels" type="double" units="percentage">8.8</percentage_tissue_vascularized>
         <color_variable description="color cells based on this variable" type="string" units="">division_generation</color_variable>
