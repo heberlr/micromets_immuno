@@ -19,11 +19,11 @@ $ ./micromets_lung
 - Matplotlib 3.8.0 (https://matplotlib.org/)
 - SciPy 1.11.2 (https://scipy.org/)
 - pandas 1.5.3 (https://pandas.pydata.org/)
-- wget 3.2
-- torchvision 0.15.2
-- fitter 1.5.2
-- matplotlib_venn 0.11.9
-- seaborn 0.12.2
+- wget 3.2 (https://pypi.org/project/wget/)
+- torchvision 0.15.2 (https://pytorch.org/vision/stable/index.html)
+- fitter 1.5.2 (https://fitter.readthedocs.io/en/latest/)
+- matplotlib_venn 0.11.9 (https://pypi.org/project/matplotlib-venn/)
+- seaborn 0.12.2 (https://seaborn.pydata.org/)
 
 If you are using Anaconda, you can create the conda environment manually:
 ```
