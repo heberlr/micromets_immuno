@@ -42,7 +42,7 @@ def Loading_dataset():
 def Loading_AditionalDataset():
     # Download the analysis of 20 patients
     local_path = 'dfPatientVariation.pickle'
-    link = 'https://figshare.com/ndownloader/files/38135211'
+    link = 'https://figshare.com/ndownloader/files/44381864'
     download_file(local_path, link)
     df = loading_pkl_file(local_path)
     return df

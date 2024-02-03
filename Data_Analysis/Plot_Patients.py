@@ -25,10 +25,18 @@ def plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, Title=False,
   else: plt.show()
 
 def plot_Parameters(df_input_min_max_scaled, FigName=None):
+  from statannot import add_stat_annotation
   df_SC_NC_min_max_scaled = df_input_min_max_scaled.loc[(df_input_min_max_scaled["label"] == 'NC') | (df_input_min_max_scaled["label"] == 'SC')]
   data_plot = pd.melt(df_SC_NC_min_max_scaled, id_vars=['sample','label'], value_vars=NameParameters)
   plt.figure(figsize=(16, 6))
   ax = sns.boxplot(x="variable", y="value", hue="label", data=data_plot, palette=colours, saturation=1)
+  add_stat_annotation( ax, data=data_plot, x="variable", y="value", hue="label", 
+                      box_pairs=[((NameParameters[0], "NC"), (NameParameters[0], "SC")), ((NameParameters[1], "NC"), (NameParameters[1], "SC")), 
+                                 ((NameParameters[2], "NC"), (NameParameters[2], "SC")), ((NameParameters[3], "NC"), (NameParameters[3], "SC")), 
+                                 ((NameParameters[4], "NC"), (NameParameters[4], "SC")), ((NameParameters[5], "NC"), (NameParameters[5], "SC")),
+                                 ((NameParameters[6], "NC"), (NameParameters[6], "SC")), ((NameParameters[7], "NC"), (NameParameters[7], "SC")),
+                                 ((NameParameters[8], "NC"), (NameParameters[8], "SC")), ((NameParameters[9], "NC"), (NameParameters[9], "SC")) ],
+                                 test='Mann-Whitney', text_format='star', loc='inside', verbose=2 )
   ax.set_xticklabels([r"$r_{recruit}[MP]$",r"$\rho_{min}[MP]$",r"$\rho_{sat}[MP]$",r"$r_{recruit}[DC]$",r"$\rho_{min}[DC]$",r"$\rho_{sat}[DC]$",r"$r_{leave}$",r"$\delta_C$",r"$\kappa_{T}$",r"$\delta_{DM}$"],fontsize=14)
   ax.set(xlabel=None)
   ax.set_ylabel('Normalized parameters',fontsize=14)

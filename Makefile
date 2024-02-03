@@ -1,7 +1,7 @@
 #export PHYSICELL_CPP=g++-10 # Running in OSX
 
 VERSION := $(shell grep . VERSION.txt | cut -f1 -d:)
-PROGRAM_NAME := micromets_lung
+PROGRAM_NAME := micromets_immuno
 
 osRelease = $(shell lsb_release -r | sed -e "s/Release:\W*//" -e "s/\..*//")
 ifeq ($(osRelease),7)

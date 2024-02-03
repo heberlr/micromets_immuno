@@ -50,7 +50,7 @@ def plotSamplesMicroEnv(DataFrame, sampleID, ax1, ax2, FontSize=None, replicateI
   # Concatenate dictionaries
   new_df2 = pd.concat([pd.DataFrame(dic3), pd.DataFrame(dic4), pd.DataFrame(dic5), pd.DataFrame(dic6),pd.DataFrame(dic7), pd.DataFrame(dic8), pd.DataFrame(dic9), pd.DataFrame(dic10)],ignore_index=True)
   colours = {'live_lung': 'b', 'live_cancer': 'y', 'inac_DC': '#810F7C', 'act_DC': '#ff1493', 'inac_Mac': '#238B45', 'act_Mac': '#C0FF00', 'exas_Mac': '#A8DD76', 'hyper_MAC': '#A8DDB5', 'live_CD4': 'orange','live_CD8': 'red'}
-  Newlabels = {'live_lung': 'lung cells', 'live_cancer': 'cancer cells', 'inac_DC': 'iDC', 'act_DC': 'aDC', 'inac_Mac': 'M0', 'act_Mac': 'M1/M2', 'exas_Mac': 'eMP', 'hyper_MAC': 'hMP', 'live_CD4': 'CD4+','live_CD8': 'CD8+'}
+  Newlabels = {'live_lung': 'parenchymal', 'live_cancer': 'cancer cells', 'inac_DC': 'iDC', 'act_DC': 'aDC', 'inac_Mac': 'M0', 'act_Mac': 'M1/M2', 'exas_Mac': 'eMP', 'hyper_MAC': 'hMP', 'live_CD4': 'CD4+','live_CD8': 'CD8+'}
 
   CD8_mean_threshold = 50
   ActMac_mean_threshold = 50
