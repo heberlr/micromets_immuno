@@ -13,6 +13,7 @@ from matplotlib_venn import venn3_unweighted
 import seaborn as sns
 
 NameParameters = ["macrophage_max_recruitment_rate","macrophage_recruitment_min_signal","macrophage_recruitment_saturation_signal","DC_max_recruitment_rate","DC_recruitment_min_signal","DC_recruitment_saturation_signal","DC_leave_prob","TC_death_rate","T_Cell_Recruitment","DM_decay"]
+LatexNameParameters = [r"$r_{recruit}[MP]$",r"$\rho_{min}[MP]$",r"$\rho_{sat}[MP]$",r"$r_{recruit}[DC]$",r"$\rho_{min}[DC]$",r"$\rho_{sat}[DC]$",r"$r_{leave}$",r"$\delta_C$",r"$\kappa_{T}$",r"$\delta_{DM}$"]
 NC_Patients_samples = np.array([515, 723, 1810, 2539, 2723, 2958, 3160, 5379, 6040, 7642]) # (No control)
 MC_Patients_samples = np.array([93, 1420, 2602, 3081, 4884, 4972, 5633, 6868, 7956, 8222]) # (Marginal control)
 

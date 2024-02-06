@@ -26,9 +26,11 @@ def plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, Title=False,
 
 def plot_Parameters(df_input_min_max_scaled, FigName=None):
   from statannot import add_stat_annotation
+  ParamsOrder_MannWhitney = [NameParameters[3],NameParameters[0],NameParameters[1],NameParameters[2],NameParameters[8],NameParameters[9],NameParameters[5],NameParameters[4],NameParameters[7],NameParameters[6]]
+  ParamsOrder_MannWhitney_latex = [LatexNameParameters[3],LatexNameParameters[0],LatexNameParameters[1],LatexNameParameters[2],LatexNameParameters[8],LatexNameParameters[9],LatexNameParameters[5],LatexNameParameters[4],LatexNameParameters[7],LatexNameParameters[6]]
   df_SC_NC_min_max_scaled = df_input_min_max_scaled.loc[(df_input_min_max_scaled["label"] == 'NC') | (df_input_min_max_scaled["label"] == 'SC')]
-  data_plot = pd.melt(df_SC_NC_min_max_scaled, id_vars=['sample','label'], value_vars=NameParameters)
-  plt.figure(figsize=(16, 6))
+  data_plot = pd.melt(df_SC_NC_min_max_scaled, id_vars=['sample','label'], value_vars=ParamsOrder_MannWhitney)
+  plt.figure(figsize=(16, 6)) 
   ax = sns.boxplot(x="variable", y="value", hue="label", data=data_plot, palette=colours, saturation=1)
   add_stat_annotation( ax, data=data_plot, x="variable", y="value", hue="label", 
                       box_pairs=[((NameParameters[0], "NC"), (NameParameters[0], "SC")), ((NameParameters[1], "NC"), (NameParameters[1], "SC")), 
@@ -37,7 +39,7 @@ def plot_Parameters(df_input_min_max_scaled, FigName=None):
                                  ((NameParameters[6], "NC"), (NameParameters[6], "SC")), ((NameParameters[7], "NC"), (NameParameters[7], "SC")),
                                  ((NameParameters[8], "NC"), (NameParameters[8], "SC")), ((NameParameters[9], "NC"), (NameParameters[9], "SC")) ],
                                  test='Mann-Whitney', text_format='star', loc='inside', verbose=2 )
-  ax.set_xticklabels([r"$r_{recruit}[MP]$",r"$\rho_{min}[MP]$",r"$\rho_{sat}[MP]$",r"$r_{recruit}[DC]$",r"$\rho_{min}[DC]$",r"$\rho_{sat}[DC]$",r"$r_{leave}$",r"$\delta_C$",r"$\kappa_{T}$",r"$\delta_{DM}$"],fontsize=14)
+  ax.set_xticklabels(ParamsOrder_MannWhitney_latex,fontsize=14)
   ax.set(xlabel=None)
   ax.set_ylabel('Normalized parameters',fontsize=14)
   ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1),fontsize=14)
@@ -149,17 +151,17 @@ if __name__ == '__main__':
     Sim_df_lastFrame = Classifier_Simulations(df_output)
     print("DataFrame info (UMAP trajectories):")
     print(Sim_df_lastFrame.info())
-    # plot_UMAP(Sim_df_lastFrame,FigName='Figure5_B.svg') # Plot UMAP of the trajectories
-    plot_UMAP(Sim_df_lastFrame,NumSamples=4,FigName='Figure5_B_analysis.png')
-    exit()
+    plot_UMAP(Sim_df_lastFrame,FigName='Figure3_B.svg') # Plot UMAP of the trajectories
+    plot_UMAP(Sim_df_lastFrame,NumSamples=4,FigName='Figure3_B_analysis.png')
+
     print("DataFrame info (UMAP trajectories): ",Sim_df_lastFrame.info())
     Pat_df_7classes, Pat_df_3classes = Classifier_Patients(Sim_df_lastFrame)
-    plot_UMAP_MeanPatients(Pat_df_7classes,FigName='Figure5_D.svg') # Plot UMAP of the trajectory averages
+    plot_UMAP_MeanPatients(Pat_df_7classes,FigName='Figure3_D.svg') # Plot UMAP of the trajectory averages
     print("DataFrame info (UMAP trajectory averages): ",Pat_df_7classes.info())
-    exit()
-    plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, FigName='Figure5_AC.svg') # Patient statistics
+    plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, FigName='Figure3_AC.svg') # Patient statistics
+    
     # Plot the quartiles of patient features
     df_input_min_max_scaled = Normalize_Parameters(df_input, Pat_df_3classes)
-    plot_Parameters(df_input_min_max_scaled, FigName='Figure4_A.svg')
+    plot_Parameters(df_input_min_max_scaled, FigName='Figure5_A.svg')
     # Plot the analysis of 20 patients
-    plot_PatientAnalysis(FigName='Figure4_B.svg')
+    plot_PatientAnalysis(FigName='Figure5_B.svg')
