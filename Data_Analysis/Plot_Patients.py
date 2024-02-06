@@ -162,7 +162,6 @@ if __name__ == '__main__':
     
     # Plot the quartiles of patient features
     df_input_min_max_scaled = Normalize_Parameters(df_input, Pat_df_3classes)
-    plot_Parameters(df_input_min_max_scaled, FigName='Figure5.svg')
-    
+    plot_Parameters(df_input_min_max_scaled, FigName='Figure5_A.svg')
     # Plot the analysis of 20 patients
-    plot_PatientAnalysis(FigName='Figure6.svg')
+    plot_PatientAnalysis(FigName='Figure5_B.svg')
