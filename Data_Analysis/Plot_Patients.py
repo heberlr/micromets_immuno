@@ -29,18 +29,36 @@ def plot_Parameters(df_input_min_max_scaled, FigName=None):
   df_SC_NC_min_max_scaled = df_input_min_max_scaled.loc[(df_input_min_max_scaled["label"] == 'NC') | (df_input_min_max_scaled["label"] == 'SC')]
   data_plot = pd.melt(df_SC_NC_min_max_scaled, id_vars=['sample','label'], value_vars=NameParameters)
   plt.figure(figsize=(16, 6))
+  # ordered the dataframe according my list
+  parameters_order = ["DC_max_recruitment_rate","macrophage_max_recruitment_rate","macrophage_recruitment_min_signal","macrophage_recruitment_saturation_signal","T_Cell_Recruitment","DM_decay","DC_recruitment_saturation_signal","DC_recruitment_min_signal","TC_death_rate","DC_leave_prob"] 
+  data_plot.variable = pd.Categorical(data_plot.variable, categories=parameters_order, ordered=True)
+  data_plot.sort_values('variable', inplace=True)
+#   data_plot["variable"] = data_plot["variable"].astype("category", categories=parameters_order, ordered=True)
+#   data_plot["variable"].astype("category")
+  print(data_plot)
   ax = sns.boxplot(x="variable", y="value", hue="label", data=data_plot, palette=colours, saturation=1)
   add_stat_annotation( ax, data=data_plot, x="variable", y="value", hue="label", 
-                      box_pairs=[((NameParameters[0], "NC"), (NameParameters[0], "SC")), ((NameParameters[1], "NC"), (NameParameters[1], "SC")), 
-                                 ((NameParameters[2], "NC"), (NameParameters[2], "SC")), ((NameParameters[3], "NC"), (NameParameters[3], "SC")), 
-                                 ((NameParameters[4], "NC"), (NameParameters[4], "SC")), ((NameParameters[5], "NC"), (NameParameters[5], "SC")),
-                                 ((NameParameters[6], "NC"), (NameParameters[6], "SC")), ((NameParameters[7], "NC"), (NameParameters[7], "SC")),
-                                 ((NameParameters[8], "NC"), (NameParameters[8], "SC")), ((NameParameters[9], "NC"), (NameParameters[9], "SC")) ],
-                                 test='Mann-Whitney', text_format='star', loc='inside', verbose=2 )
-  ax.set_xticklabels([r"$r_{recruit}[MP]$",r"$\rho_{min}[MP]$",r"$\rho_{sat}[MP]$",r"$r_{recruit}[DC]$",r"$\rho_{min}[DC]$",r"$\rho_{sat}[DC]$",r"$r_{leave}$",r"$\delta_C$",r"$\kappa_{T}$",r"$\delta_{DM}$"],fontsize=14)
+                      box_pairs=[((parameters_order[0], "NC"), (parameters_order[0], "SC")), ((parameters_order[1], "NC"), (parameters_order[1], "SC")), 
+                                 ((parameters_order[2], "NC"), (parameters_order[2], "SC")), ((parameters_order[3], "NC"), (parameters_order[3], "SC")), 
+                                 ((parameters_order[4], "NC"), (parameters_order[4], "SC")), ((parameters_order[5], "NC"), (parameters_order[5], "SC")),
+                                 ((parameters_order[6], "NC"), (parameters_order[6], "SC")), ((parameters_order[7], "NC"), (parameters_order[7], "SC")),
+                                 ((parameters_order[8], "NC"), (parameters_order[8], "SC")), ((parameters_order[9], "NC"), (parameters_order[9], "SC")) ],
+                                 test='Mann-Whitney', text_format='star', loc='inside', verbose=2, fontsize=18 )
+  latex_label = {"macrophage_max_recruitment_rate": r"$r_{recruit}[M]$",
+                 "macrophage_recruitment_min_signal": r"$\rho_{min}[M]$",
+                 "macrophage_recruitment_saturation_signal": r"$\rho_{sat}[M]$",
+                 "DC_max_recruitment_rate": r"$r_{recruit}[D]$",
+                 "DC_recruitment_min_signal": r"$\rho_{min}[D]$",
+                 "DC_recruitment_saturation_signal": r"$\rho_{sat}[D]$",
+                 "DC_leave_prob": r"$r_{leave}$",
+                 "TC_death_rate": r"$\delta_C$",
+                 "T_Cell_Recruitment": r"$\kappa_{T}$",
+                 "DM_decay": r"$\delta_{DM}$"}
+  ax.set_xticklabels([latex_label[par] for par in parameters_order],fontsize=16)
   ax.set(xlabel=None)
-  ax.set_ylabel('Normalized parameters',fontsize=14)
-  ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1),fontsize=14)
+  ax.set_ylabel('Normalized parameters',fontsize=18)
+  ax.set_yticklabels(labels=ax.get_yticklabels(), fontsize=16)
+  ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1),fontsize=16)
   if (FigName): plt.savefig(FigName)
   else: plt.show()
 
@@ -51,12 +69,12 @@ def plot_PatientAnalysis(PlotPatientPoint = False, FigName=None):
     # Patient classified as marginal control
     ax_title_1 = plt.subplot(G[0, 0])
     ax_title_1.axis('off')
-    ax_title_1.set_title('Ten virtual patients initially classified as marginal control (MC)')
+    ax_title_1.set_title('Ten virtual patients initially classified as marginal control (MC)', fontsize=16)
     G0 = gridspec.GridSpecFromSubplotSpec(2, 5, subplot_spec=G[1,0])
     # Patient classified as no control
     ax_title_2 = plt.subplot(G[2, 0])
     ax_title_2.axis('off')
-    ax_title_2.set_title('Ten virtual patients initially classified as no control (NC)')
+    ax_title_2.set_title('Ten virtual patients initially classified as no control (NC)', fontsize=16)
     G1 = gridspec.GridSpecFromSubplotSpec(2, 5, subplot_spec=G[3,0])
     # Axes color bar
     axcb = plt.subplot(G[:, 1])
@@ -95,14 +113,14 @@ def plot_PatientAnalysis(PlotPatientPoint = False, FigName=None):
             DC_rec_value = df_input.loc[df_input['sample'] == patientID]['DC_max_recruitment_rate'].values[0]
             ax.scatter(3*MAC_rec_value/8e-9,3*DC_rec_value/4e-9, color=colours['NC'], edgecolors='k')
 
-    fig.supxlabel(r'$r_{recruit}[MP]$')
-    fig.supylabel(r'$r_{recruit}[DC]$')
+    fig.supxlabel(r'$r_{recruit}[M]$', fontsize=16)
+    fig.supylabel(r'$r_{recruit}[D]$', fontsize=16)
     # modify colorbar:
     colorbar = ax.collections[0].colorbar
     r = colorbar.vmax - colorbar.vmin
     NumPoints = len(NewColours.keys())
     colorbar.set_ticks([colorbar.vmin + r / NumPoints * (0.5 + i) for i in range(NumPoints)])
-    colorbar.set_ticklabels(NewColours.keys())
+    colorbar.set_ticklabels(NewColours.keys(), fontsize=16, rotation='vertical')
     plt.tight_layout()
     if (FigName): plt.savefig(FigName)
     else: plt.show()
@@ -115,6 +133,8 @@ def plot_UMAP(Sim_df_lastFrame, FigName=None, NumSamples=None):
     if NumSamples:
         cluster1 = df_UMAP.loc[ (df_UMAP['UMAP1'] < 10) & (df_UMAP['label'] == 'NC') ].sample(n=NumSamples, random_state=42).index.to_numpy()
         cluster2 = df_UMAP.loc[ (df_UMAP['UMAP1'] >= 10) & (df_UMAP['label'] == 'NC')].sample(n=NumSamples, random_state=42).index.to_numpy()
+        cluster1 = np.delete(cluster1, 2) # remove sample 6555 
+        cluster2 = np.delete(cluster2, 0) # remove sample 4967
         df_UMAP['label'] = ['NC1' if temp_s in cluster1 else  temp_label for temp_s, temp_label  in zip(df_UMAP.index.to_numpy(),df_UMAP['label'])]
         df_UMAP['label'] = ['NC2' if temp_s in cluster2 else  temp_label for temp_s, temp_label  in zip(df_UMAP.index.to_numpy(),df_UMAP['label'])]
         print(df_UMAP.loc[df_UMAP['label'] == 'NC1'] )
@@ -147,19 +167,21 @@ def plot_UMAP_MeanPatients(Pat_df_7classes, FigName=None):
 if __name__ == '__main__':
     df_input, df_output = Loading_dataset()
     Sim_df_lastFrame = Classifier_Simulations(df_output)
-    print("DataFrame info (UMAP trajectories):")
-    print(Sim_df_lastFrame.info())
-    # plot_UMAP(Sim_df_lastFrame,FigName='Figure5_B.svg') # Plot UMAP of the trajectories
-    plot_UMAP(Sim_df_lastFrame,NumSamples=4,FigName='Figure5_B_analysis.png')
-    exit()
-    print("DataFrame info (UMAP trajectories): ",Sim_df_lastFrame.info())
-    Pat_df_7classes, Pat_df_3classes = Classifier_Patients(Sim_df_lastFrame)
-    plot_UMAP_MeanPatients(Pat_df_7classes,FigName='Figure5_D.svg') # Plot UMAP of the trajectory averages
-    print("DataFrame info (UMAP trajectory averages): ",Pat_df_7classes.info())
-    exit()
-    plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, FigName='Figure5_AC.svg') # Patient statistics
+    # print("DataFrame info (UMAP trajectories):")
+    # print(Sim_df_lastFrame.info())
+    # # plot_UMAP(Sim_df_lastFrame,FigName='Figure5_B.svg') # Plot UMAP of the trajectories
+    # plot_UMAP(Sim_df_lastFrame,NumSamples=4,FigName='Figure5_B_analysis.png')
+    # exit()
+    # print("DataFrame info (UMAP trajectories): ",Sim_df_lastFrame.info())
+    # Pat_df_7classes, Pat_df_3classes = Classifier_Patients(Sim_df_lastFrame)
+    # plot_UMAP_MeanPatients(Pat_df_7classes,FigName='Figure5_D.svg') # Plot UMAP of the trajectory averages
+    # print("DataFrame info (UMAP trajectory averages): ",Pat_df_7classes.info())
+    # exit()
+    # plot_Patients(Sim_df_lastFrame,Pat_df_7classes,Pat_df_3classes, FigName='Figure5_AC.svg') # Patient statistics
     # Plot the quartiles of patient features
-    df_input_min_max_scaled = Normalize_Parameters(df_input, Pat_df_3classes)
-    plot_Parameters(df_input_min_max_scaled, FigName='Figure4_A.svg')
+    # df_input_min_max_scaled = Normalize_Parameters(df_input, Pat_df_3classes)
+    # plot_Parameters(df_input_min_max_scaled, FigName='Figure4_A.svg')
     # Plot the analysis of 20 patients
-    plot_PatientAnalysis(FigName='Figure4_B.svg')
+    # plot_PatientAnalysis(FigName='Figure4_B.svg')
+    # Plot the SM2 
+    plot_UMAP(Sim_df_lastFrame,NumSamples=4,FigName='FigureSM2.svg')
