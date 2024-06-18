@@ -11,3 +11,4 @@
 /Results/
 *.pickle
 *.ipynb_checkpoints*
+.DS_Store
