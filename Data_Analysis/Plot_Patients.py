@@ -184,4 +184,4 @@ if __name__ == '__main__':
     # Plot the analysis of 20 patients
     # plot_PatientAnalysis(FigName='Figure4_B.svg')
     # Plot the SM2 
-    plot_UMAP(Sim_df_lastFrame,NumSamples=4,FigName='FigureSM2.svg')
+    plot_UMAP(Sim_df_lastFrame,NumSamples=4,FigName='FigureSM2.png')
