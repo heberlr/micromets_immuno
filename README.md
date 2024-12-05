@@ -1,4 +1,7 @@
 # A multiscale model of immune surveillance in micrometastases
+**Published in:**
+
+L. Rocha, H., Aguilar, B., Getz, M. et al. A multiscale model of immune surveillance in micrometastases gives insights on cancer patient digital twins. npj Syst Biol Appl 10, 144 (2024). [https://doi.org/10.1038/s41540-024-00472-z](https://doi.org/10.1038/s41540-024-00472-z)
 
 ## The multiscale model
 Building off of recent COVID-19 modeling (https://www.biorxiv.org/content/10.1101/2020.04.02.019075v4), we developed an agent-based model of immune surveillance in micrometastases. The model includes cancer cells, parenchymal cells, key immune cell types, and cytokine-mediated and mechanical interactions. Immune cells traffic to and from the lymphatic system to drive an expanding immune response.
